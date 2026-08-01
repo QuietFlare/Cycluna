@@ -1,0 +1,17 @@
+# Gradle / Kotlin
+.gradle/
+.kotlin/
+build/
+!gradle/wrapper/gradle-wrapper.jar
+local.properties
+
+# Xcode / iOS
+xcuserdata/
+*.xcuserstate
+DerivedData/
+.DS_Store
+
+# Secrets — app holds only the public Worker URL; never commit real secrets
+.env
+.env.*
+!.env.example

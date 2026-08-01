@@ -1,0 +1,20 @@
+{
+  "schema": "cycluna.moon-events.v1",
+  "source": "Lunar eclipse dates (UTC) from the published 21st-century lunar-eclipse catalogue (astronomical facts). Everyday phases and blue/black moons are computed on-device, not listed here.",
+  "events": [
+    { "date": "2025-03-14", "type": "eclipse-total",     "title": "Blood moon",              "detail": "Total lunar eclipse" },
+    { "date": "2025-09-07", "type": "eclipse-total",     "title": "Blood moon",              "detail": "Total lunar eclipse" },
+    { "date": "2026-03-03", "type": "eclipse-total",     "title": "Blood moon",              "detail": "Total lunar eclipse" },
+    { "date": "2026-08-28", "type": "eclipse-partial",   "title": "Partial lunar eclipse",   "detail": "Partial lunar eclipse" },
+    { "date": "2027-02-20", "type": "eclipse-penumbral", "title": "Penumbral eclipse",       "detail": "Penumbral lunar eclipse" },
+    { "date": "2027-07-18", "type": "eclipse-penumbral", "title": "Penumbral eclipse",       "detail": "Penumbral lunar eclipse" },
+    { "date": "2027-08-17", "type": "eclipse-penumbral", "title": "Penumbral eclipse",       "detail": "Penumbral lunar eclipse" },
+    { "date": "2028-01-12", "type": "eclipse-partial",   "title": "Partial lunar eclipse",   "detail": "Partial lunar eclipse" },
+    { "date": "2028-07-06", "type": "eclipse-partial",   "title": "Partial lunar eclipse",   "detail": "Partial lunar eclipse" },
+    { "date": "2028-12-31", "type": "eclipse-total",     "title": "Blood moon",              "detail": "Total lunar eclipse" },
+    { "date": "2029-06-26", "type": "eclipse-total",     "title": "Blood moon",              "detail": "Total lunar eclipse" },
+    { "date": "2029-12-20", "type": "eclipse-total",     "title": "Blood moon",              "detail": "Total lunar eclipse" },
+    { "date": "2030-06-15", "type": "eclipse-partial",   "title": "Partial lunar eclipse",   "detail": "Partial lunar eclipse" },
+    { "date": "2030-12-09", "type": "eclipse-penumbral", "title": "Penumbral eclipse",       "detail": "Penumbral lunar eclipse" }
+  ]
+}

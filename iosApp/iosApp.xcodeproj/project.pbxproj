@@ -1,0 +1,510 @@
+// !$*UTF8*$!
+{
+	archiveVersion = 1;
+	classes = {
+	};
+	objectVersion = 77;
+	objects = {
+
+/* Begin PBXBuildFile section */
+		09FED4B446BD58DF150C455A /* PrivacyInfo.xcprivacy in Resources */ = {isa = PBXBuildFile; fileRef = C6D2DD7FE2E0BF5DB2A96B4B /* PrivacyInfo.xcprivacy */; };
+		0B571DA49BF963852926706F /* CyclesCard.swift in Sources */ = {isa = PBXBuildFile; fileRef = DD91875AAD4215416BB5538D /* CyclesCard.swift */; };
+		0BBE51BE44A7F51FBB5C3DAC /* PhaseContent.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1CD236BF6CA2B27D1006AE0F /* PhaseContent.swift */; };
+		17D877DDEC49794DC376B121 /* Theme.swift in Sources */ = {isa = PBXBuildFile; fileRef = 293C803154C68DC21F70850C /* Theme.swift */; };
+		22EA1CB33A17DCC6FC82406D /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = F543015C899423D4B01CEB2E /* Assets.xcassets */; };
+		2D0F4AA7CD25E418D74F8D13 /* JournalView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 23ACD5EEE0D92FA3A2582592 /* JournalView.swift */; };
+		307C2654CD5972A25FB7FD87 /* iOSApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = 668CECA83ACC03A83C85A623 /* iOSApp.swift */; };
+		35FDF75CACF8123E41350D44 /* moon-events.json in Resources */ = {isa = PBXBuildFile; fileRef = 7C3F7C14F19337B551DEEACD /* moon-events.json */; };
+		3CC7B86A9A87D4BD10AAF15C /* MoonWheel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 35C9BD4A028EF537A38FFF0D /* MoonWheel.swift */; };
+		3D105B6469EFC7FE8F3B8187 /* OnboardingView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0BB085D77DF580BE731F47E6 /* OnboardingView.swift */; };
+		44414C784143D022614D1BE3 /* HomeView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A64E48912803126FFA9419CF /* HomeView.swift */; };
+		4603952FCC980D6A8C62C012 /* MoonEventCatalog.swift in Sources */ = {isa = PBXBuildFile; fileRef = F8CB42801875358EE3DE8630 /* MoonEventCatalog.swift */; };
+		695DBC87AE8E61B4362AC163 /* HormoneChartCard.swift in Sources */ = {isa = PBXBuildFile; fileRef = D617A58974EC4C72F4308000 /* HormoneChartCard.swift */; };
+		764BD61C559966F804C8FBC5 /* AppLock.swift in Sources */ = {isa = PBXBuildFile; fileRef = C1B2A2D273CF7EC1AE1615B4 /* AppLock.swift */; };
+		793628C45927204301A5F295 /* MoodStripCard.swift in Sources */ = {isa = PBXBuildFile; fileRef = 19256911C7B4F237B97A5BFE /* MoodStripCard.swift */; };
+		93EB4C4415263552F6896ECD /* ReminderManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1021D23A188820C4E39F66A5 /* ReminderManager.swift */; };
+		9ED9A97B860387FD19CB15FE /* MoonDisc.swift in Sources */ = {isa = PBXBuildFile; fileRef = C369F82A096088FB7CC058E5 /* MoonDisc.swift */; };
+		9EFBA3197348CA38884D80DC /* AppTheme.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4573278F47EE8D0F060569F5 /* AppTheme.swift */; };
+		D51B2694E00DB8DEB8D00FAB /* MoodCycleCard.swift in Sources */ = {isa = PBXBuildFile; fileRef = D0789F2B8FE5CDFD96D421C1 /* MoodCycleCard.swift */; };
+		DDFDC474602B4FE4C55995CD /* PhasesView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6616FEEC09173BCB13239AC9 /* PhasesView.swift */; };
+		E2F9A808E6F7310A695291A7 /* MoonSection.swift in Sources */ = {isa = PBXBuildFile; fileRef = C3A6342845F3A129A536C657 /* MoonSection.swift */; };
+		EA3CADFC8E8A168B1E594CE6 /* CycleStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = DBC906F4B4CE37070861E556 /* CycleStore.swift */; };
+		F09769A38C37F584CED919F9 /* MeView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6408F44194CE06FAA24A5A97 /* MeView.swift */; };
+		F32CF61100D6E86441519F63 /* CalendarCard.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2F58225F23A0ECAD68D3F797 /* CalendarCard.swift */; };
+		F9F29CADDA5CA0C46E44B2F5 /* Loggers.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8CF396E6CDD244CE50197F69 /* Loggers.swift */; };
+		FFF93642A27B8411D7A8E6BE /* RootView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2925723D1B4AC9FBF45C9F3F /* RootView.swift */; };
+/* End PBXBuildFile section */
+
+/* Begin PBXFileReference section */
+		0BB085D77DF580BE731F47E6 /* OnboardingView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OnboardingView.swift; sourceTree = "<group>"; };
+		1021D23A188820C4E39F66A5 /* ReminderManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ReminderManager.swift; sourceTree = "<group>"; };
+		19256911C7B4F237B97A5BFE /* MoodStripCard.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MoodStripCard.swift; sourceTree = "<group>"; };
+		1CD236BF6CA2B27D1006AE0F /* PhaseContent.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PhaseContent.swift; sourceTree = "<group>"; };
+		23ACD5EEE0D92FA3A2582592 /* JournalView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = JournalView.swift; sourceTree = "<group>"; };
+		2925723D1B4AC9FBF45C9F3F /* RootView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RootView.swift; sourceTree = "<group>"; };
+		293C803154C68DC21F70850C /* Theme.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Theme.swift; sourceTree = "<group>"; };
+		2F58225F23A0ECAD68D3F797 /* CalendarCard.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CalendarCard.swift; sourceTree = "<group>"; };
+		35C9BD4A028EF537A38FFF0D /* MoonWheel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MoonWheel.swift; sourceTree = "<group>"; };
+		4573278F47EE8D0F060569F5 /* AppTheme.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppTheme.swift; sourceTree = "<group>"; };
+		6408F44194CE06FAA24A5A97 /* MeView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MeView.swift; sourceTree = "<group>"; };
+		6616FEEC09173BCB13239AC9 /* PhasesView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PhasesView.swift; sourceTree = "<group>"; };
+		668CECA83ACC03A83C85A623 /* iOSApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = iOSApp.swift; sourceTree = "<group>"; };
+		7C3F7C14F19337B551DEEACD /* moon-events.json */ = {isa = PBXFileReference; lastKnownFileType = text.json; path = "moon-events.json"; sourceTree = "<group>"; };
+		86038AE1032E284E79B32AD6 /* iosApp.app */ = {isa = PBXFileReference; includeInIndex = 0; lastKnownFileType = wrapper.application; path = iosApp.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		8CF396E6CDD244CE50197F69 /* Loggers.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Loggers.swift; sourceTree = "<group>"; };
+		A64E48912803126FFA9419CF /* HomeView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HomeView.swift; sourceTree = "<group>"; };
+		C117AD187833E2513BD2F553 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist; path = Info.plist; sourceTree = "<group>"; };
+		C1B2A2D273CF7EC1AE1615B4 /* AppLock.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppLock.swift; sourceTree = "<group>"; };
+		C369F82A096088FB7CC058E5 /* MoonDisc.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MoonDisc.swift; sourceTree = "<group>"; };
+		C3A6342845F3A129A536C657 /* MoonSection.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MoonSection.swift; sourceTree = "<group>"; };
+		C6D2DD7FE2E0BF5DB2A96B4B /* PrivacyInfo.xcprivacy */ = {isa = PBXFileReference; path = PrivacyInfo.xcprivacy; sourceTree = "<group>"; };
+		D0789F2B8FE5CDFD96D421C1 /* MoodCycleCard.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MoodCycleCard.swift; sourceTree = "<group>"; };
+		D617A58974EC4C72F4308000 /* HormoneChartCard.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HormoneChartCard.swift; sourceTree = "<group>"; };
+		DBC906F4B4CE37070861E556 /* CycleStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CycleStore.swift; sourceTree = "<group>"; };
+		DD91875AAD4215416BB5538D /* CyclesCard.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CyclesCard.swift; sourceTree = "<group>"; };
+		F543015C899423D4B01CEB2E /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
+		F8CB42801875358EE3DE8630 /* MoonEventCatalog.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MoonEventCatalog.swift; sourceTree = "<group>"; };
+/* End PBXFileReference section */
+
+/* Begin PBXGroup section */
+		00DC1A39F70C25CE0C0A51BF /* Features */ = {
+			isa = PBXGroup;
+			children = (
+				EF828A349B945442C2FE144A /* Home */,
+				2DE4AAB9B09B550BC9320FA4 /* Journal */,
+				D2E3EE856A7B59287225CDC5 /* Onboarding */,
+				285362CA4749ACDDE4B92314 /* Phases */,
+				BFEEB3B73B5292D3573AE0BD /* Settings */,
+			);
+			path = Features;
+			sourceTree = "<group>";
+		};
+		1DB4B685CAEE8BEFEBBAEF94 /* iosApp */ = {
+			isa = PBXGroup;
+			children = (
+				F543015C899423D4B01CEB2E /* Assets.xcassets */,
+				C117AD187833E2513BD2F553 /* Info.plist */,
+				668CECA83ACC03A83C85A623 /* iOSApp.swift */,
+				C6D2DD7FE2E0BF5DB2A96B4B /* PrivacyInfo.xcprivacy */,
+				2925723D1B4AC9FBF45C9F3F /* RootView.swift */,
+				E7C70F35967EA22559A3075D /* Core */,
+				BB343BC5AC4DAADDC5FEBA13 /* DesignSystem */,
+				00DC1A39F70C25CE0C0A51BF /* Features */,
+				1EEC3D4E9285A39087C3ADA0 /* Resources */,
+			);
+			path = iosApp;
+			sourceTree = "<group>";
+		};
+		1EEC3D4E9285A39087C3ADA0 /* Resources */ = {
+			isa = PBXGroup;
+			children = (
+				7C3F7C14F19337B551DEEACD /* moon-events.json */,
+			);
+			path = Resources;
+			sourceTree = "<group>";
+		};
+		285362CA4749ACDDE4B92314 /* Phases */ = {
+			isa = PBXGroup;
+			children = (
+				D617A58974EC4C72F4308000 /* HormoneChartCard.swift */,
+				1CD236BF6CA2B27D1006AE0F /* PhaseContent.swift */,
+				6616FEEC09173BCB13239AC9 /* PhasesView.swift */,
+			);
+			path = Phases;
+			sourceTree = "<group>";
+		};
+		2DE4AAB9B09B550BC9320FA4 /* Journal */ = {
+			isa = PBXGroup;
+			children = (
+				23ACD5EEE0D92FA3A2582592 /* JournalView.swift */,
+				8CF396E6CDD244CE50197F69 /* Loggers.swift */,
+				D0789F2B8FE5CDFD96D421C1 /* MoodCycleCard.swift */,
+				19256911C7B4F237B97A5BFE /* MoodStripCard.swift */,
+			);
+			path = Journal;
+			sourceTree = "<group>";
+		};
+		38B69C3F79CD97858CF7B609 = {
+			isa = PBXGroup;
+			children = (
+				1DB4B685CAEE8BEFEBBAEF94 /* iosApp */,
+				94C98B8B3A2BFC1966447269 /* Products */,
+			);
+			sourceTree = "<group>";
+		};
+		94C98B8B3A2BFC1966447269 /* Products */ = {
+			isa = PBXGroup;
+			children = (
+				86038AE1032E284E79B32AD6 /* iosApp.app */,
+			);
+			name = Products;
+			sourceTree = "<group>";
+		};
+		BB343BC5AC4DAADDC5FEBA13 /* DesignSystem */ = {
+			isa = PBXGroup;
+			children = (
+				4573278F47EE8D0F060569F5 /* AppTheme.swift */,
+				293C803154C68DC21F70850C /* Theme.swift */,
+			);
+			path = DesignSystem;
+			sourceTree = "<group>";
+		};
+		BFEEB3B73B5292D3573AE0BD /* Settings */ = {
+			isa = PBXGroup;
+			children = (
+				6408F44194CE06FAA24A5A97 /* MeView.swift */,
+			);
+			path = Settings;
+			sourceTree = "<group>";
+		};
+		D2E3EE856A7B59287225CDC5 /* Onboarding */ = {
+			isa = PBXGroup;
+			children = (
+				0BB085D77DF580BE731F47E6 /* OnboardingView.swift */,
+			);
+			path = Onboarding;
+			sourceTree = "<group>";
+		};
+		E7C70F35967EA22559A3075D /* Core */ = {
+			isa = PBXGroup;
+			children = (
+				C1B2A2D273CF7EC1AE1615B4 /* AppLock.swift */,
+				DBC906F4B4CE37070861E556 /* CycleStore.swift */,
+				F8CB42801875358EE3DE8630 /* MoonEventCatalog.swift */,
+				1021D23A188820C4E39F66A5 /* ReminderManager.swift */,
+			);
+			path = Core;
+			sourceTree = "<group>";
+		};
+		EF828A349B945442C2FE144A /* Home */ = {
+			isa = PBXGroup;
+			children = (
+				2F58225F23A0ECAD68D3F797 /* CalendarCard.swift */,
+				DD91875AAD4215416BB5538D /* CyclesCard.swift */,
+				A64E48912803126FFA9419CF /* HomeView.swift */,
+				C369F82A096088FB7CC058E5 /* MoonDisc.swift */,
+				C3A6342845F3A129A536C657 /* MoonSection.swift */,
+				35C9BD4A028EF537A38FFF0D /* MoonWheel.swift */,
+			);
+			path = Home;
+			sourceTree = "<group>";
+		};
+/* End PBXGroup section */
+
+/* Begin PBXNativeTarget section */
+		78B53CC79860CBFC2F5543C6 /* iosApp */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = 29DCA9F0B3A40325067EB163 /* Build configuration list for PBXNativeTarget "iosApp" */;
+			buildPhases = (
+				89040248463E94D965A70F24 /* Build KMP Shared framework */,
+				297B59D9CE634556D6007C40 /* Sources */,
+				1623B02D10928C8101C1F806 /* Resources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+			);
+			name = iosApp;
+			packageProductDependencies = (
+			);
+			productName = iosApp;
+			productReference = 86038AE1032E284E79B32AD6 /* iosApp.app */;
+			productType = "com.apple.product-type.application";
+		};
+/* End PBXNativeTarget section */
+
+/* Begin PBXProject section */
+		242FB5348943441C388468CE /* Project object */ = {
+			isa = PBXProject;
+			attributes = {
+				BuildIndependentTargetsInParallel = YES;
+				LastUpgradeCheck = 1430;
+				TargetAttributes = {
+				};
+			};
+			buildConfigurationList = FF7CA1CA754D017066F1822F /* Build configuration list for PBXProject "iosApp" */;
+			developmentRegion = en;
+			hasScannedForEncodings = 0;
+			knownRegions = (
+				Base,
+				en,
+			);
+			mainGroup = 38B69C3F79CD97858CF7B609;
+			minimizedProjectReferenceProxies = 1;
+			preferredProjectObjectVersion = 77;
+			productRefGroup = 94C98B8B3A2BFC1966447269 /* Products */;
+			projectDirPath = "";
+			projectRoot = "";
+			targets = (
+				78B53CC79860CBFC2F5543C6 /* iosApp */,
+			);
+		};
+/* End PBXProject section */
+
+/* Begin PBXResourcesBuildPhase section */
+		1623B02D10928C8101C1F806 /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				22EA1CB33A17DCC6FC82406D /* Assets.xcassets in Resources */,
+				09FED4B446BD58DF150C455A /* PrivacyInfo.xcprivacy in Resources */,
+				35FDF75CACF8123E41350D44 /* moon-events.json in Resources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXResourcesBuildPhase section */
+
+/* Begin PBXShellScriptBuildPhase section */
+		89040248463E94D965A70F24 /* Build KMP Shared framework */ = {
+			isa = PBXShellScriptBuildPhase;
+			alwaysOutOfDate = 1;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			inputFileListPaths = (
+			);
+			inputPaths = (
+			);
+			name = "Build KMP Shared framework";
+			outputFileListPaths = (
+			);
+			outputPaths = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+			shellPath = /bin/sh;
+			shellScript = "set -e\ncd \"$SRCROOT/..\"\nJAVA_HOME=\"/Library/Java/JavaVirtualMachines/temurin-17.jdk/Contents/Home\" \\\n  ./gradlew :shared:embedAndSignAppleFrameworkForXcode\n";
+		};
+/* End PBXShellScriptBuildPhase section */
+
+/* Begin PBXSourcesBuildPhase section */
+		297B59D9CE634556D6007C40 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				764BD61C559966F804C8FBC5 /* AppLock.swift in Sources */,
+				9EFBA3197348CA38884D80DC /* AppTheme.swift in Sources */,
+				F32CF61100D6E86441519F63 /* CalendarCard.swift in Sources */,
+				EA3CADFC8E8A168B1E594CE6 /* CycleStore.swift in Sources */,
+				0B571DA49BF963852926706F /* CyclesCard.swift in Sources */,
+				44414C784143D022614D1BE3 /* HomeView.swift in Sources */,
+				695DBC87AE8E61B4362AC163 /* HormoneChartCard.swift in Sources */,
+				2D0F4AA7CD25E418D74F8D13 /* JournalView.swift in Sources */,
+				F9F29CADDA5CA0C46E44B2F5 /* Loggers.swift in Sources */,
+				F09769A38C37F584CED919F9 /* MeView.swift in Sources */,
+				D51B2694E00DB8DEB8D00FAB /* MoodCycleCard.swift in Sources */,
+				793628C45927204301A5F295 /* MoodStripCard.swift in Sources */,
+				9ED9A97B860387FD19CB15FE /* MoonDisc.swift in Sources */,
+				4603952FCC980D6A8C62C012 /* MoonEventCatalog.swift in Sources */,
+				E2F9A808E6F7310A695291A7 /* MoonSection.swift in Sources */,
+				3CC7B86A9A87D4BD10AAF15C /* MoonWheel.swift in Sources */,
+				3D105B6469EFC7FE8F3B8187 /* OnboardingView.swift in Sources */,
+				0BBE51BE44A7F51FBB5C3DAC /* PhaseContent.swift in Sources */,
+				DDFDC474602B4FE4C55995CD /* PhasesView.swift in Sources */,
+				93EB4C4415263552F6896ECD /* ReminderManager.swift in Sources */,
+				FFF93642A27B8411D7A8E6BE /* RootView.swift in Sources */,
+				17D877DDEC49794DC376B121 /* Theme.swift in Sources */,
+				307C2654CD5972A25FB7FD87 /* iOSApp.swift in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXSourcesBuildPhase section */
+
+/* Begin XCBuildConfiguration section */
+		11814011E7D6EC822BFBC66D /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				CLANG_ANALYZER_NONNULL = YES;
+				CLANG_ANALYZER_NUMBER_OBJECT_CONVERSION = YES_AGGRESSIVE;
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++14";
+				CLANG_CXX_LIBRARY = "libc++";
+				CLANG_ENABLE_MODULES = YES;
+				CLANG_ENABLE_OBJC_ARC = YES;
+				CLANG_ENABLE_OBJC_WEAK = YES;
+				CLANG_WARN_BLOCK_CAPTURE_AUTORELEASING = YES;
+				CLANG_WARN_BOOL_CONVERSION = YES;
+				CLANG_WARN_COMMA = YES;
+				CLANG_WARN_CONSTANT_CONVERSION = YES;
+				CLANG_WARN_DEPRECATED_OBJC_IMPLEMENTATIONS = YES;
+				CLANG_WARN_DIRECT_OBJC_ISA_USAGE = YES_ERROR;
+				CLANG_WARN_DOCUMENTATION_COMMENTS = YES;
+				CLANG_WARN_EMPTY_BODY = YES;
+				CLANG_WARN_ENUM_CONVERSION = YES;
+				CLANG_WARN_INFINITE_RECURSION = YES;
+				CLANG_WARN_INT_CONVERSION = YES;
+				CLANG_WARN_NON_LITERAL_NULL_CONVERSION = YES;
+				CLANG_WARN_OBJC_IMPLICIT_RETAIN_SELF = YES;
+				CLANG_WARN_OBJC_LITERAL_CONVERSION = YES;
+				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
+				CLANG_WARN_QUOTED_INCLUDE_IN_FRAMEWORK_HEADER = YES;
+				CLANG_WARN_RANGE_LOOP_ANALYSIS = YES;
+				CLANG_WARN_STRICT_PROTOTYPES = YES;
+				CLANG_WARN_SUSPICIOUS_MOVE = YES;
+				CLANG_WARN_UNGUARDED_AVAILABILITY = YES_AGGRESSIVE;
+				CLANG_WARN_UNREACHABLE_CODE = YES;
+				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
+				COPY_PHASE_STRIP = NO;
+				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
+				ENABLE_NS_ASSERTIONS = NO;
+				ENABLE_STRICT_OBJC_MSGSEND = YES;
+				GCC_C_LANGUAGE_STANDARD = gnu11;
+				GCC_NO_COMMON_BLOCKS = YES;
+				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
+				GCC_WARN_ABOUT_RETURN_TYPE = YES_ERROR;
+				GCC_WARN_UNDECLARED_SELECTOR = YES;
+				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
+				GCC_WARN_UNUSED_FUNCTION = YES;
+				GCC_WARN_UNUSED_VARIABLE = YES;
+				IPHONEOS_DEPLOYMENT_TARGET = 17.0;
+				JAVA_HOME_FOR_KMP = "/Library/Java/JavaVirtualMachines/temurin-17.jdk/Contents/Home";
+				MTL_ENABLE_DEBUG_INFO = NO;
+				MTL_FAST_MATH = YES;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SDKROOT = iphoneos;
+				SWIFT_COMPILATION_MODE = wholemodule;
+				SWIFT_OPTIMIZATION_LEVEL = "-O";
+				SWIFT_VERSION = 5.0;
+			};
+			name = Release;
+		};
+		6C824A6EB4BAD43AE2A4BB29 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				CLANG_ANALYZER_NONNULL = YES;
+				CLANG_ANALYZER_NUMBER_OBJECT_CONVERSION = YES_AGGRESSIVE;
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++14";
+				CLANG_CXX_LIBRARY = "libc++";
+				CLANG_ENABLE_MODULES = YES;
+				CLANG_ENABLE_OBJC_ARC = YES;
+				CLANG_ENABLE_OBJC_WEAK = YES;
+				CLANG_WARN_BLOCK_CAPTURE_AUTORELEASING = YES;
+				CLANG_WARN_BOOL_CONVERSION = YES;
+				CLANG_WARN_COMMA = YES;
+				CLANG_WARN_CONSTANT_CONVERSION = YES;
+				CLANG_WARN_DEPRECATED_OBJC_IMPLEMENTATIONS = YES;
+				CLANG_WARN_DIRECT_OBJC_ISA_USAGE = YES_ERROR;
+				CLANG_WARN_DOCUMENTATION_COMMENTS = YES;
+				CLANG_WARN_EMPTY_BODY = YES;
+				CLANG_WARN_ENUM_CONVERSION = YES;
+				CLANG_WARN_INFINITE_RECURSION = YES;
+				CLANG_WARN_INT_CONVERSION = YES;
+				CLANG_WARN_NON_LITERAL_NULL_CONVERSION = YES;
+				CLANG_WARN_OBJC_IMPLICIT_RETAIN_SELF = YES;
+				CLANG_WARN_OBJC_LITERAL_CONVERSION = YES;
+				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
+				CLANG_WARN_QUOTED_INCLUDE_IN_FRAMEWORK_HEADER = YES;
+				CLANG_WARN_RANGE_LOOP_ANALYSIS = YES;
+				CLANG_WARN_STRICT_PROTOTYPES = YES;
+				CLANG_WARN_SUSPICIOUS_MOVE = YES;
+				CLANG_WARN_UNGUARDED_AVAILABILITY = YES_AGGRESSIVE;
+				CLANG_WARN_UNREACHABLE_CODE = YES;
+				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
+				COPY_PHASE_STRIP = NO;
+				DEBUG_INFORMATION_FORMAT = dwarf;
+				ENABLE_STRICT_OBJC_MSGSEND = YES;
+				ENABLE_TESTABILITY = YES;
+				GCC_C_LANGUAGE_STANDARD = gnu11;
+				GCC_DYNAMIC_NO_PIC = NO;
+				GCC_NO_COMMON_BLOCKS = YES;
+				GCC_OPTIMIZATION_LEVEL = 0;
+				GCC_PREPROCESSOR_DEFINITIONS = (
+					"$(inherited)",
+					"DEBUG=1",
+				);
+				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
+				GCC_WARN_ABOUT_RETURN_TYPE = YES_ERROR;
+				GCC_WARN_UNDECLARED_SELECTOR = YES;
+				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
+				GCC_WARN_UNUSED_FUNCTION = YES;
+				GCC_WARN_UNUSED_VARIABLE = YES;
+				IPHONEOS_DEPLOYMENT_TARGET = 17.0;
+				JAVA_HOME_FOR_KMP = "/Library/Java/JavaVirtualMachines/temurin-17.jdk/Contents/Home";
+				MTL_ENABLE_DEBUG_INFO = INCLUDE_SOURCE;
+				MTL_FAST_MATH = YES;
+				ONLY_ACTIVE_ARCH = YES;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SDKROOT = iphoneos;
+				SWIFT_ACTIVE_COMPILATION_CONDITIONS = DEBUG;
+				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
+				SWIFT_VERSION = 5.0;
+			};
+			name = Debug;
+		};
+		9221A1FDC06803E8A2FC6E61 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				CODE_SIGN_IDENTITY = "iPhone Developer";
+				FRAMEWORK_SEARCH_PATHS = (
+					"$(inherited)",
+					"$(SRCROOT)/../shared/build/xcode-frameworks/$(CONFIGURATION)/$(SDK_NAME)",
+				);
+				INFOPLIST_FILE = iosApp/Info.plist;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+				);
+				OTHER_LDFLAGS = (
+					"$(inherited)",
+					"-framework",
+					Shared,
+				);
+				PRODUCT_BUNDLE_IDENTIFIER = app.cycluna.iosApp;
+				SDKROOT = iphoneos;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = 1;
+			};
+			name = Debug;
+		};
+		AF835BFF1220CA5AB5B867E4 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				CODE_SIGN_IDENTITY = "iPhone Developer";
+				FRAMEWORK_SEARCH_PATHS = (
+					"$(inherited)",
+					"$(SRCROOT)/../shared/build/xcode-frameworks/$(CONFIGURATION)/$(SDK_NAME)",
+				);
+				INFOPLIST_FILE = iosApp/Info.plist;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+				);
+				OTHER_LDFLAGS = (
+					"$(inherited)",
+					"-framework",
+					Shared,
+				);
+				PRODUCT_BUNDLE_IDENTIFIER = app.cycluna.iosApp;
+				SDKROOT = iphoneos;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = 1;
+			};
+			name = Release;
+		};
+/* End XCBuildConfiguration section */
+
+/* Begin XCConfigurationList section */
+		29DCA9F0B3A40325067EB163 /* Build configuration list for PBXNativeTarget "iosApp" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				9221A1FDC06803E8A2FC6E61 /* Debug */,
+				AF835BFF1220CA5AB5B867E4 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Debug;
+		};
+		FF7CA1CA754D017066F1822F /* Build configuration list for PBXProject "iosApp" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				6C824A6EB4BAD43AE2A4BB29 /* Debug */,
+				11814011E7D6EC822BFBC66D /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Debug;
+		};
+/* End XCConfigurationList section */
+	};
+	rootObject = 242FB5348943441C388468CE /* Project object */;
+}
