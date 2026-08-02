@@ -52,10 +52,9 @@ struct HormoneChartCard: View {
         VStack(alignment: .leading, spacing: 12) {
             Text("Hormone chart")
                 .font(.cyclunaSerif(22)).foregroundStyle(Theme.ink)
-            Text("Your hormonal weather across the cycle.")
-                .font(.subheadline).foregroundStyle(Theme.inkSoft)
 
-            chart.frame(height: 200)
+            // Room for the "Today" pill, which the chart draws above its plot area.
+            chart.frame(height: 200).padding(.top, 8)
             selection
             legend
             disclaimer
@@ -78,7 +77,9 @@ struct HormoneChartCard: View {
             RuleMark(x: .value("Today", Double(currentDay)))
                 .foregroundStyle(Theme.phaseMenstrual)
                 .lineStyle(StrokeStyle(lineWidth: 2))
-                .annotation(position: .top, spacing: 0) {
+                // `spacing: 0` sat the pill directly on the plot's top edge, where it
+                // crowded the card title once the subtitle was removed.
+                .annotation(position: .top, spacing: 4) {
                     Text("Today").font(.system(size: 9, weight: .semibold))
                         .padding(.horizontal, 5).padding(.vertical, 2)
                         .background(Theme.phaseMenstrual, in: Capsule())

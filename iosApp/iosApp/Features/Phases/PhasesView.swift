@@ -12,7 +12,7 @@ struct PhasesView: View {
                     // the first card. The cards carry the voice now.
                     HormoneChartCard()
 
-                    ForEach(PhaseContent.all) { p in phaseCard(p) }
+                    ForEach(phasesFromNow) { p in phaseCard(p) }
                 }
                 .padding()
             }
@@ -21,6 +21,17 @@ struct PhasesView: View {
             .navigationTitle("Your four phases")
             .navigationBarTitleDisplayMode(.large)
         }
+    }
+
+    /// The four phases rotated so the one you're in leads.
+    ///
+    /// Rotated rather than reordered: the cycle runs menstrual → follicular → ovulatory →
+    /// luteal and wraps, so starting at "now" and continuing round keeps what comes next
+    /// actually next. Plucking the current phase to the top would scramble that.
+    private var phasesFromNow: [PhaseContent] {
+        let all = PhaseContent.all
+        guard let i = all.firstIndex(where: { $0.key == store.phaseLabel }) else { return all }
+        return Array(all[i...] + all[..<i])
     }
 
     private func phaseCard(_ p: PhaseContent) -> some View {
