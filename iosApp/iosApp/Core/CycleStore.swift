@@ -77,7 +77,14 @@ final class CycleStore {
 
     var isOnCurrentMoodPage: Bool { moodPageIndex >= moodPages.count - 1 }
 
-    struct MoodPage: Identifiable, Hashable {
+    /// Identifiable only — deliberately NOT Equatable.
+    ///
+    /// It used to declare `==` as "same id", which is true of a page's *identity* but false
+    /// of its contents: a page keeps its id (the span's start date) while the logs inside it
+    /// change. SwiftUI compares a view's inputs to decide whether to re-render, so it read
+    /// "equal" and skipped redrawing the chart — the new points only appeared after the view
+    /// was rebuilt from scratch, i.e. after relaunching the app.
+    struct MoodPage: Identifiable {
         let id: String              // startIso — stable across rebuilds
         let startIso: String
         let endIso: String          // exclusive
@@ -89,9 +96,6 @@ final class CycleStore {
         var moonAverages: [MoonMood] = []
         var insight: MoodInsight?
         var summary: MoodSummary = MoodSummary(count: 0, average: 0)
-
-        static func == (a: MoodPage, b: MoodPage) -> Bool { a.id == b.id }
-        func hash(into h: inout Hasher) { h.combine(id) }
     }
 
     private func rebuildMoodPages() {
