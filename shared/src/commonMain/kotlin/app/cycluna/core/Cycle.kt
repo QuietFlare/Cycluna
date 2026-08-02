@@ -81,18 +81,31 @@ object Cycle {
         return if (value in MIN_CYCLE_LENGTH..MAX_CYCLE_LENGTH) value else DEFAULT_CYCLE_LENGTH
     }
 
+    /**
+     * How many recent gaps between period starts must agree before logged history replaces
+     * the user's own cycle-length setting.
+     *
+     * The web app (`cycle.ts`) relearns from a SINGLE gap. That is too eager, and actively
+     * harmful once lateness is modelled: a period that arrives four days late produces one
+     * long gap, which becomes the new baseline, against which the next late period looks
+     * normal. Lateness would quietly ratchet into the prediction and stop being reported.
+     * Two gaps is the same "don't conclude from one data point" bar the mood and moon
+     * insights hold themselves to.
+     */
+    const val MIN_GAPS_TO_LEARN = 2
+
     private fun averageRecentCycleLength(periods: List<PeriodEntry>, today: LocalDate): Int? {
         val windowStart = today.minus(DatePeriod(months = 3))
         val starts = periods.map { it.start }
             .filter { it >= windowStart && it <= today }
             .sorted()
-        if (starts.size < 2) return null
+        if (starts.size < MIN_GAPS_TO_LEARN + 1) return null
         val cycles = mutableListOf<Int>()
         for (i in 1 until starts.size) {
             val gap = starts[i - 1].daysUntil(starts[i])
             if (gap in MIN_CYCLE_LENGTH..MAX_CYCLE_LENGTH) cycles.add(gap)
         }
-        return if (cycles.isNotEmpty()) jsRound(cycles.average()) else null
+        return if (cycles.size >= MIN_GAPS_TO_LEARN) jsRound(cycles.average()) else null
     }
 
     fun predictedCycleLength(input: CycleInput, today: LocalDate = today()): Int =

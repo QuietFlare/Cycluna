@@ -45,7 +45,7 @@ actual fun defaultKeyVault(): KeyVault = KeychainKeyVault()
 
 @OptIn(ExperimentalForeignApi::class)
 private class KeychainKeyVault(
-    private val service: String = "app.cycluna.secure",
+    private val service: String = "net.quietflare.cycluna.secure",
 ) : KeyVault {
 
     override fun set(key: String, value: String) {

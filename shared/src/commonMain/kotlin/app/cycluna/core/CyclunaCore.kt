@@ -189,6 +189,25 @@ object CyclunaCore {
                 ?.let { PeriodEntry(it) }
         }
 
+    // --- Mood × moon (see MoonMoodInsights) ---
+    // Buckets cross the bridge as stable slugs ("waxing-gibbous"), never as enums or dates;
+    // the native layer maps them to its own wording.
+
+    /** The eight moon buckets in synodic order. */
+    fun moonBucketOrder(): List<String> = MoonMoodInsights.orderedBucketKeys()
+
+    /** The bucket a date falls in — always agrees with [moonLabelForDate] for that date. */
+    fun moonBucketForDate(dateIso: String): String =
+        MoonMoodInsights.bucketForDate(LocalDate.parse(dateIso)).slug
+
+    /** Representative illumination (0..1) for a bucket, for drawing its disc. */
+    fun moonBucketIllumination(bucketKey: String): Double =
+        MoonMoodInsights.bucketIllumination(bucketKey)
+
+    /** Whether a bucket sits in the waxing half of the month. */
+    fun moonBucketIsWaxing(bucketKey: String): Boolean =
+        MoonMoodInsights.bucketIsWaxing(bucketKey)
+
     /**
      * Typical hormone reference curves (Speroff / Stricker), 0..1 relative.
      * Ported from the web `LinearHormoneChart`. Educational only — not diagnostic.

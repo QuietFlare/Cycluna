@@ -201,6 +201,49 @@ class CycleTest {
     // uses floor(x + 0.5). These cases are chosen so the two disagree — a silent switch back
     // to roundToInt would fail here and nowhere else.
 
+    // --- Learning cycle length from history ------------------------------------
+
+    @Test
+    fun oneObservedGapDoesNotOverrideTheUsersSetting() {
+        // The reported bug: onboard with 1 July, log a period on 2 August (four days late),
+        // and the single 32-day gap silently became the predicted cycle length — so the next
+        // period showed "in 32 days" and the lateness was absorbed into the baseline.
+        val d = CycleInput(
+            periods = listOf(PeriodEntry(LocalDate(2026, 7, 1)), PeriodEntry(LocalDate(2026, 8, 2))),
+            averageCycleLength = 28,
+        )
+        assertEquals(28, Cycle.predictedCycleLength(d, today = LocalDate(2026, 8, 2)))
+    }
+
+    @Test
+    fun twoAgreeingGapsDoOverrideTheSetting() {
+        // Three starts, two gaps of 31 and 31 → a real pattern, worth learning.
+        val d = CycleInput(
+            periods = listOf(
+                PeriodEntry(LocalDate(2026, 6, 1)),
+                PeriodEntry(LocalDate(2026, 7, 2)),
+                PeriodEntry(LocalDate(2026, 8, 2)),
+            ),
+            averageCycleLength = 28,
+        )
+        assertEquals(31, Cycle.predictedCycleLength(d, today = LocalDate(2026, 8, 2)))
+    }
+
+    @Test
+    fun gapsOutsideThePlausibleRangeDoNotCountTowardLearning() {
+        // Three starts, but one gap is 60 days (outside 21..45), leaving a single usable
+        // gap — not enough to relearn.
+        val d = CycleInput(
+            periods = listOf(
+                PeriodEntry(LocalDate(2026, 5, 5)),
+                PeriodEntry(LocalDate(2026, 7, 4)),   // +60, rejected
+                PeriodEntry(LocalDate(2026, 8, 2)),   // +29, the only usable gap
+            ),
+            averageCycleLength = 28,
+        )
+        assertEquals(28, Cycle.predictedCycleLength(d, today = LocalDate(2026, 8, 2)))
+    }
+
     @Test
     fun averageCycleLengthRoundsHalfUpLikeJavaScript() {
         // Gaps of 26 and 27 → mean 26.5. Half-up = 27; half-to-even would give 26.

@@ -38,8 +38,9 @@ class CyclunaCoreTest {
 
     @Test
     fun predictedCycleLengthIgnoresUnparseableEntries() {
-        // Two good starts 27 days apart, plus junk that must not break the average.
-        val csv = "2026-06-27,oops,2026-07-24"
+        // Three good starts giving two 27-day gaps (the minimum to relearn — see
+        // Cycle.MIN_GAPS_TO_LEARN), plus junk that must not break the average.
+        val csv = "2026-05-31,oops,2026-06-27,,2026-07-24"
         assertEquals(27, CyclunaCore.predictedCycleLength(csv, 28))
     }
 

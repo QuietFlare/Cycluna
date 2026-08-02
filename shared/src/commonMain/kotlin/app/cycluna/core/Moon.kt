@@ -11,16 +11,20 @@ import kotlin.math.PI
 import kotlin.math.cos
 import kotlin.math.floor
 
-/** The eight canonical moon phases, in synodic order starting at the new moon. */
-enum class MoonPhaseKey(val label: String, val symbol: String) {
-    NEW("New moon", "●"),
-    WAXING_CRESCENT("Waxing crescent", "☽"),
-    FIRST_QUARTER("First quarter", "◐"),
-    WAXING_GIBBOUS("Waxing gibbous", "◔"),
-    FULL("Full moon", "○"),
-    WANING_GIBBOUS("Waning gibbous", "◕"),
-    LAST_QUARTER("Last quarter", "◑"),
-    WANING_CRESCENT("Waning crescent", "☾"),
+/**
+ * The eight canonical moon phases, in synodic order starting at the new moon.
+ * [slug] is the stable identifier that crosses to Swift/Android — never a display string,
+ * so the native layer owns its own wording.
+ */
+enum class MoonPhaseKey(val label: String, val symbol: String, val slug: String) {
+    NEW("New moon", "●", "new"),
+    WAXING_CRESCENT("Waxing crescent", "☽", "waxing-crescent"),
+    FIRST_QUARTER("First quarter", "◐", "first-quarter"),
+    WAXING_GIBBOUS("Waxing gibbous", "◔", "waxing-gibbous"),
+    FULL("Full moon", "○", "full"),
+    WANING_GIBBOUS("Waning gibbous", "◕", "waning-gibbous"),
+    LAST_QUARTER("Last quarter", "◑", "last-quarter"),
+    WANING_CRESCENT("Waning crescent", "☾", "waning-crescent"),
 }
 
 data class MoonPhase(val key: MoonPhaseKey, val age: Double) {
@@ -34,7 +38,7 @@ data class MoonPhase(val key: MoonPhaseKey, val age: Double) {
  * new moon, so results match the web app exactly.
  */
 object Moon {
-    private const val SYNODIC_MONTH = 29.530588853
+    internal const val SYNODIC_MONTH = 29.530588853
     private const val DAY_MS = 86_400_000.0
 
     // Reference new moon: 2000-01-06 18:14 UTC.
