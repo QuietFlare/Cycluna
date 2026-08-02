@@ -10,14 +10,165 @@ import Shared
 /// in its own ViewModel, reusing this exact logic.
 @Observable
 final class CycleStore {
-    /// Canonical state, straight from the shared core. Any change schedules a save.
-    private var data: CycleData { didSet { save() } }
+    /// Canonical state, straight from the shared core. Any change schedules a save and
+    /// refreshes the derived aggregates below.
+    private var data: CycleData { didSet { save(); refreshDerived() } }
 
     private let core = CyclunaCore.shared
 
     init() {
         data = Self.load() ?? CycleData.companion.EMPTY
+        // `didSet` does not fire for assignments inside `init`, so prime the caches here.
+        refreshDerived()
     }
+
+    // MARK: - Derived aggregates (computed once per data change, not per render)
+    //
+    // These each walk the whole log history across the KMP bridge, parsing a date per entry.
+    // As computed properties they ran on every SwiftUI body evaluation. `data`'s `didSet` is
+    // the single choke point through which state changes, so it is the only place they need
+    // to be invalidated — do not add a cache here without refreshing it there.
+
+    private(set) var moodCyclePoints: [MoodPoint] = []
+    private(set) var moodInsight: MoodInsight?
+    private(set) var headacheInsight: HeadacheInsight?
+    private(set) var moonMoodPoints: [MoonMoodPoint] = []
+    private(set) var moonMoodAverages: [MoonMood] = []
+    private(set) var moonMoodInsight: MoonMoodInsight?
+    /// Whether there's enough spread to say anything at all — including "steady".
+    private(set) var moonMoodReady = false
+    private(set) var cycleMoonAligned = false
+
+    private func refreshDerived() {
+        moodCyclePoints = MoodInsights.shared.currentCyclePoints(data: data)
+        moodInsight = MoodInsights.shared.insight(data: data)
+        headacheInsight = HeadacheInsights.shared.insight(data: data)
+        moonMoodPoints = MoonMoodInsights.shared.moonPoints(data: data)
+        moonMoodAverages = MoonMoodInsights.shared.moonAverages(data: data)
+        moonMoodInsight = MoonMoodInsights.shared.moonInsight(data: data)
+        moonMoodReady = MoonMoodInsights.shared.hasEnoughForClaim(data: data)
+        cycleMoonAligned = MoonMoodInsights.shared.cycleMoonAligned(data: data)
+        rebuildDayIndex()
+        rebuildMoodPages()
+    }
+
+    // MARK: - Mood patterns: lenses and pageable history
+    //
+    // Each lens pages by a different unit — days, cycles, lunations — so pages are rebuilt
+    // whenever the lens or the data changes, never per render. Page state lives here rather
+    // than in the view precisely so it shares that one invalidation point.
+
+    enum MoodLens: String, CaseIterable { case daily, phase, moon }
+
+    /// How far back each lens offers. Cycles are bounded by real logged starts; the other two
+    /// are capped for sanity, not by knowledge.
+    private static let dailyPageDays = 14
+    private static let dailyPageCount = 12
+    private static let lunationPageCount = 12
+
+    var moodLens: MoodLens = .phase {
+        didSet { if oldValue != moodLens { rebuildMoodPages() } }
+    }
+
+    /// Index into `moodPages`; the last page is the present.
+    var moodPageIndex = 0
+
+    private(set) var moodPages: [MoodPage] = []
+
+    var isOnCurrentMoodPage: Bool { moodPageIndex >= moodPages.count - 1 }
+
+    struct MoodPage: Identifiable, Hashable {
+        let id: String              // startIso — stable across rebuilds
+        let startIso: String
+        let endIso: String          // exclusive
+        let title: String
+        let spanDays: Int
+        var daily: [DailyMood] = []
+        var cycle: [MoodPoint] = []
+        var moon: [MoonMoodPoint] = []
+        var moonAverages: [MoonMood] = []
+        var insight: MoodInsight?
+        var summary: MoodSummary = MoodSummary(count: 0, average: 0)
+
+        static func == (a: MoodPage, b: MoodPage) -> Bool { a.id == b.id }
+        func hash(into h: inout Hasher) { h.combine(id) }
+    }
+
+    private func rebuildMoodPages() {
+        let mi = MoodInsights.shared
+        var pages: [MoodPage] = []
+
+        switch moodLens {
+        case .daily:
+            let cal = Calendar.current
+            let today = cal.startOfDay(for: .now)
+            for back in stride(from: Self.dailyPageCount - 1, through: 0, by: -1) {
+                let end = cal.date(byAdding: .day, value: -back * Self.dailyPageDays, to: today)!
+                let start = cal.date(byAdding: .day, value: -(Self.dailyPageDays - 1), to: end)!
+                let s = iso(start), e = iso(end)
+                var page = MoodPage(id: s, startIso: s, endIso: iso(cal.date(byAdding: .day, value: 1, to: end)!),
+                                    title: "\(fmt(start, "d MMM")) – \(fmt(end, "d MMM"))",
+                                    spanDays: Self.dailyPageDays)
+                page.daily = mi.moodsInRange(data: data, fromIso: s, toIso: e)
+                page.summary = mi.summaryForRange(data: data, fromIso: s, toIso: e)
+                page.insight = mi.insightForRange(data: data, fromIso: s, toIso: e)
+                pages.append(page)
+            }
+
+        case .phase:
+            for span in mi.cycleSpans(data: data) {
+                // Spans are half-open [start, end) but the summary/insight range is inclusive,
+                // so the last day has to be stepped back — otherwise a log on a cycle boundary
+                // counts in both the cycle that ends there and the one that begins.
+                let last = dayBefore(span.endIso)
+                var page = MoodPage(id: span.startIso, startIso: span.startIso, endIso: span.endIso,
+                                    title: "Cycle of \(pretty(span.startIso))",
+                                    spanDays: Int(span.length))
+                page.cycle = mi.cyclePoints(data: data, startIso: span.startIso, endIso: span.endIso)
+                page.summary = mi.summaryForRange(data: data, fromIso: span.startIso, toIso: last)
+                page.insight = mi.insightForRange(data: data, fromIso: span.startIso, toIso: last)
+                pages.append(page)
+            }
+
+        case .moon:
+            let mm = MoonMoodInsights.shared
+            for span in mm.lunationSpans(data: data, count: Int32(Self.lunationPageCount)) {
+                var page = MoodPage(id: span.startIso, startIso: span.startIso, endIso: span.endIso,
+                                    title: "Moon from \(pretty(span.startIso))",
+                                    spanDays: Int(span.length))
+                page.moon = mm.moonPointsInRange(data: data, fromIso: span.startIso, toIso: span.endIso)
+                page.moonAverages = mm.moonAveragesInRange(data: data, fromIso: span.startIso, toIso: span.endIso)
+                // Half-open span, inclusive summary range — see the phase case above.
+                page.summary = mi.summaryForRange(data: data, fromIso: span.startIso,
+                                                  toIso: dayBefore(span.endIso))
+                pages.append(page)
+            }
+        }
+
+        moodPages = pages
+        // Land on the present, and never leave the index dangling past a shorter list.
+        moodPageIndex = max(0, pages.count - 1)
+    }
+
+    /// The day before an exclusive end date, for APIs whose range is inclusive.
+    private func dayBefore(_ isoDate: String) -> String {
+        let f = DateFormatter(); f.dateFormat = "yyyy-MM-dd"; f.timeZone = .current
+        guard let d = f.date(from: isoDate),
+              let prev = Calendar.current.date(byAdding: .day, value: -1, to: d) else { return isoDate }
+        return iso(prev)
+    }
+
+    private func pretty(_ iso: String) -> String {
+        let f = DateFormatter(); f.dateFormat = "yyyy-MM-dd"
+        guard let d = f.date(from: iso) else { return iso }
+        return fmt(d, "d MMM")
+    }
+
+    /// The eight moon buckets in synodic order — stable slugs from the core.
+    let moonBucketOrder: [String] = CyclunaCore.shared.moonBucketOrder()
+
+    func moonBucketIllumination(_ key: String) -> Double { core.moonBucketIllumination(bucketKey: key) }
+    func moonBucketIsWaxing(_ key: String) -> Bool { core.moonBucketIsWaxing(bucketKey: key) }
 
     // MARK: - First-run gate
 
@@ -213,7 +364,7 @@ final class CycleStore {
     }
 
     /// Serial queue so writes never touch the main thread and never overlap.
-    private static let ioQueue = DispatchQueue(label: "app.cycluna.cyclestore.io", qos: .utility)
+    private static let ioQueue = DispatchQueue(label: "net.quietflare.cycluna.cyclestore.io", qos: .utility)
     private var pendingSave: DispatchWorkItem?
 
     /// Debounced save. Bindings that fire many times in quick succession — a name text
@@ -265,20 +416,32 @@ final class CycleStore {
     /// ISO day string (start of day) for a Date.
     func isoDay(_ date: Date) -> String { iso(Calendar.current.startOfDay(for: date)) }
 
-    func mood(on iso: String) -> MoodLog? { data.moodOn(iso: iso) }
+    // Day lookups are indexed rather than scanned. A month grid asks about 42 days at a
+    // time, several times each; scanning the whole history per question is ~250 passes over
+    // every log to draw one calendar.
+    private(set) var moodByDay: [String: MoodLog] = [:]
+    private(set) var headacheDays: Set<String> = []
+    private(set) var noteDays: Set<String> = []
+
+    private func rebuildDayIndex() {
+        moodByDay = Dictionary(data.moods.map { ($0.date, $0) }, uniquingKeysWith: { _, latest in latest })
+        // Headaches are timestamped `yyyy-MM-dd'T'HH:mm`; the day is the leading 10 characters.
+        headacheDays = Set(data.headaches.map { String($0.at.prefix(10)) })
+        noteDays = Set(data.journal.map { $0.date })
+    }
+
+    func mood(on iso: String) -> MoodLog? { moodByDay[iso] }
     func headaches(on iso: String) -> [HeadacheLog] { data.headachesOn(iso: iso) }
     func journalEntries(on iso: String) -> [JournalEntry] { data.journal.filter { $0.date == iso } }
 
-    /// Current-cycle mood points (for the mood-vs-cycle plot).
-    var moodCyclePoints: [MoodPoint] { MoodInsights.shared.currentCyclePoints(data: data) }
-    /// A confident "you tend to feel…" insight, or nil when data doesn't support one.
-    var moodInsight: MoodInsight? { MoodInsights.shared.insight(data: data) }
-    /// Hormonal-cluster headache insight, or nil when data doesn't support one.
-    var headacheInsight: HeadacheInsight? { HeadacheInsights.shared.insight(data: data) }
+    func hasHeadache(on iso: String) -> Bool { headacheDays.contains(iso) }
+    func hasNote(on iso: String) -> Bool { noteDays.contains(iso) }
+
+    // Mood / headache aggregates now live in the cached properties above.
 
     /// True if anything at all is logged on the given day.
     func hasLog(on iso: String) -> Bool {
-        mood(on: iso) != nil || !headaches(on: iso).isEmpty || !journalEntries(on: iso).isEmpty
+        moodByDay[iso] != nil || headacheDays.contains(iso) || noteDays.contains(iso)
     }
 
     func logMood(_ mood: Int, note: String = "", on iso: String) {

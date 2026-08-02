@@ -186,7 +186,7 @@ struct ChipWrap: View {
                         .font(.footnote)
                         .frame(maxWidth: .infinity)
                         .padding(.vertical, 7).padding(.horizontal, 8)
-                        .foregroundStyle(on ? Color(light: .white, dark: Color(hex: "1B0F34")) : Theme.ink)
+                        .foregroundStyle(on ? .white : Theme.ink)
                         .background(on ? AnyShapeStyle(Theme.primary) : AnyShapeStyle(Theme.background),
                                     in: Capsule())
                 }
@@ -234,11 +234,29 @@ struct NoteSheet: View {
 
     @State private var text = ""
 
+    /// UI-level cap only. The core stays permissive so an imported entry longer than this
+    /// is never silently truncated on the way in.
+    private static let maxLength = 2_000
+
+    private var remaining: Int { Self.maxLength - text.count }
+
     var body: some View {
         NavigationStack {
-            TextEditor(text: $text)
-                .font(.system(.body, design: .serif))
-                .padding()
+            VStack(alignment: .trailing, spacing: 4) {
+                TextEditor(text: $text)
+                    .font(.system(.body, design: .serif))
+                    .onChange(of: text) { _, new in
+                        if new.count > Self.maxLength { text = String(new.prefix(Self.maxLength)) }
+                    }
+                // Only surface the limit as it comes into view — a counter on an empty note
+                // is just clutter.
+                if remaining <= 200 {
+                    Text("\(remaining) characters left")
+                        .font(.caption2)
+                        .foregroundStyle(remaining <= 0 ? Theme.phaseMenstrual : Theme.inkSoft)
+                }
+            }
+            .padding()
                 .navigationTitle(existing == nil ? "New note" : "Edit note")
                 .navigationBarTitleDisplayMode(.inline)
                 .toolbar {

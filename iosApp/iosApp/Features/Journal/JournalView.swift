@@ -27,16 +27,16 @@ struct JournalView: View {
         NavigationStack {
             ScrollView {
                 VStack(spacing: 20) {
-                    header
                     tiles
                     timelineCard
-                    MoodCycleCard()
+                    MoodPatternsCard()
                     if let hi = store.headacheInsight { HeadacheInsightCard(insight: hi) }
                 }
                 .padding()
             }
             .background(Theme.background.ignoresSafeArea())
-            .toolbar(.hidden, for: .navigationBar)
+            .navigationTitle("Your journal")
+            .navigationBarTitleDisplayMode(.large)
             .sheet(isPresented: $moodOpen) { MoodSheet(dateISO: iso) }
             .sheet(isPresented: $headacheOpen) { HeadacheSheet(dateISO: iso) }
             .sheet(isPresented: $noteOpen) { NoteSheet(dateISO: iso) }
@@ -44,15 +44,6 @@ struct JournalView: View {
             .sheet(item: $editingHeadache) { HeadacheSheet(dateISO: iso, existing: $0.log) }
             .sheet(isPresented: $showDatePicker) { datePickerSheet }
         }
-    }
-
-    private var header: some View {
-        VStack(spacing: 4) {
-            Text("Your journal").font(.cyclunaSerif(34)).foregroundStyle(Theme.ink)
-            Text("Log a moment. Notice the patterns.")
-                .font(.subheadline).italic().foregroundStyle(Theme.inkSoft)
-        }
-        .padding(.top, 8)
     }
 
     private var tiles: some View {
