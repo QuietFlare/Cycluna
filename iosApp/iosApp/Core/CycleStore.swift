@@ -133,13 +133,38 @@ final class CycleStore {
         }
         return "\(fmt(s, "MMM d")) – \(fmt(e, "MMM d"))"
     }
-    var nextPeriodShort: String { "in \(daysUntilNextPeriod) days" }
+    // MARK: - Late / missed periods
+
+    /// How far the core trusts its own prediction (see `CycleTracking` in the shared core).
+    var tracking: TrackingState {
+        TrackingState(rawValue: core.trackingState(lastPeriodStartIso: startISO,
+                                                   cycleLength: Int32(cycleLength),
+                                                   periodLength: Int32(periodLength))) ?? .normal
+    }
+
+    /// Days past the predicted start with nothing logged; 0 when not overdue.
+    var daysLate: Int {
+        Int(core.daysLate(lastPeriodStartIso: startISO, cycleLength: Int32(cycleLength),
+                          periodLength: Int32(periodLength)))
+    }
+
+    var nextPeriodShort: String {
+        CycleCopy.nextPeriodShort(tracking: tracking, daysLate: daysLate,
+                                  daysUntilNextPeriod: daysUntilNextPeriod)
+    }
+
+    /// Fertile-window predictions are only meaningful while the cycle is on track. Once a
+    /// period is overdue, ovulation has either not happened on schedule or happened late —
+    /// either way the next window can't be dated until the period actually starts.
+    var showsFertileWindow: Bool { tracking == .normal }
 
     var fertileContext: String {
-        let d = daysBetween(.now, fertileStartDate)
-        if d > 0 { return "Your fertile window opens in \(d) days." }
-        if daysBetween(fertileEndDate, .now) <= 0 { return "You're in your fertile window." }
-        return "\(daysUntilNextPeriod) days until your next period."
+        CycleCopy.fertileContext(
+            tracking: tracking,
+            daysLate: daysLate,
+            daysUntilFertileStart: daysBetween(.now, fertileStartDate),
+            daysUntilFertileEnd: daysBetween(.now, fertileEndDate),
+            daysUntilNextPeriod: daysUntilNextPeriod)
     }
 
     // MARK: - Moon

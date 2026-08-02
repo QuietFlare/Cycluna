@@ -22,6 +22,9 @@ struct CyclesCard: View {
     }
 
     private var predicted: [PredRow] {
+        // An overdue or lost cycle makes every downstream date guesswork — `currentCycleStart`
+        // rolls forward on its own, which would quietly project from a cycle that never began.
+        guard store.tracking == .normal else { return [] }
         let base = store.currentCycleStart
         let cl = store.cycleLength
         return (1...3).compactMap { i in
@@ -53,9 +56,20 @@ struct CyclesCard: View {
             }
 
             sectionLabel("NEXT PREDICTED CYCLES").padding(.top, 4)
-            ForEach(Array(predRows.enumerated()), id: \.element.id) { i, row in
-                cycleRow(date: row.date, subtitle: "Fertile window \(row.fertile)", drop: true)
-                if i < predRows.count - 1 { rowDivider }
+            if predRows.isEmpty {
+                // Every predicted date is measured from a period that hasn't arrived, so the
+                // whole list would be fiction. Say why instead of showing invented dates.
+                Text(store.tracking == .late
+                     ? "Paused while your period is \(store.daysLate == 1 ? "1 day" : "\(store.daysLate) days") late — log it and predictions resume."
+                     : "Paused until you log your last period.")
+                    .font(.footnote)
+                    .foregroundStyle(Theme.inkSoft)
+                    .fixedSize(horizontal: false, vertical: true)
+            } else {
+                ForEach(Array(predRows.enumerated()), id: \.element.id) { i, row in
+                    cycleRow(date: row.date, subtitle: "Fertile window \(row.fertile)", drop: true)
+                    if i < predRows.count - 1 { rowDivider }
+                }
             }
 
             HStack(spacing: 12) {

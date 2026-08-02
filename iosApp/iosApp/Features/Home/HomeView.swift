@@ -52,15 +52,19 @@ struct HomeView: View {
                       size: 260)
 
             HStack(spacing: 12) {
-                infoTile(icon: "heart.fill", tint: Theme.phaseOvulatory,
-                         eyebrow: "Fertile window", value: store.fertileWindowText)
+                // Once tracking is unclear the fertile window is guesswork — showing a
+                // confident date range would be the misleading part, so it goes away.
+                if store.showsFertileWindow {
+                    infoTile(icon: "heart.fill", tint: Theme.phaseOvulatory,
+                             eyebrow: "Fertile window", value: store.fertileWindowText)
+                }
                 infoTile(icon: "drop.fill", tint: Theme.phaseMenstrual,
                          eyebrow: "Next period", value: store.nextPeriodShort)
             }
 
             Text(store.fertileContext)
                 .font(.subheadline)
-                .foregroundStyle(Theme.inkSoft)
+                .foregroundStyle(store.tracking == .normal ? Theme.inkSoft : Theme.accentText)
                 .multilineTextAlignment(.center)
 
             Button {

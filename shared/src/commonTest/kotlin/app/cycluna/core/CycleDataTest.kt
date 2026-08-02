@@ -3,6 +3,7 @@ package app.cycluna.core
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertFalse
+import kotlin.test.assertNotNull
 import kotlin.test.assertNull
 import kotlin.test.assertTrue
 
@@ -44,6 +45,19 @@ class CycleDataTest {
         )
         val restored = CyclePersistence.decode(CyclePersistence.encode(original))
         assertEquals(original, restored)
+    }
+
+    @Test
+    fun decodeDropsUnparseablePeriodStartsButKeepsTheRest() {
+        // Period starts are plain strings on disk. A partially corrupted or hand-edited file
+        // used to sail through decode and then throw when the calendar parsed it as a date.
+        val text = """
+            {"periodStarts":["2026-07-22","not-a-date","2026-06-24",""],
+             "cycleLengthSetting":28,"periodLength":5,"displayName":""}
+        """.trimIndent()
+        val decoded = assertNotNull(CyclePersistence.decode(text))
+        assertEquals(listOf("2026-06-24", "2026-07-22"), decoded.periodStarts.sorted())
+        assertEquals("2026-07-22", decoded.lastPeriodStartIso)
     }
 
     @Test

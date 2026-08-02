@@ -1,5 +1,6 @@
 package app.cycluna.core
 
+import kotlinx.datetime.LocalDate
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.json.Json
 
@@ -113,9 +114,23 @@ object CyclePersistence {
     /** Serialize the persisted state (compact, internal on-disk format). */
     fun encode(data: CycleData): String = json.encodeToString(CycleData.serializer(), data)
 
-    /** Parse persisted state; returns null on corrupt/absent data (caller falls back to EMPTY). */
+    /**
+     * Parse persisted state; returns null on corrupt/absent data (caller falls back to EMPTY).
+     *
+     * Period starts are validated here rather than trusted. They are plain strings on disk, so
+     * a partially corrupted or hand-edited file can carry a non-ISO value — and every read path
+     * (`lastPeriodStartIso`, the calendar's CSV) parses them as dates, which would throw while
+     * rendering Home. A single bad entry is dropped rather than discarding the whole file:
+     * losing one date beats losing the user's entire history.
+     */
     fun decode(text: String): CycleData? =
-        try { json.decodeFromString(CycleData.serializer(), text) } catch (_: Exception) { null }
+        try {
+            val data = json.decodeFromString(CycleData.serializer(), text)
+            data.copy(periodStarts = data.periodStarts.filter { isIsoDate(it) })
+        } catch (_: Exception) { null }
+
+    private fun isIsoDate(s: String): Boolean =
+        try { LocalDate.parse(s); true } catch (_: Exception) { false }
 
     /**
      * The GDPR/CCPA data-portability export: a versioned, human- and machine-readable

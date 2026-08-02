@@ -5,8 +5,6 @@ struct RootView: View {
     @Environment(\.scenePhase) private var scenePhase
     @AppStorage("appTheme") private var themeRaw = AppTheme.system.rawValue
     @AppStorage("appLockEnabled") private var lockEnabled = false
-    @AppStorage("periodReminders") private var periodReminders = false
-    @AppStorage("ovulationReminders") private var ovulationReminders = false
     @State private var lock = AppLock()
 
     private var locked: Bool { lockEnabled && !lock.isUnlocked }
@@ -43,17 +41,23 @@ struct RootView: View {
             }
         }
         .onAppear(perform: refreshReminders)
+        // Logging a period moves the anchor, which moves every predicted date. Without this
+        // the stale follow-up ("Did your period start?") would still fire tomorrow.
+        .onChange(of: store.periodStarts.count) { _, _ in refreshReminders() }
     }
 
     /// Keep the local reminders aligned with the latest predictions.
     private func refreshReminders() {
-        guard periodReminders || ovulationReminders else { ReminderManager.cancelAll(); return }
+        let settings = ReminderSettings.current
+        guard settings.anyCycleReminder || settings.anyCheckIn else {
+            ReminderManager.cancelAll()
+            return
+        }
         let logged = store.hasLoggedPeriod
         ReminderManager.reschedule(
             nextPeriod: logged ? store.nextPeriodDate : nil,
             fertileStart: logged ? store.fertileStartDate : nil,
-            periodOn: periodReminders,
-            ovulationOn: ovulationReminders)
+            settings: settings)
     }
 
     private var mainTabs: some View {

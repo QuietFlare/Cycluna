@@ -78,6 +78,21 @@ object CyclunaCore {
     fun daysUntilNextPeriod(lastPeriodStartIso: String, cycleLength: Int, periodLength: Int): Int =
         Cycle.status(inputFrom(lastPeriodStartIso, cycleLength, periodLength)).daysUntilNextPeriod
 
+    /** Days past the predicted start with nothing logged; 0 when not overdue. */
+    fun daysLate(lastPeriodStartIso: String, cycleLength: Int, periodLength: Int): Int =
+        Cycle.status(inputFrom(lastPeriodStartIso, cycleLength, periodLength)).daysLate
+
+    /**
+     * How far Cycluna trusts its prediction: `"normal"`, `"late"`, or `"unclear"`.
+     * A String (not the enum) so Swift/Kotlin interop stays on simple types.
+     */
+    fun trackingState(lastPeriodStartIso: String, cycleLength: Int, periodLength: Int): String =
+        when (Cycle.status(inputFrom(lastPeriodStartIso, cycleLength, periodLength)).tracking) {
+            CycleTracking.NORMAL -> "normal"
+            CycleTracking.LATE -> "late"
+            CycleTracking.UNCLEAR -> "unclear"
+        }
+
     /**
      * Roll an onboarding-selected date forward to the current cycle's start (see
      * [Cycle.mostRecentStart]). Input/return are ISO `yyyy-MM-dd`.
@@ -93,8 +108,14 @@ object CyclunaCore {
         Cycle.mostRecentStart(LocalDate.parse(startIso), cycleLength)
             .plus(DatePeriod(days = days)).toString()
 
+    /**
+     * The start of the period the user is currently waiting for — one cycle on from the
+     * logged anchor, deliberately NOT rolled forward. Rolling would skip an overdue period
+     * and point a full cycle ahead, hiding the very lateness the UI needs to report. When
+     * tracking is `"unclear"` this date is in the past and the UI stops showing it.
+     */
     fun nextPeriodIso(lastPeriodStartIso: String, cycleLength: Int): String =
-        anchorPlus(lastPeriodStartIso, cycleLength, cycleLength)
+        LocalDate.parse(lastPeriodStartIso).plus(DatePeriod(days = cycleLength)).toString()
 
     fun fertileStartIso(lastPeriodStartIso: String, cycleLength: Int): String =
         Cycle.fertileWindow(LocalDate.parse(lastPeriodStartIso), cycleLength).first.toString()
@@ -109,10 +130,14 @@ object CyclunaCore {
     fun cycleDayForDate(lastPeriodStartIso: String, cycleLength: Int, periodLength: Int, dateIso: String): Int =
         Cycle.cycleDayForDate(inputFrom(lastPeriodStartIso, cycleLength, periodLength), LocalDate.parse(dateIso)) ?: 0
 
-    /** Projected cycle day (1..cycleLength), wrapping each cycle forward. 0 before the anchor. */
+    /**
+     * Projected cycle day (1..cycleLength) for any date, wrapping in BOTH directions from
+     * the anchor. Floor-mod, matching [dayMarker] — returning 0 for earlier dates left the
+     * calendar's cycle-day numbers blank in every month before the last logged period.
+     */
     fun projectedCycleDay(lastPeriodStartIso: String, cycleLength: Int, dateIso: String): Int {
         val d = LocalDate.parse(lastPeriodStartIso).daysUntil(LocalDate.parse(dateIso))
-        return if (d < 0) 0 else (d % cycleLength) + 1
+        return (((d % cycleLength) + cycleLength) % cycleLength) + 1
     }
 
     /**
@@ -152,8 +177,17 @@ object CyclunaCore {
         }
     }
 
+    /**
+     * Defence in depth alongside `CyclePersistence.decode`, which already drops non-ISO
+     * entries: an unparseable date here would throw straight out of a calendar cell.
+     * Skip what can't be read rather than taking the screen down with it.
+     */
     private fun parsePeriods(csv: String): List<PeriodEntry> =
-        csv.split(",").mapNotNull { s -> s.trim().takeIf { it.isNotEmpty() }?.let { PeriodEntry(LocalDate.parse(it)) } }
+        csv.split(",").mapNotNull { s ->
+            s.trim().takeIf { it.isNotEmpty() }
+                ?.let { runCatching { LocalDate.parse(it) }.getOrNull() }
+                ?.let { PeriodEntry(it) }
+        }
 
     /**
      * Typical hormone reference curves (Speroff / Stricker), 0..1 relative.

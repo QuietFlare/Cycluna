@@ -14,9 +14,23 @@
     -->
     <key>NSPrivacyCollectedDataTypes</key>
     <array/>
-    <!-- Required-reason APIs: none used yet. Add entries when using UserDefaults,
-         file/disk timestamps, etc. -->
+    <!--
+      Required-reason APIs. Add an entry here whenever a new one is used
+      (file/disk timestamps, active keyboards, system boot time, …) — App Store
+      submission scanning rejects the build otherwise (ITMS-91053).
+    -->
     <key>NSPrivacyAccessedAPITypes</key>
-    <array/>
+    <array>
+        <dict>
+            <!-- @AppStorage (RootView, MeView, OnboardingView) = UserDefaults.
+                 CA92.1: accessed only to read/write this app's own settings. -->
+            <key>NSPrivacyAccessedAPIType</key>
+            <string>NSPrivacyAccessedAPICategoryUserDefaults</string>
+            <key>NSPrivacyAccessedAPITypeReasons</key>
+            <array>
+                <string>CA92.1</string>
+            </array>
+        </dict>
+    </array>
 </dict>
 </plist>

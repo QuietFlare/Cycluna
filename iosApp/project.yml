@@ -49,6 +49,20 @@ targets:
           JAVA_HOME="/Library/Java/JavaVirtualMachines/temurin-17.jdk/Contents/Home" \
             ./gradlew :shared:embedAndSignAppleFrameworkForXcode
 
+  # Unit tests for the app's own logic (reminder planning, cycle copy). The shared KMP core
+  # has its own tests — run those with `./gradlew :shared:jvmTest`.
+  iosAppTests:
+    type: bundle.unit-test
+    platform: iOS
+    sources:
+      - path: iosAppTests
+    dependencies:
+      - target: iosApp
+    settings:
+      base:
+        GENERATE_INFOPLIST_FILE: YES
+        PRODUCT_BUNDLE_IDENTIFIER: app.cycluna.iosAppTests
+
 schemes:
   iosApp:
     build:
@@ -58,3 +72,5 @@ schemes:
       config: Debug
     test:
       config: Debug
+      targets:
+        - iosAppTests
