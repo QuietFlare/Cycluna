@@ -11,6 +11,8 @@
 		09FED4B446BD58DF150C455A /* PrivacyInfo.xcprivacy in Resources */ = {isa = PBXBuildFile; fileRef = C6D2DD7FE2E0BF5DB2A96B4B /* PrivacyInfo.xcprivacy */; };
 		0B571DA49BF963852926706F /* CyclesCard.swift in Sources */ = {isa = PBXBuildFile; fileRef = DD91875AAD4215416BB5538D /* CyclesCard.swift */; };
 		0BBE51BE44A7F51FBB5C3DAC /* PhaseContent.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1CD236BF6CA2B27D1006AE0F /* PhaseContent.swift */; };
+		0C61E004571CE61A3971E117 /* MoodCharts.swift in Sources */ = {isa = PBXBuildFile; fileRef = F22F9861F28F8FF1A34E49CA /* MoodCharts.swift */; };
+		0D2E0D5A7D5ACD677F614095 /* AboutView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6E3F2208DA27FBF44A21CAAA /* AboutView.swift */; };
 		17D877DDEC49794DC376B121 /* Theme.swift in Sources */ = {isa = PBXBuildFile; fileRef = 293C803154C68DC21F70850C /* Theme.swift */; };
 		22EA1CB33A17DCC6FC82406D /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = F543015C899423D4B01CEB2E /* Assets.xcassets */; };
 		23B855962E09299AC614D544 /* CycleCopy.swift in Sources */ = {isa = PBXBuildFile; fileRef = 64B27654E170F63FB561A4DE /* CycleCopy.swift */; };
@@ -21,16 +23,20 @@
 		3D105B6469EFC7FE8F3B8187 /* OnboardingView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0BB085D77DF580BE731F47E6 /* OnboardingView.swift */; };
 		44414C784143D022614D1BE3 /* HomeView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A64E48912803126FFA9419CF /* HomeView.swift */; };
 		4603952FCC980D6A8C62C012 /* MoonEventCatalog.swift in Sources */ = {isa = PBXBuildFile; fileRef = F8CB42801875358EE3DE8630 /* MoonEventCatalog.swift */; };
+		4BB97182B86B2CF246FD3B3A /* mark@2x.png in Resources */ = {isa = PBXBuildFile; fileRef = DA37D0778EF80E07990EDC25 /* mark@2x.png */; };
 		695DBC87AE8E61B4362AC163 /* HormoneChartCard.swift in Sources */ = {isa = PBXBuildFile; fileRef = D617A58974EC4C72F4308000 /* HormoneChartCard.swift */; };
 		764BD61C559966F804C8FBC5 /* AppLock.swift in Sources */ = {isa = PBXBuildFile; fileRef = C1B2A2D273CF7EC1AE1615B4 /* AppLock.swift */; };
 		771B757953061958DA272057 /* PrivacyPolicyView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7DE140EA3558B14CFC8BA848 /* PrivacyPolicyView.swift */; };
 		793628C45927204301A5F295 /* MoodStripCard.swift in Sources */ = {isa = PBXBuildFile; fileRef = 19256911C7B4F237B97A5BFE /* MoodStripCard.swift */; };
 		93EB4C4415263552F6896ECD /* ReminderManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1021D23A188820C4E39F66A5 /* ReminderManager.swift */; };
 		9ED9A97B860387FD19CB15FE /* MoonDisc.swift in Sources */ = {isa = PBXBuildFile; fileRef = C369F82A096088FB7CC058E5 /* MoonDisc.swift */; };
-		9EFBA3197348CA38884D80DC /* AppTheme.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4573278F47EE8D0F060569F5 /* AppTheme.swift */; };
-		D51B2694E00DB8DEB8D00FAB /* MoodCycleCard.swift in Sources */ = {isa = PBXBuildFile; fileRef = D0789F2B8FE5CDFD96D421C1 /* MoodCycleCard.swift */; };
+		A824FBDD939F5C6966077029 /* mark.png in Resources */ = {isa = PBXBuildFile; fileRef = A313E3DEB6A1EFAC8D8E8F6B /* mark.png */; };
+		BE2E8D16F11987509CB5E2EF /* MoodPatternsCard.swift in Sources */ = {isa = PBXBuildFile; fileRef = D9F94C3395012713C454EF47 /* MoodPatternsCard.swift */; };
+		C00A19C4025DBDD8419121CB /* mark@3x.png in Resources */ = {isa = PBXBuildFile; fileRef = 1264EAAACB9E11EE8BF373DD /* mark@3x.png */; };
 		DDFDC474602B4FE4C55995CD /* PhasesView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6616FEEC09173BCB13239AC9 /* PhasesView.swift */; };
 		E2F9A808E6F7310A695291A7 /* MoonSection.swift in Sources */ = {isa = PBXBuildFile; fileRef = C3A6342845F3A129A536C657 /* MoonSection.swift */; };
+		E669EB6D4CDFED87B82DFCE9 /* MoodLensBridgeTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 89408DFA4D6E9F0E6970E07A /* MoodLensBridgeTests.swift */; };
+		E8A5403574A3EA968A57C900 /* LaunchScreen.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = 0CF0BA8A92206DCBD9D678DD /* LaunchScreen.storyboard */; };
 		EA3CADFC8E8A168B1E594CE6 /* CycleStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = DBC906F4B4CE37070861E556 /* CycleStore.swift */; };
 		EFE6ED7C8739E9B6CD6E2015 /* KeychainVaultTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 17C96260AC017F3CCCEBB46C /* KeychainVaultTests.swift */; };
 		F09769A38C37F584CED919F9 /* MeView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6408F44194CE06FAA24A5A97 /* MeView.swift */; };
@@ -52,7 +58,9 @@
 
 /* Begin PBXFileReference section */
 		0BB085D77DF580BE731F47E6 /* OnboardingView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OnboardingView.swift; sourceTree = "<group>"; };
+		0CF0BA8A92206DCBD9D678DD /* LaunchScreen.storyboard */ = {isa = PBXFileReference; lastKnownFileType = file.storyboard; path = LaunchScreen.storyboard; sourceTree = "<group>"; };
 		1021D23A188820C4E39F66A5 /* ReminderManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ReminderManager.swift; sourceTree = "<group>"; };
+		1264EAAACB9E11EE8BF373DD /* mark@3x.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = "mark@3x.png"; sourceTree = "<group>"; };
 		17C96260AC017F3CCCEBB46C /* KeychainVaultTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = KeychainVaultTests.swift; sourceTree = "<group>"; };
 		19256911C7B4F237B97A5BFE /* MoodStripCard.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MoodStripCard.swift; sourceTree = "<group>"; };
 		1CD236BF6CA2B27D1006AE0F /* PhaseContent.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PhaseContent.swift; sourceTree = "<group>"; };
@@ -62,16 +70,18 @@
 		2F58225F23A0ECAD68D3F797 /* CalendarCard.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CalendarCard.swift; sourceTree = "<group>"; };
 		32A1E76CB0E09914E41A3753 /* CycleCopyTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CycleCopyTests.swift; sourceTree = "<group>"; };
 		35C9BD4A028EF537A38FFF0D /* MoonWheel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MoonWheel.swift; sourceTree = "<group>"; };
-		4573278F47EE8D0F060569F5 /* AppTheme.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppTheme.swift; sourceTree = "<group>"; };
 		56583BC252B5F01ED9DEA19D /* iosAppTests.xctest */ = {isa = PBXFileReference; includeInIndex = 0; lastKnownFileType = wrapper.cfbundle; path = iosAppTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 		6408F44194CE06FAA24A5A97 /* MeView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MeView.swift; sourceTree = "<group>"; };
 		64B27654E170F63FB561A4DE /* CycleCopy.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CycleCopy.swift; sourceTree = "<group>"; };
 		6616FEEC09173BCB13239AC9 /* PhasesView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PhasesView.swift; sourceTree = "<group>"; };
 		668CECA83ACC03A83C85A623 /* iOSApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = iOSApp.swift; sourceTree = "<group>"; };
+		6E3F2208DA27FBF44A21CAAA /* AboutView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AboutView.swift; sourceTree = "<group>"; };
 		7C3F7C14F19337B551DEEACD /* moon-events.json */ = {isa = PBXFileReference; lastKnownFileType = text.json; path = "moon-events.json"; sourceTree = "<group>"; };
 		7DE140EA3558B14CFC8BA848 /* PrivacyPolicyView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PrivacyPolicyView.swift; sourceTree = "<group>"; };
 		86038AE1032E284E79B32AD6 /* iosApp.app */ = {isa = PBXFileReference; includeInIndex = 0; lastKnownFileType = wrapper.application; path = iosApp.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		89408DFA4D6E9F0E6970E07A /* MoodLensBridgeTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MoodLensBridgeTests.swift; sourceTree = "<group>"; };
 		8CF396E6CDD244CE50197F69 /* Loggers.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Loggers.swift; sourceTree = "<group>"; };
+		A313E3DEB6A1EFAC8D8E8F6B /* mark.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = mark.png; sourceTree = "<group>"; };
 		A49197CFCCCD42AEF1D50D7B /* ReminderPlanTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ReminderPlanTests.swift; sourceTree = "<group>"; };
 		A64E48912803126FFA9419CF /* HomeView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HomeView.swift; sourceTree = "<group>"; };
 		C117AD187833E2513BD2F553 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist; path = Info.plist; sourceTree = "<group>"; };
@@ -79,10 +89,12 @@
 		C369F82A096088FB7CC058E5 /* MoonDisc.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MoonDisc.swift; sourceTree = "<group>"; };
 		C3A6342845F3A129A536C657 /* MoonSection.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MoonSection.swift; sourceTree = "<group>"; };
 		C6D2DD7FE2E0BF5DB2A96B4B /* PrivacyInfo.xcprivacy */ = {isa = PBXFileReference; path = PrivacyInfo.xcprivacy; sourceTree = "<group>"; };
-		D0789F2B8FE5CDFD96D421C1 /* MoodCycleCard.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MoodCycleCard.swift; sourceTree = "<group>"; };
 		D617A58974EC4C72F4308000 /* HormoneChartCard.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HormoneChartCard.swift; sourceTree = "<group>"; };
+		D9F94C3395012713C454EF47 /* MoodPatternsCard.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MoodPatternsCard.swift; sourceTree = "<group>"; };
+		DA37D0778EF80E07990EDC25 /* mark@2x.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = "mark@2x.png"; sourceTree = "<group>"; };
 		DBC906F4B4CE37070861E556 /* CycleStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CycleStore.swift; sourceTree = "<group>"; };
 		DD91875AAD4215416BB5538D /* CyclesCard.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CyclesCard.swift; sourceTree = "<group>"; };
+		F22F9861F28F8FF1A34E49CA /* MoodCharts.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MoodCharts.swift; sourceTree = "<group>"; };
 		F543015C899423D4B01CEB2E /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
 		F8CB42801875358EE3DE8630 /* MoonEventCatalog.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MoonEventCatalog.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
@@ -100,17 +112,29 @@
 			path = Features;
 			sourceTree = "<group>";
 		};
+		0C8EDB4593DBE624B2AAB000 /* LaunchAssets */ = {
+			isa = PBXGroup;
+			children = (
+				A313E3DEB6A1EFAC8D8E8F6B /* mark.png */,
+				DA37D0778EF80E07990EDC25 /* mark@2x.png */,
+				1264EAAACB9E11EE8BF373DD /* mark@3x.png */,
+			);
+			path = LaunchAssets;
+			sourceTree = "<group>";
+		};
 		1DB4B685CAEE8BEFEBBAEF94 /* iosApp */ = {
 			isa = PBXGroup;
 			children = (
 				F543015C899423D4B01CEB2E /* Assets.xcassets */,
 				C117AD187833E2513BD2F553 /* Info.plist */,
 				668CECA83ACC03A83C85A623 /* iOSApp.swift */,
+				0CF0BA8A92206DCBD9D678DD /* LaunchScreen.storyboard */,
 				C6D2DD7FE2E0BF5DB2A96B4B /* PrivacyInfo.xcprivacy */,
 				2925723D1B4AC9FBF45C9F3F /* RootView.swift */,
 				E7C70F35967EA22559A3075D /* Core */,
 				BB343BC5AC4DAADDC5FEBA13 /* DesignSystem */,
 				00DC1A39F70C25CE0C0A51BF /* Features */,
+				0C8EDB4593DBE624B2AAB000 /* LaunchAssets */,
 				1EEC3D4E9285A39087C3ADA0 /* Resources */,
 			);
 			path = iosApp;
@@ -139,7 +163,8 @@
 			children = (
 				23ACD5EEE0D92FA3A2582592 /* JournalView.swift */,
 				8CF396E6CDD244CE50197F69 /* Loggers.swift */,
-				D0789F2B8FE5CDFD96D421C1 /* MoodCycleCard.swift */,
+				F22F9861F28F8FF1A34E49CA /* MoodCharts.swift */,
+				D9F94C3395012713C454EF47 /* MoodPatternsCard.swift */,
 				19256911C7B4F237B97A5BFE /* MoodStripCard.swift */,
 			);
 			path = Journal;
@@ -159,6 +184,7 @@
 			children = (
 				32A1E76CB0E09914E41A3753 /* CycleCopyTests.swift */,
 				17C96260AC017F3CCCEBB46C /* KeychainVaultTests.swift */,
+				89408DFA4D6E9F0E6970E07A /* MoodLensBridgeTests.swift */,
 				A49197CFCCCD42AEF1D50D7B /* ReminderPlanTests.swift */,
 			);
 			path = iosAppTests;
@@ -176,7 +202,6 @@
 		BB343BC5AC4DAADDC5FEBA13 /* DesignSystem */ = {
 			isa = PBXGroup;
 			children = (
-				4573278F47EE8D0F060569F5 /* AppTheme.swift */,
 				293C803154C68DC21F70850C /* Theme.swift */,
 			);
 			path = DesignSystem;
@@ -185,6 +210,7 @@
 		BFEEB3B73B5292D3573AE0BD /* Settings */ = {
 			isa = PBXGroup;
 			children = (
+				6E3F2208DA27FBF44A21CAAA /* AboutView.swift */,
 				6408F44194CE06FAA24A5A97 /* MeView.swift */,
 				7DE140EA3558B14CFC8BA848 /* PrivacyPolicyView.swift */,
 			);
@@ -301,7 +327,11 @@
 			buildActionMask = 2147483647;
 			files = (
 				22EA1CB33A17DCC6FC82406D /* Assets.xcassets in Resources */,
+				E8A5403574A3EA968A57C900 /* LaunchScreen.storyboard in Resources */,
 				09FED4B446BD58DF150C455A /* PrivacyInfo.xcprivacy in Resources */,
+				A824FBDD939F5C6966077029 /* mark.png in Resources */,
+				4BB97182B86B2CF246FD3B3A /* mark@2x.png in Resources */,
+				C00A19C4025DBDD8419121CB /* mark@3x.png in Resources */,
 				35FDF75CACF8123E41350D44 /* moon-events.json in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -335,8 +365,8 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				0D2E0D5A7D5ACD677F614095 /* AboutView.swift in Sources */,
 				764BD61C559966F804C8FBC5 /* AppLock.swift in Sources */,
-				9EFBA3197348CA38884D80DC /* AppTheme.swift in Sources */,
 				F32CF61100D6E86441519F63 /* CalendarCard.swift in Sources */,
 				23B855962E09299AC614D544 /* CycleCopy.swift in Sources */,
 				EA3CADFC8E8A168B1E594CE6 /* CycleStore.swift in Sources */,
@@ -346,7 +376,8 @@
 				2D0F4AA7CD25E418D74F8D13 /* JournalView.swift in Sources */,
 				F9F29CADDA5CA0C46E44B2F5 /* Loggers.swift in Sources */,
 				F09769A38C37F584CED919F9 /* MeView.swift in Sources */,
-				D51B2694E00DB8DEB8D00FAB /* MoodCycleCard.swift in Sources */,
+				0C61E004571CE61A3971E117 /* MoodCharts.swift in Sources */,
+				BE2E8D16F11987509CB5E2EF /* MoodPatternsCard.swift in Sources */,
 				793628C45927204301A5F295 /* MoodStripCard.swift in Sources */,
 				9ED9A97B860387FD19CB15FE /* MoonDisc.swift in Sources */,
 				4603952FCC980D6A8C62C012 /* MoonEventCatalog.swift in Sources */,
@@ -369,6 +400,7 @@
 			files = (
 				09A28EAB8994B0EB6989A858 /* CycleCopyTests.swift in Sources */,
 				EFE6ED7C8739E9B6CD6E2015 /* KeychainVaultTests.swift in Sources */,
+				E669EB6D4CDFED87B82DFCE9 /* MoodLensBridgeTests.swift in Sources */,
 				FA2EA68EF2EDCFCCC898EC8B /* ReminderPlanTests.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -451,7 +483,7 @@
 					"@executable_path/Frameworks",
 					"@loader_path/Frameworks",
 				);
-				PRODUCT_BUNDLE_IDENTIFIER = app.cycluna.iosAppTests;
+				PRODUCT_BUNDLE_IDENTIFIER = net.quietflare.cycluna.tests;
 				SDKROOT = iphoneos;
 				TARGETED_DEVICE_FAMILY = "1,2";
 				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/iosApp.app/iosApp";
@@ -468,7 +500,7 @@
 					"@executable_path/Frameworks",
 					"@loader_path/Frameworks",
 				);
-				PRODUCT_BUNDLE_IDENTIFIER = app.cycluna.iosAppTests;
+				PRODUCT_BUNDLE_IDENTIFIER = net.quietflare.cycluna.tests;
 				SDKROOT = iphoneos;
 				TARGETED_DEVICE_FAMILY = "1,2";
 				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/iosApp.app/iosApp";
@@ -544,6 +576,7 @@
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				CODE_SIGN_IDENTITY = "iPhone Developer";
+				CURRENT_PROJECT_VERSION = 1;
 				FRAMEWORK_SEARCH_PATHS = (
 					"$(inherited)",
 					"$(SRCROOT)/../shared/build/xcode-frameworks/$(CONFIGURATION)/$(SDK_NAME)",
@@ -553,12 +586,13 @@
 					"$(inherited)",
 					"@executable_path/Frameworks",
 				);
+				MARKETING_VERSION = 1.0;
 				OTHER_LDFLAGS = (
 					"$(inherited)",
 					"-framework",
 					Shared,
 				);
-				PRODUCT_BUNDLE_IDENTIFIER = app.cycluna.iosApp;
+				PRODUCT_BUNDLE_IDENTIFIER = net.quietflare.cycluna;
 				SDKROOT = iphoneos;
 				SWIFT_VERSION = 5.0;
 				TARGETED_DEVICE_FAMILY = 1;
@@ -570,6 +604,7 @@
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				CODE_SIGN_IDENTITY = "iPhone Developer";
+				CURRENT_PROJECT_VERSION = 1;
 				FRAMEWORK_SEARCH_PATHS = (
 					"$(inherited)",
 					"$(SRCROOT)/../shared/build/xcode-frameworks/$(CONFIGURATION)/$(SDK_NAME)",
@@ -579,12 +614,13 @@
 					"$(inherited)",
 					"@executable_path/Frameworks",
 				);
+				MARKETING_VERSION = 1.0;
 				OTHER_LDFLAGS = (
 					"$(inherited)",
 					"-framework",
 					Shared,
 				);
-				PRODUCT_BUNDLE_IDENTIFIER = app.cycluna.iosApp;
+				PRODUCT_BUNDLE_IDENTIFIER = net.quietflare.cycluna;
 				SDKROOT = iphoneos;
 				SWIFT_VERSION = 5.0;
 				TARGETED_DEVICE_FAMILY = 1;

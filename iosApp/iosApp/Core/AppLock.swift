@@ -58,7 +58,7 @@ struct LockScreen: View {
                 Button(action: onUnlock) {
                     Label("Unlock", systemImage: "faceid")
                         .font(.headline)
-                        .foregroundStyle(Color(light: .white, dark: Color(hex: "1B0F34")))
+                        .foregroundStyle(.white)
                         .padding(.vertical, 14).padding(.horizontal, 30)
                         .background(Theme.primary, in: Capsule())
                 }

@@ -24,10 +24,7 @@
 	<false/>
 	<key>NSFaceIDUsageDescription</key>
 	<string>Cycluna uses Face ID to keep your cycle data private on this device.</string>
-	<key>UILaunchScreen</key>
-	<dict>
-		<key>UIColorName</key>
-		<string>LaunchBackground</string>
-	</dict>
+	<key>UILaunchStoryboardName</key>
+	<string>LaunchScreen</string>
 </dict>
 </plist>

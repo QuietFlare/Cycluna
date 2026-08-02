@@ -17,7 +17,6 @@ private struct ActivityView: UIViewControllerRepresentable {
 
 struct MeView: View {
     @Environment(CycleStore.self) private var store
-    @AppStorage("appTheme") private var themeRaw = AppTheme.system.rawValue
     @AppStorage("appLockEnabled") private var lockEnabled = false
     @AppStorage(ReminderSettings.Key.periodOn) private var periodReminders = false
     @AppStorage(ReminderSettings.Key.ovulationOn) private var ovulationReminders = false
@@ -28,6 +27,7 @@ struct MeView: View {
     @AppStorage(ReminderSettings.Key.headacheCheckIn) private var headacheCheckIn = false
     @AppStorage(ReminderSettings.Key.checkInMinute) private var checkInMinute = ReminderSettings.defaultCheckInMinute
     @State private var confirmDelete = false
+    @State private var aboutOpen = false
     @State private var exportItem: ExportItem?
     @State private var pendingExportURL: URL?
 
@@ -40,8 +40,6 @@ struct MeView: View {
                         .textInputAutocapitalization(.words)
                 } header: {
                     Text("You")
-                } footer: {
-                    Text("We'll greet you by this on Home. Leave it blank for \u{201C}beautiful\u{201D}. Stays on this device.")
                 }
 
                 Section {
@@ -56,16 +54,13 @@ struct MeView: View {
                 } header: {
                     Text("Cycle")
                 } footer: {
-                    Text("Cycle length auto-adjusts from your logged periods once there's enough history; otherwise this setting is used.")
-                }
-
-                Section("Appearance") {
-                    Picker("Theme", selection: $themeRaw) {
-                        Text("System").tag(AppTheme.system.rawValue)
-                        Text("Light").tag(AppTheme.light.rawValue)
-                        Text("Dark").tag(AppTheme.dark.rawValue)
+                    // Shown only when it's surprising: the app is ignoring the stepper above.
+                    // Explaining the normal case every time is just noise.
+                    if store.cycleLength != store.cycleLengthSetting {
+                        Text("Using **\(store.cycleLength) days** from your logged periods.")
                     }
                 }
+
 
                 Section {
                     Toggle("Period reminders", isOn: $periodReminders)
@@ -93,8 +88,6 @@ struct MeView: View {
                     }
                 } header: {
                     Text("Cycle reminders")
-                } footer: {
-                    Text("A gentle heads-up before your period starts and when your fertile window opens. Local only — no push server.")
                 }
 
                 Section {
@@ -109,17 +102,14 @@ struct MeView: View {
                     }
                 } header: {
                     Text("Daily check-in")
-                } footer: {
-                    Text("A daily nudge to log how you're feeling. With both on you get one reminder, not two.")
                 }
 
+                // The privacy policy lives in About alongside the health disclaimer, so the
+                // legal documents sit together in one place rather than being half here.
                 Section {
                     Toggle("Require Face ID to open", isOn: $lockEnabled)
-                    NavigationLink("Privacy Policy") { PrivacyPolicyView() }
                 } header: {
                     Text("Privacy")
-                } footer: {
-                    Text("Locks the app behind Face ID, Touch ID, or your device passcode — so your data stays private even on an unlocked phone.")
                 }
 
                 // Required by App Store Guideline 5.1.1(v) + GDPR/CCPA. All on-device.
@@ -132,8 +122,16 @@ struct MeView: View {
                     Button("Delete all my data", role: .destructive) { confirmDelete = true }
                 } header: {
                     Text("Your data")
-                } footer: {
-                    Text("Everything is stored only on this device. Export saves a JSON file you can share or keep; deleting erases it permanently.")
+                }
+
+                Section {
+                    Button { aboutOpen = true } label: {
+                        HStack {
+                            Text("About Cycluna").foregroundStyle(Theme.ink)
+                            Spacer()
+                            Text(shortVersion).foregroundStyle(Theme.inkSoft)
+                        }
+                    }
                 }
             }
             .scrollContentBackground(.hidden)
@@ -146,6 +144,7 @@ struct MeView: View {
                 Button("Delete everything", role: .destructive) { deleteEverything() }
                 Button("Cancel", role: .cancel) {}
             }
+            .sheet(isPresented: $aboutOpen) { AboutView() }
             .sheet(item: $exportItem, onDismiss: {
                 if let url = pendingExportURL { try? FileManager.default.removeItem(at: url) }
                 pendingExportURL = nil
@@ -156,6 +155,11 @@ struct MeView: View {
     }
 
     // MARK: - Reminders
+
+    /// Marketing version only — the full "1.0 (3)" lives on the About screen.
+    private var shortVersion: String {
+        (Bundle.main.infoDictionary?["CFBundleShortVersionString"] as? String) ?? ""
+    }
 
     /// How far ahead a cycle reminder can fire. Kept short — beyond a couple of days the
     /// prediction isn't precise enough for the reminder to mean much.

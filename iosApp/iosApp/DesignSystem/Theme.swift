@@ -1,5 +1,4 @@
 import SwiftUI
-import UIKit
 
 extension Color {
     init(hex: String) {
@@ -11,28 +10,21 @@ extension Color {
         let b = Double(v & 0xFF) / 255
         self.init(.sRGB, red: r, green: g, blue: b, opacity: 1)
     }
-
-    /// Light/dark adaptive color.
-    init(light: Color, dark: Color) {
-        self = Color(UIColor { tc in
-            tc.userInterfaceStyle == .dark ? UIColor(dark) : UIColor(light)
-        })
-    }
 }
 
 /// Brand tokens translated from the web app's design system
-/// (cream / mauve / rose / gold, night-sky navy in dark mode).
+/// (cream / mauve / rose / gold). The app is light-only — see RootView.
 enum Theme {
-    static let background = Color(light: Color(hex: "FAF3EC"), dark: Color(hex: "0F0F2D"))
-    static let surface    = Color(light: Color(hex: "FFFDF9"), dark: Color(hex: "181834"))
-    static let primary    = Color(light: Color(hex: "6B3FA0"), dark: Color(hex: "B79BE6"))
+    static let background = Color(hex: "FAF3EC")
+    static let surface    = Color(hex: "FFFDF9")
+    static let primary    = Color(hex: "6B3FA0")
     static let secondary  = Color(hex: "D4849A")
     static let accent     = Color(hex: "E8C97E")
-    static let ink        = Color(light: Color(hex: "2D2D2D"), dark: Color(hex: "F0E9DF"))
-    static let inkSoft    = Color(light: Color(hex: "6B6B6B"), dark: Color(hex: "B8B0C4"))
-    /// Gold accent tuned for TEXT/icons: deep goldenrod on light cream (readable),
-    /// bright gold on the dark night sky. Use this for accent text, not `accent`.
-    static let accentText = Color(light: Color(hex: "8A6A1C"), dark: Color(hex: "E8C97E"))
+    static let ink        = Color(hex: "2D2D2D")
+    static let inkSoft    = Color(hex: "6B6B6B")
+    /// Gold accent tuned for TEXT/icons: deep goldenrod, readable on cream.
+    /// Use this for accent text, not `accent`, which is too pale to read.
+    static let accentText = Color(hex: "8A6A1C")
 
     static let phaseMenstrual  = Color(hex: "D96B6B")
     static let phaseFollicular = Color(hex: "5CB37E")
@@ -41,7 +33,7 @@ enum Theme {
 
     static var backgroundGradient: LinearGradient {
         LinearGradient(
-            colors: [background, Color(light: Color(hex: "F3E7DA"), dark: Color(hex: "1B1640"))],
+            colors: [background, Color(hex: "F3E7DA")],
             startPoint: .top, endPoint: .bottom
         )
     }

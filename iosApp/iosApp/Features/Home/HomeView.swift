@@ -19,21 +19,28 @@ struct HomeView: View {
                 .padding()
             }
             .background(Theme.background.ignoresSafeArea())
-            .toolbar(.hidden, for: .navigationBar)
+            // A real navigation bar, not a scrolling <header>: the brand stays put and content
+            // passes under a translucent bar the way iOS expects. Hiding it was what made this
+            // screen read as a web page.
+            .navigationBarTitleDisplayMode(.inline)
+            .toolbar {
+                ToolbarItem(placement: .principal) {
+                    HStack(spacing: 6) {
+                        Image(systemName: "moon.stars.fill")
+                            .font(.footnote)
+                            .foregroundStyle(Theme.primary)
+                        Text("Cycluna")
+                            .font(.cyclunaSerif(17))
+                            .foregroundStyle(Theme.ink)
+                    }
+                    .accessibilityAddTraits(.isHeader)
+                }
+            }
         }
     }
 
     private var header: some View {
         VStack(spacing: 4) {
-            HStack(spacing: 6) {
-                Image(systemName: "moon.stars.fill")
-                    .font(.subheadline)
-                    .foregroundStyle(Theme.primary)
-                Text("Cycluna")
-                    .font(.cyclunaSerif(17))
-                    .foregroundStyle(Theme.inkSoft)
-            }
-            .padding(.bottom, 8)
             Text("Hello, \(store.displayName.isEmpty ? "beautiful" : store.displayName)")
                 .font(.cyclunaSerif(34))
                 .foregroundStyle(Theme.ink)
@@ -41,7 +48,7 @@ struct HomeView: View {
                 .font(.subheadline)
                 .foregroundStyle(Theme.inkSoft)
         }
-        .padding(.top, 8)
+        .padding(.top, 4)
     }
 
     private var heroCard: some View {

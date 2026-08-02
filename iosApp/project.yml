@@ -1,6 +1,6 @@
 name: iosApp
 options:
-  bundleIdPrefix: app.cycluna
+  bundleIdPrefix: net.quietflare
   deploymentTarget:
     iOS: "17.0"
   createIntermediateGroups: true
@@ -19,8 +19,10 @@ targets:
       path: iosApp/Info.plist
       properties:
         CFBundleDisplayName: Cycluna
-        UILaunchScreen:
-          UIColorName: LaunchBackground
+        # A storyboard, not the UILaunchScreen dictionary. That dictionary's UIImageName
+        # rendered nothing at all (verified on device: brand background, no mark) and gives
+        # no control over the mark's size or position. See LaunchScreen.storyboard.
+        UILaunchStoryboardName: LaunchScreen
         # Encryption export compliance: asserts only standard/exempt crypto
         # (HTTPS + standard AES). Confirm this exemption before submission.
         ITSAppUsesNonExemptEncryption: false
@@ -28,7 +30,11 @@ targets:
         NSFaceIDUsageDescription: Cycluna uses Face ID to keep your cycle data private on this device.
     settings:
       base:
-        PRODUCT_BUNDLE_IDENTIFIER: app.cycluna.iosApp
+        PRODUCT_BUNDLE_IDENTIFIER: net.quietflare.cycluna
+        # Explicit so the About screen and App Store Connect read the same numbers.
+        # Bump MARKETING_VERSION per release, CURRENT_PROJECT_VERSION per upload.
+        MARKETING_VERSION: "1.0"
+        CURRENT_PROJECT_VERSION: "1"
         SWIFT_VERSION: "5.0"
         TARGETED_DEVICE_FAMILY: "1"
         ASSETCATALOG_COMPILER_APPICON_NAME: AppIcon
@@ -61,7 +67,7 @@ targets:
     settings:
       base:
         GENERATE_INFOPLIST_FILE: YES
-        PRODUCT_BUNDLE_IDENTIFIER: app.cycluna.iosAppTests
+        PRODUCT_BUNDLE_IDENTIFIER: net.quietflare.cycluna.tests
 
 schemes:
   iosApp:

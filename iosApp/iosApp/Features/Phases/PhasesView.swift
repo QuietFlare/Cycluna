@@ -7,16 +7,9 @@ struct PhasesView: View {
         NavigationStack {
             ScrollView {
                 VStack(spacing: 16) {
-                    VStack(spacing: 4) {
-                        Text("Your four phases")
-                            .font(.cyclunaSerif(34))
-                            .foregroundStyle(Theme.ink)
-                        Text("A monthly weather pattern, not a flaw.")
-                            .font(.subheadline).italic()
-                            .foregroundStyle(Theme.inkSoft)
-                    }
-                    .padding(.top, 8)
-
+                    // No strapline under the large title: iOS titles are left-aligned with
+                    // their own metrics, and a centred line beneath opened a dead band before
+                    // the first card. The cards carry the voice now.
                     HormoneChartCard()
 
                     ForEach(PhaseContent.all) { p in phaseCard(p) }
@@ -24,7 +17,9 @@ struct PhasesView: View {
                 .padding()
             }
             .background(Theme.background.ignoresSafeArea())
-            .toolbar(.hidden, for: .navigationBar)
+            // Large title collapsing to inline — the standard iOS browse-screen behaviour.
+            .navigationTitle("Your four phases")
+            .navigationBarTitleDisplayMode(.large)
         }
     }
 
@@ -39,7 +34,7 @@ struct PhasesView: View {
                 if isNow {
                     Text("NOW")
                         .font(.caption2).fontWeight(.bold)
-                        .foregroundStyle(Color(light: .white, dark: Color(hex: "1B0F34")))
+                        .foregroundStyle(.white)
                         .padding(.horizontal, 7).padding(.vertical, 2)
                         .background(p.color, in: Capsule())
                 }

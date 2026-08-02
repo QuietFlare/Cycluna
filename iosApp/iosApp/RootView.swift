@@ -3,7 +3,6 @@ import SwiftUI
 struct RootView: View {
     @Environment(CycleStore.self) private var store
     @Environment(\.scenePhase) private var scenePhase
-    @AppStorage("appTheme") private var themeRaw = AppTheme.system.rawValue
     @AppStorage("appLockEnabled") private var lockEnabled = false
     @State private var lock = AppLock()
 
@@ -25,7 +24,10 @@ struct RootView: View {
                     .transition(.opacity)
             }
         }
-        .preferredColorScheme(AppTheme(rawValue: themeRaw)?.colorScheme ?? nil)
+        // Cycluna is a light-themed app. Pinned rather than offered as a choice: the
+        // cream/mauve palette is the brand, and a theme switch is a setting nobody needs
+        // to make. The launch assets are light-only to match.
+        .preferredColorScheme(.light)
         .onAppear {
             if lockEnabled { lock.authenticate() } else { lock.isUnlocked = true }
         }

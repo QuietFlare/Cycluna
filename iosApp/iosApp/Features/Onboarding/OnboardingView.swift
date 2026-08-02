@@ -5,9 +5,9 @@ import SwiftUI
 /// The app never fabricates a cycle; finishing here logs the user's real first period,
 /// which flips `hasLoggedPeriod` and reveals the tabs. Follows the system/app theme.
 struct OnboardingView: View {
+    @State private var heroTextIn = false
     @Environment(CycleStore.self) private var store
 
-    @AppStorage("appTheme") private var themeRaw = AppTheme.system.rawValue
     @State private var step = 0
     @State private var lastPeriod = Calendar.current.startOfDay(for: .now)
     @State private var cycleLength = 28
@@ -46,7 +46,6 @@ struct OnboardingView: View {
             .padding(.bottom, 24)
 
             if step > 0 { backButton }
-            themeToggle
         }
         .background(
             GeometryReader { geo in
@@ -57,31 +56,6 @@ struct OnboardingView: View {
         )
     }
 
-    /// Appearance switcher (system → light → dark). Persists to the same `appTheme` key
-    /// RootView reads, so the whole app re-themes instantly. Top-right, clear of the
-    /// back chevron on the left.
-    private var themeToggle: some View {
-        VStack {
-            HStack {
-                Spacer()
-                Button {
-                    withAnimation(.easeInOut(duration: 0.25)) {
-                        themeRaw = (AppTheme(rawValue: themeRaw) ?? .system).next.rawValue
-                    }
-                } label: {
-                    Image(systemName: AppTheme(rawValue: themeRaw)?.icon ?? "circle.lefthalf.filled")
-                        .font(.system(size: 15, weight: .semibold))
-                        .foregroundStyle(Theme.inkSoft)
-                        .frame(width: 40, height: 40)
-                        .background(Color(light: .black.opacity(0.05), dark: .white.opacity(0.08)), in: Circle())
-                }
-                .accessibilityLabel("Appearance")
-            }
-            Spacer()
-        }
-        .padding(.horizontal, 20)
-        .padding(.top, 8)
-    }
 
     private func advance() {
         withAnimation(.spring(response: 0.5, dampingFraction: 0.86)) { step += 1 }
@@ -128,25 +102,30 @@ struct OnboardingView: View {
         VStack(spacing: 0) {
             Spacer()
             GlowMoon(size: 156 * uiScale)
+            // The words settle in just after the moon lands, so the screen assembles rather
+            // than appearing all at once.
             Text("Welcome to\nCycluna")
                 .font(serif(38))
                 .multilineTextAlignment(.center)
                 .foregroundStyle(Theme.ink)
                 .padding(.top, 26)
+                .opacity(heroTextIn ? 1 : 0)
+                .offset(y: heroTextIn ? 0 : 10)
+                .animation(.easeOut(duration: 0.45).delay(0.25), value: heroTextIn)
             Text("Your rhythm, in tune with\nthe moon and your body.")
                 .font(.subheadline)
                 .multilineTextAlignment(.center)
                 .foregroundStyle(Theme.inkSoft)
                 .padding(.top, 10)
+                .opacity(heroTextIn ? 1 : 0)
+                .offset(y: heroTextIn ? 0 : 10)
+                .animation(.easeOut(duration: 0.45).delay(0.38), value: heroTextIn)
             Spacer()
             ProgressDots(current: 0)
             OnboardingButton("Begin") { advance() }
                 .padding(.top, 18)
-            Text("Everything stays on your device")
-                .font(.footnote)
-                .foregroundStyle(Theme.inkSoft)
-                .padding(.top, 14)
         }
+        .onAppear { heroTextIn = true }
     }
 
     // MARK: - Step 2 · Trust
@@ -188,7 +167,7 @@ struct OnboardingView: View {
                 .font(.system(size: 19))
                 .foregroundStyle(Theme.accentText)
                 .frame(width: 42, height: 42)
-                .background(Color(light: .black.opacity(0.05), dark: .white.opacity(0.08)),
+                .background(.black.opacity(0.05),
                             in: RoundedRectangle(cornerRadius: 13))
             VStack(alignment: .leading, spacing: 3) {
                 Text(title).font(.system(size: 17, weight: .semibold)).foregroundStyle(Theme.ink)
@@ -331,25 +310,55 @@ struct OnboardingView: View {
 // MARK: - Reusable pieces
 
 /// The gold-to-white breathing moon used on the hero.
+/// The welcome crescent — the same mark as the app icon and the launch screen, so the three
+/// read as one identity rather than three different moons.
+///
+/// It enters at the launch mark's size and grows into place, which makes the handoff from the
+/// launch screen feel continuous: the mark appears to stay put while the app takes over.
+/// Mauve rather than the icon's gold, because gold was chosen to sit on the icon's night sky
+/// and is far too pale on cream.
 private struct GlowMoon: View {
     var size: CGFloat = 150
+
+    /// The launch screen draws its mark at 96pt; starting there makes the growth read as
+    /// continuous rather than as a separate animation.
+    private var launchScale: CGFloat { 96 / max(size, 1) }
+
+    @State private var arrived = false
     @State private var breathe = false
 
     var body: some View {
         Circle()
             .fill(
-                RadialGradient(
-                    colors: [Color(hex: "FFF7E6"), Color(hex: "F3E4C0"), Color(hex: "D9C290"), Color(hex: "B79F6B")],
-                    center: UnitPoint(x: 0.34, y: 0.30),
-                    startRadius: 2, endRadius: size * 0.72
+                LinearGradient(
+                    colors: [Color(hex: "8C6BC4"), Color(hex: "6B3FA0"), Color(hex: "D4849A")],
+                    startPoint: .topLeading, endPoint: .bottomTrailing
                 )
             )
             .frame(width: size, height: size)
-            .shadow(color: Theme.accent.opacity(0.38), radius: 34)
-            .shadow(color: Theme.primary.opacity(0.28), radius: 70)
+            // Crescent geometry copied from the icon: a disc with an offset disc removed.
+            .mask {
+                Circle()
+                    .overlay {
+                        Circle()
+                            .frame(width: size * 0.806, height: size * 0.806)
+                            .offset(x: size * 0.355, y: -size * 0.274)
+                            .blendMode(.destinationOut)
+                    }
+                    .compositingGroup()
+            }
+            .shadow(color: Theme.primary.opacity(0.30), radius: 34)
+            .shadow(color: Theme.secondary.opacity(0.22), radius: 70)
+            // Two scale effects compose: a slow breath on top of the entrance growth.
             .scaleEffect(breathe ? 1.03 : 0.985)
             .animation(.easeInOut(duration: 4.5).repeatForever(autoreverses: true), value: breathe)
-            .onAppear { breathe = true }
+            .scaleEffect(arrived ? 1 : launchScale)
+            .opacity(arrived ? 1 : 0)
+            .animation(.spring(response: 0.75, dampingFraction: 0.82), value: arrived)
+            .onAppear {
+                arrived = true
+                breathe = true
+            }
     }
 }
 
@@ -361,7 +370,7 @@ private struct ProgressDots: View {
             ForEach(0..<4, id: \.self) { i in
                 Capsule()
                     .fill(i == current ? Theme.accentText
-                          : Color(light: .black.opacity(0.15), dark: .white.opacity(0.22)))
+                          : .black.opacity(0.15))
                     .frame(width: i == current ? 22 : 7, height: 7)
                     .animation(.spring(response: 0.4, dampingFraction: 0.8), value: current)
             }
@@ -379,7 +388,7 @@ private struct OnboardingButton: View {
         Button(action: action) {
             Text(title)
                 .font(.headline)
-                .foregroundStyle(Color(light: .white, dark: Color(hex: "1B0F34")))
+                .foregroundStyle(.white)
                 .frame(maxWidth: .infinity)
                 .padding(.vertical, 16)
                 .background(

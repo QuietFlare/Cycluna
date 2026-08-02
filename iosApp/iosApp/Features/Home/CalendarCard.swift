@@ -71,25 +71,19 @@ struct CalendarCard: View {
 
     private struct DayStyle { var bg: Color; var icon: String?; var iconColor: Color; var label: String }
 
-    /// Cell tints are theme-adaptive: the light-cream opacities are too faint on the dark
-    /// night-sky background, so dark mode uses stronger fills (esp. predicted period).
-    private func tint(_ base: Color, light: Double, dark: Double) -> Color {
-        Color(light: base.opacity(light), dark: base.opacity(dark))
-    }
-
     private func markerStyle(_ marker: String) -> DayStyle {
         switch marker {
         case "period":
-            return .init(bg: tint(Theme.phaseMenstrual, light: 0.28, dark: 0.45), icon: "drop.fill", iconColor: Theme.phaseMenstrual, label: "period day")
+            return .init(bg: Theme.phaseMenstrual.opacity(0.28), icon: "drop.fill", iconColor: Theme.phaseMenstrual, label: "period day")
         case "predicted-period":
-            return .init(bg: tint(Theme.phaseMenstrual, light: 0.10, dark: 0.32), icon: "drop",
-                         iconColor: Color(light: Theme.phaseMenstrual.opacity(0.7), dark: Theme.phaseMenstrual), label: "predicted period")
+            return .init(bg: Theme.phaseMenstrual.opacity(0.10), icon: "drop",
+                         iconColor: Theme.phaseMenstrual.opacity(0.7), label: "predicted period")
         case "fertile-peak":
-            return .init(bg: tint(Theme.phaseOvulatory, light: 0.45, dark: 0.5), icon: "heart.fill", iconColor: Theme.phaseOvulatory, label: "peak fertile day")
+            return .init(bg: Theme.phaseOvulatory.opacity(0.45), icon: "heart.fill", iconColor: Theme.phaseOvulatory, label: "peak fertile day")
         case "fertile-high":
-            return .init(bg: tint(Theme.phaseOvulatory, light: 0.28, dark: 0.4), icon: "heart.fill", iconColor: Theme.phaseOvulatory.opacity(0.9), label: "high fertility")
+            return .init(bg: Theme.phaseOvulatory.opacity(0.28), icon: "heart.fill", iconColor: Theme.phaseOvulatory.opacity(0.9), label: "high fertility")
         case "fertile-medium":
-            return .init(bg: tint(Theme.phaseOvulatory, light: 0.15, dark: 0.3), icon: "heart", iconColor: Theme.phaseOvulatory.opacity(0.85), label: "fertile")
+            return .init(bg: Theme.phaseOvulatory.opacity(0.15), icon: "heart", iconColor: Theme.phaseOvulatory.opacity(0.85), label: "fertile")
         default:
             return .init(bg: .clear, icon: nil, iconColor: .clear, label: "")
         }
