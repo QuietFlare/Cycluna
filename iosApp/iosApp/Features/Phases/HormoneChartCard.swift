@@ -50,9 +50,9 @@ struct HormoneChartCard: View {
 
     var body: some View {
         VStack(alignment: .leading, spacing: 12) {
-            Text("Cycluna hormone chart")
+            Text("Hormone chart")
                 .font(.cyclunaSerif(22)).foregroundStyle(Theme.ink)
-            Text("Your hormonal weather across the cycle. Tap any day to see the levels.")
+            Text("Your hormonal weather across the cycle.")
                 .font(.subheadline).foregroundStyle(Theme.inkSoft)
 
             chart.frame(height: 200)
@@ -164,7 +164,7 @@ struct HormoneChartCard: View {
             .frame(maxWidth: .infinity, alignment: .leading)
             .background(Theme.background, in: RoundedRectangle(cornerRadius: 12))
         } else {
-            Text("Tap any day on the chart to see hormone levels")
+            Text("Tap any day to see hormone levels")
                 .font(.caption).italic().foregroundStyle(Theme.inkSoft)
                 .frame(maxWidth: .infinity)
         }
@@ -198,7 +198,7 @@ struct HormoneChartCard: View {
     }
 
     private var disclaimer: some View {
-        Text("Reference curves for a typical 28-day cycle (Speroff, Stricker et al.). Relative values, not absolute IU/L. Educational only — not medical advice.")
+        Text("Typical 28-day reference curves (Speroff, Stricker et al.), relative not absolute. Educational only.")
             .font(.system(size: 10)).foregroundStyle(Theme.inkSoft.opacity(0.8))
             .multilineTextAlignment(.center)
             .frame(maxWidth: .infinity)
