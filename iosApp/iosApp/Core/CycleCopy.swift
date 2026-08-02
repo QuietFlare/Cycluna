@@ -42,7 +42,11 @@ enum CycleCopy {
         case .late:
             return "Your period is \(lateText(daysLate: daysLate)). Log it when it starts."
         case .unclear:
-            return "We've lost track of your cycle. Log your last period to resume predictions."
+            // Deliberately plain, and true in both situations this state occurs in: a long
+            // gap with nothing logged, and a brand-new user who onboarded with an old date.
+            // "We've lost track of your cycle" read like a malfunction to someone who had
+            // just finished setup.
+            return "It's been a while. Log your period when it starts."
         case .normal:
             if daysUntilFertileStart > 0 {
                 return "Your fertile window opens in \(daysUntilFertileStart) days."

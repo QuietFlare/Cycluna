@@ -75,10 +75,12 @@ final class CycleCopyTests: XCTestCase {
     }
 
     func testContextAsksForAFreshLogOnceTrackingIsLost() {
+        // Plain wording on purpose: this same sentence greets a new user who onboarded with
+        // an old date, where anything alarming reads as the app being broken.
         XCTAssertEqual(
             CycleCopy.fertileContext(tracking: .unclear, daysLate: 40, daysUntilFertileStart: 3,
                                      daysUntilFertileEnd: 7, daysUntilNextPeriod: 0),
-            "We've lost track of your cycle. Log your last period to resume predictions.")
+            "It's been a while. Log your period when it starts.")
     }
 
     // MARK: - Mapping from the shared core

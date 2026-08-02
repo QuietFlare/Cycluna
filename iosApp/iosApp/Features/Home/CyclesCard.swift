@@ -60,8 +60,8 @@ struct CyclesCard: View {
                 // Every predicted date is measured from a period that hasn't arrived, so the
                 // whole list would be fiction. Say why instead of showing invented dates.
                 Text(store.tracking == .late
-                     ? "Paused while your period is \(store.daysLate == 1 ? "1 day" : "\(store.daysLate) days") late — log it and predictions resume."
-                     : "Paused until you log your last period.")
+                     ? "Your period is late. Predictions start again when you log it."
+                     : "Predictions start again when you log your period.")
                     .font(.footnote)
                     .foregroundStyle(Theme.inkSoft)
                     .fixedSize(horizontal: false, vertical: true)
