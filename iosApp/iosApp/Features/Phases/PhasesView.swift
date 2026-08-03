@@ -34,6 +34,21 @@ struct PhasesView: View {
         return Array(all[i...] + all[..<i])
     }
 
+    /// Which cycle a card's dates belong to.
+    ///
+    /// The list is rotated to start at the phase you're in, so everything after it is what's
+    /// *coming*. A phase that sits earlier in the cycle's natural order has already been and
+    /// gone this month, so it's dated from the next cycle — otherwise the cards read forward
+    /// (Luteal → Menstrual) while their dates run backwards (Aug 3 → Jul 18).
+    private func cycleStart(for p: PhaseContent) -> Date {
+        let all = PhaseContent.all
+        guard let now = all.firstIndex(where: { $0.key == store.phaseLabel }),
+              let i = all.firstIndex(where: { $0.key == p.key }), i < now
+        else { return store.currentCycleStart }
+        return Calendar.current.date(byAdding: .day, value: store.cycleLength,
+                                     to: store.currentCycleStart) ?? store.currentCycleStart
+    }
+
     private func phaseCard(_ p: PhaseContent) -> some View {
         let isNow = p.key == store.phaseLabel
         return VStack(alignment: .leading, spacing: 10) {
@@ -52,7 +67,7 @@ struct PhasesView: View {
                 Spacer()
                 VStack(alignment: .trailing, spacing: 2) {
                     Text(p.dateRangeText(cycleLength: store.cycleLength, periodLength: store.periodLength,
-                                         cycleStart: store.currentCycleStart))
+                                         cycleStart: cycleStart(for: p)))
                         .font(.subheadline.weight(.semibold))
                         .foregroundStyle(Theme.ink)
                     Text(p.rangeText(cycleLength: store.cycleLength, periodLength: store.periodLength))

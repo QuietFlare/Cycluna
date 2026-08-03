@@ -22,8 +22,8 @@ struct CyclesCard: View {
     }
 
     private var predicted: [PredRow] {
-        // An overdue or lost cycle makes every downstream date guesswork — `currentCycleStart`
-        // rolls forward on its own, which would quietly project from a cycle that never began.
+        // An overdue or lost cycle makes every downstream date guesswork: these would be
+        // measured from a period that hasn't arrived.
         guard store.tracking == .normal else { return [] }
         let base = store.currentCycleStart
         let cl = store.cycleLength
