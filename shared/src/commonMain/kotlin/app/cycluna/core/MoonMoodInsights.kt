@@ -31,6 +31,16 @@ data class MoonMood(val bucketKey: String, val average: Double, val count: Int)
  */
 data class MoonMoodPoint(val phaseFraction: Double, val mood: Int)
 
+/** One lunation's page, built in a single pass over the logs. [endIso] is exclusive. */
+data class LunationPage(
+    val startIso: String,
+    val endIso: String,
+    val length: Int,
+    val points: List<MoonMoodPoint>,
+    val averages: List<MoonMood>,
+    val summary: MoodSummary,
+)
+
 /** A confident brightest/lowest moon-phase finding. The UI words it; the core never claims cause. */
 data class MoonMoodInsight(
     val brightestKey: String,
@@ -116,6 +126,51 @@ object MoonMoodInsights {
             val start = lunationStart(approx)
             val end = lunationStart(start.plus(DatePeriod(days = 31)))
             CycleSpan(start.toString(), end.toString(), start.daysUntil(end))
+        }
+    }
+
+    /**
+     * Every lunation page in ONE pass — the moon lens's equivalent of [MoodInsights.cyclePages].
+     *
+     * Building them with [moonPointsInRange], [moonAveragesInRange] and a summary per span
+     * re-parses every logged date and recomputes [Moon.phase] for it once per call. Twelve
+     * lunations meant each log's moon phase — an instant conversion and a modulo over the
+     * synodic month — computed dozens of times. This does it once per log.
+     */
+    fun lunationPages(data: CycleData, count: Int): List<LunationPage> =
+        lunationPages(data, count, today())
+
+    internal fun lunationPages(data: CycleData, count: Int, today: LocalDate): List<LunationPage> {
+        val spans = lunationSpans(count, today)
+        if (spans.isEmpty()) return emptyList()
+
+        // date, its moon phase, and the mood — each computed exactly once.
+        val parsed = data.moods.mapNotNull { m ->
+            val date = runCatching { LocalDate.parse(m.date) }.getOrNull() ?: return@mapNotNull null
+            Triple(date, Moon.phase(date), m.mood)
+        }
+
+        return spans.map { span ->
+            val start = LocalDate.parse(span.startIso)
+            val end = LocalDate.parse(span.endIso)
+            val inSpan = parsed.filter { it.first >= start && it.first < end }
+            val byBucket = inSpan.groupBy({ it.second.key }, { it.third })
+            val moods = inSpan.map { it.third }
+
+            LunationPage(
+                startIso = span.startIso,
+                endIso = span.endIso,
+                length = span.length,
+                points = inSpan
+                    .map { MoonMoodPoint(it.second.age / Moon.SYNODIC_MONTH, it.third) }
+                    .sortedBy { it.phaseFraction },
+                // All eight buckets, in synodic order — the stripe draws every band.
+                averages = MoonPhaseKey.entries.map { key ->
+                    val xs = byBucket[key].orEmpty()
+                    MoonMood(key.slug, if (xs.isEmpty()) 0.0 else xs.average(), xs.size)
+                },
+                summary = MoodSummary(moods.size, if (moods.isEmpty()) 0.0 else moods.average()),
+            )
         }
     }
 

@@ -29,6 +29,7 @@
 		771B757953061958DA272057 /* PrivacyPolicyView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7DE140EA3558B14CFC8BA848 /* PrivacyPolicyView.swift */; };
 		793628C45927204301A5F295 /* MoodStripCard.swift in Sources */ = {isa = PBXBuildFile; fileRef = 19256911C7B4F237B97A5BFE /* MoodStripCard.swift */; };
 		93EB4C4415263552F6896ECD /* ReminderManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1021D23A188820C4E39F66A5 /* ReminderManager.swift */; };
+		9DDBCFD978DCF9DBA3505E0B /* DerivedWorkPerformanceTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 59F618F7287AE0A6B587EED0 /* DerivedWorkPerformanceTests.swift */; };
 		9ED9A97B860387FD19CB15FE /* MoonDisc.swift in Sources */ = {isa = PBXBuildFile; fileRef = C369F82A096088FB7CC058E5 /* MoonDisc.swift */; };
 		A824FBDD939F5C6966077029 /* mark.png in Resources */ = {isa = PBXBuildFile; fileRef = A313E3DEB6A1EFAC8D8E8F6B /* mark.png */; };
 		BE2E8D16F11987509CB5E2EF /* MoodPatternsCard.swift in Sources */ = {isa = PBXBuildFile; fileRef = D9F94C3395012713C454EF47 /* MoodPatternsCard.swift */; };
@@ -71,6 +72,7 @@
 		32A1E76CB0E09914E41A3753 /* CycleCopyTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CycleCopyTests.swift; sourceTree = "<group>"; };
 		35C9BD4A028EF537A38FFF0D /* MoonWheel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MoonWheel.swift; sourceTree = "<group>"; };
 		56583BC252B5F01ED9DEA19D /* iosAppTests.xctest */ = {isa = PBXFileReference; includeInIndex = 0; lastKnownFileType = wrapper.cfbundle; path = iosAppTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
+		59F618F7287AE0A6B587EED0 /* DerivedWorkPerformanceTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DerivedWorkPerformanceTests.swift; sourceTree = "<group>"; };
 		6408F44194CE06FAA24A5A97 /* MeView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MeView.swift; sourceTree = "<group>"; };
 		64B27654E170F63FB561A4DE /* CycleCopy.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CycleCopy.swift; sourceTree = "<group>"; };
 		6616FEEC09173BCB13239AC9 /* PhasesView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PhasesView.swift; sourceTree = "<group>"; };
@@ -78,7 +80,7 @@
 		6E3F2208DA27FBF44A21CAAA /* AboutView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AboutView.swift; sourceTree = "<group>"; };
 		7C3F7C14F19337B551DEEACD /* moon-events.json */ = {isa = PBXFileReference; lastKnownFileType = text.json; path = "moon-events.json"; sourceTree = "<group>"; };
 		7DE140EA3558B14CFC8BA848 /* PrivacyPolicyView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PrivacyPolicyView.swift; sourceTree = "<group>"; };
-		86038AE1032E284E79B32AD6 /* iosApp.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = iosApp.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		86038AE1032E284E79B32AD6 /* iosApp.app */ = {isa = PBXFileReference; includeInIndex = 0; lastKnownFileType = wrapper.application; path = iosApp.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		89408DFA4D6E9F0E6970E07A /* MoodLensBridgeTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MoodLensBridgeTests.swift; sourceTree = "<group>"; };
 		8CF396E6CDD244CE50197F69 /* Loggers.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Loggers.swift; sourceTree = "<group>"; };
 		A313E3DEB6A1EFAC8D8E8F6B /* mark.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = mark.png; sourceTree = "<group>"; };
@@ -88,7 +90,7 @@
 		C1B2A2D273CF7EC1AE1615B4 /* AppLock.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppLock.swift; sourceTree = "<group>"; };
 		C369F82A096088FB7CC058E5 /* MoonDisc.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MoonDisc.swift; sourceTree = "<group>"; };
 		C3A6342845F3A129A536C657 /* MoonSection.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MoonSection.swift; sourceTree = "<group>"; };
-		C6D2DD7FE2E0BF5DB2A96B4B /* PrivacyInfo.xcprivacy */ = {isa = PBXFileReference; lastKnownFileType = text.xml; path = PrivacyInfo.xcprivacy; sourceTree = "<group>"; };
+		C6D2DD7FE2E0BF5DB2A96B4B /* PrivacyInfo.xcprivacy */ = {isa = PBXFileReference; path = PrivacyInfo.xcprivacy; sourceTree = "<group>"; };
 		D617A58974EC4C72F4308000 /* HormoneChartCard.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HormoneChartCard.swift; sourceTree = "<group>"; };
 		D9F94C3395012713C454EF47 /* MoodPatternsCard.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MoodPatternsCard.swift; sourceTree = "<group>"; };
 		DA37D0778EF80E07990EDC25 /* mark@2x.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = "mark@2x.png"; sourceTree = "<group>"; };
@@ -183,6 +185,7 @@
 			isa = PBXGroup;
 			children = (
 				32A1E76CB0E09914E41A3753 /* CycleCopyTests.swift */,
+				59F618F7287AE0A6B587EED0 /* DerivedWorkPerformanceTests.swift */,
 				17C96260AC017F3CCCEBB46C /* KeychainVaultTests.swift */,
 				89408DFA4D6E9F0E6970E07A /* MoodLensBridgeTests.swift */,
 				A49197CFCCCD42AEF1D50D7B /* ReminderPlanTests.swift */,
@@ -298,6 +301,8 @@
 			attributes = {
 				BuildIndependentTargetsInParallel = YES;
 				LastUpgradeCheck = 1430;
+				TargetAttributes = {
+				};
 			};
 			buildConfigurationList = FF7CA1CA754D017066F1822F /* Build configuration list for PBXProject "iosApp" */;
 			developmentRegion = en;
@@ -397,6 +402,7 @@
 			buildActionMask = 2147483647;
 			files = (
 				09A28EAB8994B0EB6989A858 /* CycleCopyTests.swift in Sources */,
+				9DDBCFD978DCF9DBA3505E0B /* DerivedWorkPerformanceTests.swift in Sources */,
 				EFE6ED7C8739E9B6CD6E2015 /* KeychainVaultTests.swift in Sources */,
 				E669EB6D4CDFED87B82DFCE9 /* MoodLensBridgeTests.swift in Sources */,
 				FA2EA68EF2EDCFCCC898EC8B /* ReminderPlanTests.swift in Sources */,
@@ -575,7 +581,6 @@
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				CODE_SIGN_IDENTITY = "iPhone Developer";
 				CURRENT_PROJECT_VERSION = 1;
-				DEVELOPMENT_TEAM = 5UL5N2DB4N;
 				FRAMEWORK_SEARCH_PATHS = (
 					"$(inherited)",
 					"$(SRCROOT)/../shared/build/xcode-frameworks/$(CONFIGURATION)/$(SDK_NAME)",
@@ -604,7 +609,6 @@
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				CODE_SIGN_IDENTITY = "iPhone Developer";
 				CURRENT_PROJECT_VERSION = 1;
-				DEVELOPMENT_TEAM = 5UL5N2DB4N;
 				FRAMEWORK_SEARCH_PATHS = (
 					"$(inherited)",
 					"$(SRCROOT)/../shared/build/xcode-frameworks/$(CONFIGURATION)/$(SDK_NAME)",

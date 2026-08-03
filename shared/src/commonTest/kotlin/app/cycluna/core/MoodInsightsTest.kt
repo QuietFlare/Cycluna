@@ -1,6 +1,8 @@
 package app.cycluna.core
 
+import kotlinx.datetime.DatePeriod
 import kotlinx.datetime.LocalDate
+import kotlinx.datetime.minus
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertNull
@@ -175,6 +177,40 @@ class MoodInsightsTest {
         val s = MoodInsights.summaryForRange(longHistory(), "2026-03-01", "2026-03-28")
         assertEquals(0, s.count)
         assertEquals(0.0, s.average)
+    }
+
+    @Test
+    fun onePassCyclePagesAgreeWithThePerCallPath() {
+        // cyclePages exists purely for speed; it must produce exactly what the three
+        // separate calls did, or the phase lens quietly changes meaning.
+        val d = longHistory(
+            MoodLog("2026-06-19", 4), MoodLog("2026-06-30", 5), MoodLog("2026-07-05", 2),
+            MoodLog("2026-07-17", 3), MoodLog("2026-07-28", 5), MoodLog("2026-07-06", 2),
+            MoodLog("2026-06-10", 2), MoodLog("2026-07-01", 5),
+        )
+        val pages = MoodInsights.cyclePages(d, windowed)
+        val spans = MoodInsights.cycleSpans(d, windowed)
+        assertEquals(spans.size, pages.size)
+
+        for ((page, span) in pages.zip(spans)) {
+            assertEquals(span.startIso, page.startIso)
+            assertEquals(span.endIso, page.endIso)
+            assertEquals(span.length, page.length)
+            assertEquals(
+                MoodInsights.cyclePoints(d, span.startIso, span.endIso), page.points,
+                "points differ for ${span.startIso}"
+            )
+            val lastDay = LocalDate.parse(span.endIso).minus(DatePeriod(days = 1)).toString()
+            assertEquals(
+                MoodInsights.summaryForRange(d, span.startIso, lastDay), page.summary,
+                "summary differs for ${span.startIso}"
+            )
+            assertEquals(
+                MoodInsights.insightForRange(d, span.startIso, lastDay)?.brightest,
+                page.insight?.brightest,
+                "insight differs for ${span.startIso}"
+            )
+        }
     }
 
     @Test

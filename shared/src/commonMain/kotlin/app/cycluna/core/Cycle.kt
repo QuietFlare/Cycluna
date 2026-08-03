@@ -206,18 +206,39 @@ object Cycle {
         return cycles.any { it < MIN_CYCLE_LENGTH || it > 35 }
     }
 
-    fun phaseForDate(input: CycleInput, date: LocalDate): Phase? {
-        val anchor = input.periods.maxByOrNull { it.start }?.start ?: return null
-        val cycleLength = predictedCycleLength(input)
-        val periodLength = input.averagePeriodLength ?: DEFAULT_PERIOD_LENGTH
-        val diff = anchor.daysUntil(date)
-        val day = ((diff % cycleLength) + cycleLength) % cycleLength + 1
-        return when {
-            day <= periodLength -> Phase.MENSTRUAL
-            day <= cycleLength / 2 - 2 -> Phase.FOLLICULAR
-            day <= cycleLength / 2 + 2 -> Phase.OVULATORY
-            else -> Phase.LUTEAL
+    fun phaseForDate(input: CycleInput, date: LocalDate): Phase? =
+        phaseBucket(input)?.phaseOf(date)
+
+    /**
+     * The anchor and lengths needed to place any date in a phase, worked out once.
+     *
+     * [phaseForDate] recomputes [predictedCycleLength] — which filters, sorts and averages the
+     * whole period history — on every call. Bucketing a year of logs called it thousands of
+     * times and dominated the app's main-thread cost. Callers that classify many dates should
+     * build this once and reuse it.
+     */
+    class PhaseBucket(
+        private val anchor: LocalDate,
+        val cycleLength: Int,
+        private val periodLength: Int,
+    ) {
+        fun phaseOf(date: LocalDate): Phase {
+            val diff = anchor.daysUntil(date)
+            val day = ((diff % cycleLength) + cycleLength) % cycleLength + 1
+            return when {
+                day <= periodLength -> Phase.MENSTRUAL
+                day <= cycleLength / 2 - 2 -> Phase.FOLLICULAR
+                day <= cycleLength / 2 + 2 -> Phase.OVULATORY
+                else -> Phase.LUTEAL
+            }
         }
+    }
+
+    /** null when nothing is logged — there is no cycle to place dates against. */
+    fun phaseBucket(input: CycleInput, today: LocalDate = today()): PhaseBucket? {
+        val anchor = input.periods.maxByOrNull { it.start }?.start ?: return null
+        return PhaseBucket(anchor, predictedCycleLength(input, today),
+                           input.averagePeriodLength ?: DEFAULT_PERIOD_LENGTH)
     }
 
     fun cycleDayForDate(input: CycleInput, date: LocalDate): Int? {

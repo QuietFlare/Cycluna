@@ -208,6 +208,37 @@ class MoonMoodInsightsTest {
         assertTrue(averages.sumOf { it.count } == inRange.size)
     }
 
+    @Test
+    fun onePassLunationPagesAgreeWithThePerCallPath() {
+        // lunationPages exists purely for speed; it must produce exactly what the separate
+        // range calls did, or the moon lens quietly changes meaning.
+        val d = data(*(logs(MoonPhaseKey.FULL, LocalDate(2026, 2, 1), 5, 5) +
+                       logs(MoonPhaseKey.NEW, LocalDate(2026, 2, 1), 4, 2) +
+                       logs(MoonPhaseKey.WANING_GIBBOUS, LocalDate(2026, 3, 1), 3, 3)).toTypedArray())
+
+        val pages = MoonMoodInsights.lunationPages(d, 12, today)
+        val spans = MoonMoodInsights.lunationSpans(12, today)
+        assertEquals(spans.size, pages.size)
+
+        for ((page, span) in pages.zip(spans)) {
+            assertEquals(span.startIso, page.startIso)
+            assertEquals(span.endIso, page.endIso)
+            assertEquals(span.length, page.length)
+            assertEquals(
+                MoonMoodInsights.moonPointsInRange(d, span.startIso, span.endIso), page.points,
+                "points differ for ${span.startIso}"
+            )
+            assertEquals(
+                MoonMoodInsights.moonAveragesInRange(d, span.startIso, span.endIso), page.averages,
+                "averages differ for ${span.startIso}"
+            )
+            assertEquals(
+                page.points.size, page.summary.count,
+                "summary count must match the points on the page"
+            )
+        }
+    }
+
     // --- Cycle/moon alignment -------------------------------------------------
 
     @Test

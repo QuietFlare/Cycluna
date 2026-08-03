@@ -26,6 +26,16 @@ data class MoodSummary(val count: Int, val average: Double)
 /** One cycle as a pageable span. [endIso] is exclusive. */
 data class CycleSpan(val startIso: String, val endIso: String, val length: Int)
 
+/** One cycle's page, built in a single pass over the logs. [endIso] is exclusive. */
+data class CyclePage(
+    val startIso: String,
+    val endIso: String,
+    val length: Int,
+    val points: List<MoodPoint>,
+    val summary: MoodSummary,
+    val insight: MoodInsight?,
+)
+
 /** Average mood for a phase within the insight window. */
 data class PhaseMood(val phase: Phase, val average: Double, val count: Int)
 
@@ -99,11 +109,12 @@ object MoodInsights {
     /** Moods inside the insight window, paired with the phase of the day they were logged. */
     private fun windowedMoods(data: CycleData, today: LocalDate): List<Pair<Phase, Int>> {
         val from = windowStart(data, today) ?: return emptyList()
-        val input = inputOf(data)
+        // One bucket for the whole pass — see Cycle.PhaseBucket.
+        val bucket = Cycle.phaseBucket(inputOf(data), today) ?: return emptyList()
         return data.moods.mapNotNull { m ->
             val date = runCatching { LocalDate.parse(m.date) }.getOrNull() ?: return@mapNotNull null
             if (date < from || date > today) return@mapNotNull null
-            Cycle.phaseForDate(input, date)?.let { it to m.mood }
+            bucket.phaseOf(date) to m.mood
         }
     }
 
@@ -152,6 +163,61 @@ object MoodInsights {
         }.sortedBy { it.cycleDay }
     }
 
+    /**
+     * Every cycle page in ONE pass, for the phase lens.
+     *
+     * Building pages by calling [cyclePoints], [summaryForRange] and [insightForRange] per
+     * cycle re-parses every logged date once per call — thirteen cycles over a year of logs
+     * meant ~14,000 date parses to draw one screen. This parses each log once and slices.
+     */
+    fun cyclePages(data: CycleData): List<CyclePage> = cyclePages(data, today())
+
+    internal fun cyclePages(data: CycleData, today: LocalDate): List<CyclePage> {
+        val spans = cycleSpans(data, today)
+        if (spans.isEmpty()) return emptyList()
+        val bucket = Cycle.phaseBucket(inputOf(data), today)
+        val covered = cyclesCovered(data, today)
+
+        val parsed = data.moods.mapNotNull { m ->
+            runCatching { LocalDate.parse(m.date) }.getOrNull()?.let { it to m.mood }
+        }
+
+        return spans.map { span ->
+            val start = LocalDate.parse(span.startIso)
+            val end = LocalDate.parse(span.endIso)
+            val inSpan = parsed.filter { it.first >= start && it.first < end }
+            val moods = inSpan.map { it.second }
+            CyclePage(
+                startIso = span.startIso,
+                endIso = span.endIso,
+                length = span.length,
+                points = inSpan.map { MoodPoint(start.daysUntil(it.first) + 1, it.second) }
+                    .sortedBy { it.cycleDay },
+                summary = MoodSummary(moods.size, if (moods.isEmpty()) 0.0 else moods.average()),
+                insight = bucket?.let { b ->
+                    findInsight(inSpan.map { b.phaseOf(it.first) to it.second }, covered)
+                },
+            )
+        }
+    }
+
+    /**
+     * The brightest/lowest finding for a set of (phase, mood) pairs, or null when the
+     * guardrails aren't met. Single home for the rule so a page and the window can't drift.
+     */
+    private fun findInsight(stats: List<Pair<Phase, Int>>, cyclesCovered: Int): MoodInsight? {
+        val byPhase = stats.groupBy({ it.first }, { it.second })
+            .map { (phase, xs) -> PhaseMood(phase, xs.average(), xs.size) }
+        val total = byPhase.sumOf { it.count }
+        if (total < MIN_TOTAL) return null
+        val eligible = byPhase.filter { it.count >= MIN_PER_PHASE }
+        if (eligible.size < 2) return null
+        val hi = eligible.maxByOrNull { it.average } ?: return null
+        val lo = eligible.minByOrNull { it.average } ?: return null
+        if (hi.phase == lo.phase || hi.average - lo.average < MIN_GAP) return null
+        return MoodInsight(hi.phase, lo.phase, cyclesCovered, total)
+    }
+
     /** Count and average for a span — descriptive, always available, never a claim. */
     fun summaryForRange(data: CycleData, fromIso: String, toIso: String): MoodSummary {
         val moods = moodsInRange(data, fromIso, toIso).map { it.mood }
@@ -166,11 +232,11 @@ object MoodInsights {
     fun insightForRange(data: CycleData, fromIso: String, toIso: String): MoodInsight? {
         val from = runCatching { LocalDate.parse(fromIso) }.getOrNull() ?: return null
         val to = runCatching { LocalDate.parse(toIso) }.getOrNull() ?: return null
-        val input = inputOf(data)
+        val bucket = Cycle.phaseBucket(inputOf(data), to) ?: return null
         val stats = data.moods.mapNotNull { m ->
             val date = runCatching { LocalDate.parse(m.date) }.getOrNull() ?: return@mapNotNull null
             if (date < from || date > to) return@mapNotNull null
-            Cycle.phaseForDate(input, date)?.let { it to m.mood }
+            bucket.phaseOf(date) to m.mood
         }.groupBy({ it.first }, { it.second })
             .map { (phase, xs) -> PhaseMood(phase, xs.average(), xs.size) }
 

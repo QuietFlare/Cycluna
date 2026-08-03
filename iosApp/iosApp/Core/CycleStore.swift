@@ -10,16 +10,39 @@ import Shared
 /// in its own ViewModel, reusing this exact logic.
 @Observable
 final class CycleStore {
-    /// Canonical state, straight from the shared core. Any change schedules a save and
-    /// refreshes the derived aggregates below.
-    private var data: CycleData { didSet { save(); refreshDerived() } }
+    /// Canonical state, straight from the shared core.
+    ///
+    /// Mutated only through `apply(_:_:)`, never assigned directly: a plain `didSet` cannot
+    /// tell what changed, so every edit rebuilt every aggregate. Renaming yourself recomputed
+    /// a year of cycle and moon analysis on each keystroke.
+    private var data: CycleData
 
     private let core = CyclunaCore.shared
 
+    /// Which families of derived value an edit invalidates.
+    struct Affects: OptionSet {
+        let rawValue: Int
+        /// Period starts, cycle length, period length — everything dated from a cycle.
+        static let cycle     = Affects(rawValue: 1 << 0)
+        static let moods     = Affects(rawValue: 1 << 1)
+        static let headaches = Affects(rawValue: 1 << 2)
+        static let journal   = Affects(rawValue: 1 << 3)
+        /// Nothing derived depends on it (the display name).
+        static let nothing: Affects = []
+        static let everything: Affects = [.cycle, .moods, .headaches, .journal]
+    }
+
     init() {
         data = Self.load() ?? CycleData.companion.EMPTY
-        // `didSet` does not fire for assignments inside `init`, so prime the caches here.
-        refreshDerived()
+        refresh(.everything)
+    }
+
+    /// The single place `data` changes: mutate, persist, then recompute only what the edit
+    /// can actually have invalidated.
+    private func apply(_ affects: Affects, _ transform: (CycleData) -> CycleData) {
+        data = transform(data)
+        save()
+        refresh(affects)
     }
 
     // MARK: - Derived aggregates (computed once per data change, not per render)
@@ -39,17 +62,34 @@ final class CycleStore {
     private(set) var moonMoodReady = false
     private(set) var cycleMoonAligned = false
 
-    private func refreshDerived() {
-        moodCyclePoints = MoodInsights.shared.currentCyclePoints(data: data)
-        moodInsight = MoodInsights.shared.insight(data: data)
-        headacheInsight = HeadacheInsights.shared.insight(data: data)
-        moonMoodPoints = MoonMoodInsights.shared.moonPoints(data: data)
-        moonMoodAverages = MoonMoodInsights.shared.moonAverages(data: data)
-        moonMoodInsight = MoonMoodInsights.shared.moonInsight(data: data)
-        moonMoodReady = MoonMoodInsights.shared.hasEnoughForClaim(data: data)
-        cycleMoonAligned = MoonMoodInsights.shared.cycleMoonAligned(data: data)
-        rebuildDayIndex()
-        rebuildMoodPages()
+    /// Recompute only the families an edit can have invalidated.
+    ///
+    /// The dependencies are narrow and worth stating: mood and moon analysis read the logs
+    /// *and* the cycle they're positioned against, so either invalidates them. Cycle/moon
+    /// alignment reads period starts alone. The day index is just a lookup over the logs and
+    /// never touches cycle maths.
+    private func refresh(_ affects: Affects) {
+        let mi = MoodInsights.shared
+        let mm = MoonMoodInsights.shared
+
+        if affects.contains(.moods) || affects.contains(.cycle) {
+            moodCyclePoints = mi.currentCyclePoints(data: data)
+            moodInsight = mi.insight(data: data)
+            moonMoodPoints = mm.moonPoints(data: data)
+            moonMoodAverages = mm.moonAverages(data: data)
+            moonMoodInsight = mm.moonInsight(data: data)
+            moonMoodReady = mm.hasEnoughForClaim(data: data)
+            rebuildMoodPages()
+        }
+        if affects.contains(.headaches) || affects.contains(.cycle) {
+            headacheInsight = HeadacheInsights.shared.insight(data: data)
+        }
+        if affects.contains(.cycle) {
+            cycleMoonAligned = mm.cycleMoonAligned(data: data)
+        }
+        if !affects.isDisjoint(with: [.moods, .headaches, .journal]) {
+            rebuildDayIndex()
+        }
     }
 
     // MARK: - Mood patterns: lenses and pageable history
@@ -65,6 +105,10 @@ final class CycleStore {
     private static let dailyPageDays = 14
     private static let dailyPageCount = 12
     private static let lunationPageCount = 12
+    /// Cycles are bounded by real logged starts, but that grows for as long as the app is
+    /// used — three years of short cycles is ~50 pages. Paging back that far is not a
+    /// feature anyone wants, so the phase lens is capped like the other two.
+    private static let phasePageCount = 24
 
     var moodLens: MoodLens = .phase {
         didSet { if oldValue != moodLens { rebuildMoodPages() } }
@@ -120,31 +164,33 @@ final class CycleStore {
             }
 
         case .phase:
-            for span in mi.cycleSpans(data: data) {
-                // Spans are half-open [start, end) but the summary/insight range is inclusive,
-                // so the last day has to be stepped back — otherwise a log on a cycle boundary
-                // counts in both the cycle that ends there and the one that begins.
-                let last = dayBefore(span.endIso)
-                var page = MoodPage(id: span.startIso, startIso: span.startIso, endIso: span.endIso,
-                                    title: "Cycle of \(pretty(span.startIso))",
-                                    spanDays: Int(span.length))
-                page.cycle = mi.cyclePoints(data: data, startIso: span.startIso, endIso: span.endIso)
-                page.summary = mi.summaryForRange(data: data, fromIso: span.startIso, toIso: last)
-                page.insight = mi.insightForRange(data: data, fromIso: span.startIso, toIso: last)
+            // One core call builds every cycle page in a single pass over the logs. Calling
+            // points/summary/insight per cycle re-parsed every logged date once per call —
+            // ~14,000 date parses to draw one screen after a year of daily logging.
+            for cycle in mi.cyclePages(data: data).suffix(Self.phasePageCount) {
+                var page = MoodPage(id: cycle.startIso, startIso: cycle.startIso,
+                                    endIso: cycle.endIso,
+                                    title: "Cycle of \(pretty(cycle.startIso))",
+                                    spanDays: Int(cycle.length))
+                page.cycle = cycle.points
+                page.summary = cycle.summary
+                page.insight = cycle.insight
                 pages.append(page)
             }
 
         case .moon:
-            let mm = MoonMoodInsights.shared
-            for span in mm.lunationSpans(data: data, count: Int32(Self.lunationPageCount)) {
-                var page = MoodPage(id: span.startIso, startIso: span.startIso, endIso: span.endIso,
-                                    title: "Moon from \(pretty(span.startIso))",
-                                    spanDays: Int(span.length))
-                page.moon = mm.moonPointsInRange(data: data, fromIso: span.startIso, toIso: span.endIso)
-                page.moonAverages = mm.moonAveragesInRange(data: data, fromIso: span.startIso, toIso: span.endIso)
-                // Half-open span, inclusive summary range — see the phase case above.
-                page.summary = mi.summaryForRange(data: data, fromIso: span.startIso,
-                                                  toIso: dayBefore(span.endIso))
+            // One pass, as in the phase case: each log's moon phase is computed once rather
+            // than once per lunation page.
+            for lunation in MoonMoodInsights.shared.lunationPages(
+                data: data, count: Int32(Self.lunationPageCount)
+            ) {
+                var page = MoodPage(id: lunation.startIso, startIso: lunation.startIso,
+                                    endIso: lunation.endIso,
+                                    title: "Moon from \(pretty(lunation.startIso))",
+                                    spanDays: Int(lunation.length))
+                page.moon = lunation.points
+                page.moonAverages = lunation.averages
+                page.summary = lunation.summary
                 pages.append(page)
             }
         }
@@ -183,15 +229,15 @@ final class CycleStore {
 
     var cycleLengthSetting: Int {
         get { Int(data.cycleLengthSetting) }
-        set { data = data.withCycleLength(days: Int32(newValue)) }
+        set { apply(.cycle) { $0.withCycleLength(days: Int32(newValue)) } }
     }
     var periodLength: Int {
         get { Int(data.periodLength) }
-        set { data = data.withPeriodLength(days: Int32(newValue)) }
+        set { apply(.cycle) { $0.withPeriodLength(days: Int32(newValue)) } }
     }
     var displayName: String {
         get { data.displayName }
-        set { data = data.withDisplayName(name: newValue) }
+        set { apply(.nothing) { $0.withDisplayName(name: newValue) } }
     }
 
     // MARK: - History & anchor
@@ -202,12 +248,12 @@ final class CycleStore {
     /// Most recent period start (the current cycle anchor). Settable — edits the latest entry.
     var lastPeriodStart: Date {
         get { data.lastPeriodStartIso.map { parseISO($0) } ?? .now }
-        set { data = data.withLastPeriodStart(iso: iso(newValue)) }
+        set { apply(.cycle) { $0.withLastPeriodStart(iso: iso(newValue)) } }
     }
 
     /// Log a new period start — appends to history via the shared rule (dedup + sorted).
     func startPeriod(on date: Date = .now) {
-        data = data.logPeriod(iso: iso(Calendar.current.startOfDay(for: date)))
+        apply(.cycle) { $0.logPeriod(iso: self.iso(Calendar.current.startOfDay(for: date))) }
     }
 
     /// Finish onboarding: set the chosen cycle length and log the user's ACTUAL selected
@@ -215,9 +261,11 @@ final class CycleStore {
     /// calendar). Handling an old date is done at read-time by the core, which rolls the
     /// anchor into the current cycle for "today" values without fabricating a stored date.
     func completeOnboarding(lastPeriod date: Date, cycleLength length: Int, periodLength pLen: Int) {
-        data = data.withCycleLength(days: Int32(length))
-                   .withPeriodLength(days: Int32(pLen))
-                   .logPeriod(iso: iso(Calendar.current.startOfDay(for: date)))
+        apply(.cycle) {
+            $0.withCycleLength(days: Int32(length))
+              .withPeriodLength(days: Int32(pLen))
+              .logPeriod(iso: self.iso(Calendar.current.startOfDay(for: date)))
+        }
     }
 
     // MARK: - Bridging helpers
@@ -239,11 +287,18 @@ final class CycleStore {
         return cal.dateComponents([.day], from: cal.startOfDay(for: a), to: cal.startOfDay(for: b)).day ?? 0
     }
 
-    /// The current cycle's start, rolled forward from the logged anchor (for the cycles
-    /// list + predictions). Falls back to today when nothing is logged.
+    /// The start of the cycle the user is actually in — the period they logged.
+    ///
+    /// Deliberately NOT rolled forward. `Cycle.status()` stopped rolling when the late model
+    /// landed; leaving this rolling meant a screen could date its content from a cycle that
+    /// never began while the "NOW" badge beside it came from the real one. Rolling was a
+    /// no-op whenever tracking is `normal` anyway, so this only changes the overdue case —
+    /// which is exactly where the invented cycle was wrong.
+    ///
+    /// Falls back to today when nothing is logged.
     var currentCycleStart: Date {
         guard let raw = data.lastPeriodStartIso else { return Calendar.current.startOfDay(for: .now) }
-        return parseISO(core.mostRecentPeriodStartIso(selectedIso: raw, cycleLength: Int32(cycleLength)))
+        return parseISO(raw)
     }
 
     /// Effective cycle length — recomputed from recent history when available.
@@ -449,9 +504,9 @@ final class CycleStore {
     }
 
     func logMood(_ mood: Int, note: String = "", on iso: String) {
-        data = data.withMood(iso: iso, mood: Int32(mood), note: note)
+        apply(.moods) { $0.withMood(iso: iso, mood: Int32(mood), note: note) }
     }
-    func clearMood(on iso: String) { data = data.clearingMood(iso: iso) }
+    func clearMood(on iso: String) { apply(.moods) { $0.clearingMood(iso: iso) } }
 
     // Headaches: multiple episodes per day, each with its own id + time.
     private func isoDateTime(_ d: Date) -> String {
@@ -459,25 +514,31 @@ final class CycleStore {
         return f.string(from: d)
     }
     func addHeadache(intensity: Int, symptoms: [String], triggers: [String], note: String, at date: Date) {
-        data = data.addingHeadache(entry: HeadacheLog(
-            id: UUID().uuidString, at: isoDateTime(date), intensity: Int32(intensity),
-            symptoms: symptoms, triggers: triggers, note: note))
+        apply(.headaches) {
+            $0.addingHeadache(entry: HeadacheLog(
+                id: UUID().uuidString, at: self.isoDateTime(date), intensity: Int32(intensity),
+                symptoms: symptoms, triggers: triggers, note: note))
+        }
     }
     func updateHeadache(id: String, intensity: Int, symptoms: [String], triggers: [String], note: String, at date: Date) {
-        data = data.removingHeadache(id: id).addingHeadache(entry: HeadacheLog(
-            id: id, at: isoDateTime(date), intensity: Int32(intensity),
-            symptoms: symptoms, triggers: triggers, note: note))
+        apply(.headaches) {
+            $0.removingHeadache(id: id).addingHeadache(entry: HeadacheLog(
+                id: id, at: self.isoDateTime(date), intensity: Int32(intensity),
+                symptoms: symptoms, triggers: triggers, note: note))
+        }
     }
-    func deleteHeadache(id: String) { data = data.removingHeadache(id: id) }
+    func deleteHeadache(id: String) { apply(.headaches) { $0.removingHeadache(id: id) } }
 
     func addJournalEntry(text: String, on iso: String) {
-        data = data.addingJournal(entry: JournalEntry(id: UUID().uuidString, date: iso, text: text))
+        apply(.journal) { $0.addingJournal(entry: JournalEntry(id: UUID().uuidString, date: iso, text: text)) }
     }
     func updateJournalEntry(id: String, text: String, on iso: String) {
-        data = data.removingJournal(id: id)
-            .addingJournal(entry: JournalEntry(id: id, date: iso, text: text))
+        apply(.journal) {
+            $0.removingJournal(id: id)
+              .addingJournal(entry: JournalEntry(id: id, date: iso, text: text))
+        }
     }
-    func deleteJournalEntry(id: String) { data = data.removingJournal(id: id) }
+    func deleteJournalEntry(id: String) { apply(.journal) { $0.removingJournal(id: id) } }
 
     /// Permanently erases all stored data and returns the app to a fresh first-run state
     /// (empty), which drops the UI back to the Welcome screen — no fabricated cycle.
@@ -486,8 +547,9 @@ final class CycleStore {
         pendingSave = nil
         try? FileManager.default.removeItem(at: Self.fileURL)
         data = CycleData.companion.EMPTY
-        // The assignment above scheduled a debounced save — cancel it and delete again so
-        // "delete" truly leaves no file until the user next changes something.
+        refresh(.everything)
+        // `apply` would have scheduled a debounced save; this path writes nothing on purpose,
+        // so "delete" truly leaves no file until the user next changes something.
         pendingSave?.cancel()
         pendingSave = nil
         try? FileManager.default.removeItem(at: Self.fileURL)
