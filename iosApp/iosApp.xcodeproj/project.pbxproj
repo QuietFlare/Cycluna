@@ -29,6 +29,7 @@
 		771B757953061958DA272057 /* PrivacyPolicyView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7DE140EA3558B14CFC8BA848 /* PrivacyPolicyView.swift */; };
 		793628C45927204301A5F295 /* MoodStripCard.swift in Sources */ = {isa = PBXBuildFile; fileRef = 19256911C7B4F237B97A5BFE /* MoodStripCard.swift */; };
 		93EB4C4415263552F6896ECD /* ReminderManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1021D23A188820C4E39F66A5 /* ReminderManager.swift */; };
+		99335A4475CEEFBE62561065 /* AcknowledgementsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 81AF315B416DF5D3F2E7F674 /* AcknowledgementsView.swift */; };
 		9DDBCFD978DCF9DBA3505E0B /* DerivedWorkPerformanceTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 59F618F7287AE0A6B587EED0 /* DerivedWorkPerformanceTests.swift */; };
 		9ED9A97B860387FD19CB15FE /* MoonDisc.swift in Sources */ = {isa = PBXBuildFile; fileRef = C369F82A096088FB7CC058E5 /* MoonDisc.swift */; };
 		A824FBDD939F5C6966077029 /* mark.png in Resources */ = {isa = PBXBuildFile; fileRef = A313E3DEB6A1EFAC8D8E8F6B /* mark.png */; };
@@ -80,6 +81,7 @@
 		6E3F2208DA27FBF44A21CAAA /* AboutView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AboutView.swift; sourceTree = "<group>"; };
 		7C3F7C14F19337B551DEEACD /* moon-events.json */ = {isa = PBXFileReference; lastKnownFileType = text.json; path = "moon-events.json"; sourceTree = "<group>"; };
 		7DE140EA3558B14CFC8BA848 /* PrivacyPolicyView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PrivacyPolicyView.swift; sourceTree = "<group>"; };
+		81AF315B416DF5D3F2E7F674 /* AcknowledgementsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AcknowledgementsView.swift; sourceTree = "<group>"; };
 		86038AE1032E284E79B32AD6 /* iosApp.app */ = {isa = PBXFileReference; includeInIndex = 0; lastKnownFileType = wrapper.application; path = iosApp.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		89408DFA4D6E9F0E6970E07A /* MoodLensBridgeTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MoodLensBridgeTests.swift; sourceTree = "<group>"; };
 		8CF396E6CDD244CE50197F69 /* Loggers.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Loggers.swift; sourceTree = "<group>"; };
@@ -214,6 +216,7 @@
 			isa = PBXGroup;
 			children = (
 				6E3F2208DA27FBF44A21CAAA /* AboutView.swift */,
+				81AF315B416DF5D3F2E7F674 /* AcknowledgementsView.swift */,
 				6408F44194CE06FAA24A5A97 /* MeView.swift */,
 				7DE140EA3558B14CFC8BA848 /* PrivacyPolicyView.swift */,
 			);
@@ -369,6 +372,7 @@
 			buildActionMask = 2147483647;
 			files = (
 				0D2E0D5A7D5ACD677F614095 /* AboutView.swift in Sources */,
+				99335A4475CEEFBE62561065 /* AcknowledgementsView.swift in Sources */,
 				764BD61C559966F804C8FBC5 /* AppLock.swift in Sources */,
 				F32CF61100D6E86441519F63 /* CalendarCard.swift in Sources */,
 				23B855962E09299AC614D544 /* CycleCopy.swift in Sources */,

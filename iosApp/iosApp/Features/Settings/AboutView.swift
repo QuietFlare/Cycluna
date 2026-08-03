@@ -63,6 +63,11 @@ struct AboutView: View {
                     } label: {
                         aboutRow("Health Disclaimer", "heart.text.square")
                     }
+                    NavigationLink {
+                        AcknowledgementsView()
+                    } label: {
+                        aboutRow("Acknowledgements", "text.book.closed")
+                    }
                 }
 
                 Section {
