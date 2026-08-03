@@ -112,9 +112,12 @@ struct HomeView: View {
     }
 
     private var highlightCard: some View {
-        HStack(alignment: .top, spacing: 12) {
-            Image(systemName: "sparkles")
-                .foregroundStyle(Theme.primary)
+        // The phase's own icon and colour, not "sparkles" — the AI-glitter glyph made this
+        // hand-written phase copy read as a generated blurb. Same source as the phase cards.
+        let phase = PhaseContent.content(for: store.phaseLabel)
+        return HStack(alignment: .top, spacing: 12) {
+            Image(systemName: phase?.icon ?? "moon.fill")
+                .foregroundStyle(phase?.color ?? Theme.primary)
                 .padding(.top, 3)
             Text(store.hormoneHighlight)
                 .font(.system(.title3, design: .serif))

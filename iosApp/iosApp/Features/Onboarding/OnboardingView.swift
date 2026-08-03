@@ -148,7 +148,7 @@ struct OnboardingView: View {
                 featureRow("moon.stars.fill", "Moon-synced phases",
                            "See your cycle and the lunar phase side by side, day by day.")
                 Divider().overlay(Theme.inkSoft.opacity(0.18))
-                featureRow("sparkles", "Gentle predictions",
+                featureRow("calendar.badge.clock", "Gentle predictions",
                            "Fertile window and next period, refined as you log — never alarmist.")
             }
             .padding(.top, 22)

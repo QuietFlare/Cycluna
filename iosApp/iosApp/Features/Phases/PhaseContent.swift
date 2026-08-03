@@ -7,19 +7,25 @@ struct PhaseContent: Identifiable {
     let id = UUID()
     let key: String        // matches the core's phase label: "Menstrual", "Follicular", …
     let emoji: String
+    /// SF Symbol mirroring the emoji — for spots where an emoji would be too loud.
+    let icon: String
     let eyebrow: String
     let blurb: String
     let color: Color
 
     static let all: [PhaseContent] = [
-        .init(key: "Menstrual",  emoji: "🔴", eyebrow: "Rest & restore",  blurb: "Hormones at their lowest — rest, restore, reflect.",     color: Theme.phaseMenstrual),
-        .init(key: "Follicular", emoji: "🌱", eyebrow: "Rising energy",   blurb: "Oestrogen rising — you're entering your power week.",     color: Theme.phaseFollicular),
-        .init(key: "Ovulatory",  emoji: "✨", eyebrow: "Peak & magnetic", blurb: "Peak oestrogen, LH surging — you're magnetic right now.", color: Theme.phaseOvulatory),
-        .init(key: "Luteal",     emoji: "🌙", eyebrow: "Slow & tend",     blurb: "Progesterone leading — slow down and tend to yourself.",   color: Theme.phaseLuteal),
+        .init(key: "Menstrual",  emoji: "🔴", icon: "drop.fill",    eyebrow: "Rest & restore",  blurb: "Hormones at their lowest — rest, restore, reflect.",     color: Theme.phaseMenstrual),
+        .init(key: "Follicular", emoji: "🌱", icon: "leaf.fill",    eyebrow: "Rising energy",   blurb: "Oestrogen rising — you're entering your power week.",     color: Theme.phaseFollicular),
+        .init(key: "Ovulatory",  emoji: "✨", icon: "sun.max.fill", eyebrow: "Peak & magnetic", blurb: "Peak oestrogen, LH surging — you're magnetic right now.", color: Theme.phaseOvulatory),
+        .init(key: "Luteal",     emoji: "🌙", icon: "moon.fill",    eyebrow: "Slow & tend",     blurb: "Progesterone leading — slow down and tend to yourself.",   color: Theme.phaseLuteal),
     ]
 
+    static func content(for phase: String) -> PhaseContent? {
+        all.first { $0.key == phase }
+    }
+
     static func blurb(for phase: String) -> String {
-        all.first { $0.key == phase }?.blurb ?? ""
+        content(for: phase)?.blurb ?? ""
     }
 
     /// 1-based day range for this phase, given the user's own cycle + period length.

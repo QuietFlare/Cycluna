@@ -144,13 +144,7 @@ struct CalendarCard: View {
     /// A small dot on days with a log — coloured by mood if one exists, neutral otherwise.
     private func logDot(_ iso: String) -> Color? {
         if let m = store.mood(on: iso) {
-            switch Int(m.mood) {
-            case 1:  return Theme.phaseMenstrual
-            case 2:  return Theme.secondary
-            case 3:  return Theme.accent
-            case 4:  return Color(hex: "7FB88A")
-            default: return Theme.phaseFollicular
-            }
+            return MoodScale.color(Int(m.mood))
         }
         if !store.headaches(on: iso).isEmpty || !store.journalEntries(on: iso).isEmpty {
             return Theme.inkSoft

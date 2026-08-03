@@ -7,13 +7,19 @@ enum MoodScale {
     static let labels = ["Rough", "Meh", "Mid", "Good", "Lit"]
     static func emoji(_ v: Int) -> String { emojis[min(max(v - 1, 0), 4)] }
     static func label(_ v: Int) -> String { labels[min(max(v - 1, 0), 4)] }
+    /// Diverging valence ramp: deep red fades to a NEUTRAL midpoint, then greens deepen.
+    /// The old scale reused brand colours (rose for "meh" read as positive, and "good"/"lit"
+    /// were two near-identical greens). These five are validated for adjacent-step
+    /// distinguishability, incl. colour-blind simulation, against the cream card surface.
+    /// Colour is never the only carrier: the legend labels each dot, charts encode mood by
+    /// position, and the sheets pair every value with its emoji.
     static func color(_ v: Int) -> Color {
         switch v {
-        case 1:  return Theme.phaseMenstrual
-        case 2:  return Theme.secondary
-        case 3:  return Theme.accent
-        case 4:  return Color(hex: "7FB88A")
-        default: return Theme.phaseFollicular
+        case 1:  return Color(hex: "B03A3A")   // rough — deep red
+        case 2:  return Color(hex: "EC9A82")   // meh — washed salmon
+        case 3:  return Color(hex: "847A6B")   // mid — neutral warm grey (the midpoint)
+        case 4:  return Color(hex: "6DBA7F")   // good — light green
+        default: return Color(hex: "2E7B50")   // lit — deep green
         }
     }
 }
