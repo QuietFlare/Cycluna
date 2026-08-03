@@ -14,7 +14,10 @@ kotlin {
     iosTargets.forEach { target ->
         target.binaries.framework {
             baseName = "Shared"
-            isStatic = false
+            // Static: the core links straight into the app binary, so there is no separate
+            // dylib for iOS to code-sign, load and rebase on first launch. That validation
+            // happens once per install and is the bulk of the slow launch after an update.
+            isStatic = true
         }
     }
 
