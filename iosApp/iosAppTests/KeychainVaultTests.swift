@@ -13,11 +13,28 @@ final class KeychainVaultTests: XCTestCase {
     /// Namespaced so a failed run can't collide with anything the app itself stored.
     private let key = "test.cycluna.keyvault.\(UUID().uuidString)"
 
-    override func setUp() {
-        super.setUp()
+    override func setUpWithError() throws {
+        try super.setUpWithError()
         // Exported as `KeyVault_iosKt` because the actual lives in `KeyVault.ios.kt` —
         // Kotlin/Native derives the Swift name from the file, not the declaration.
         vault = KeyVault_iosKt.defaultKeyVault()
+
+        // The Keychain needs an application-identifier entitlement, which an UNSIGNED
+        // test host does not have — CI builds with CODE_SIGNING_ALLOWED=NO, so every
+        // SecItemAdd there fails with errSecMissingEntitlement and every read is nil.
+        //
+        // Skip the whole class rather than only the three asserting tests: the tests
+        // that assert nil would otherwise pass vacuously and report coverage for a
+        // subsystem that never ran.
+        let probe = "test.cycluna.keyvault.probe.\(UUID().uuidString)"
+        vault.set(key: probe, value: "probe")
+        let reachable = vault.get(key: probe) != nil
+        vault.remove(key: probe)
+        try XCTSkipUnless(
+            reachable,
+            "Keychain unreachable — the test host is unsigned (CODE_SIGNING_ALLOWED=NO). "
+                + "Run signed, e.g. via the local `xcodebuild test` in CLAUDE.md, to cover the vault."
+        )
     }
 
     override func tearDown() {
