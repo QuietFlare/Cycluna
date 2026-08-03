@@ -1,0 +1,55 @@
+name: Release
+
+# Ship to TestFlight via the shared pipeline (github.com/QuietFlare/ci-workflows).
+# ONLY a `v*` tag or a manual dispatch triggers this — never a branch push.
+#
+#   git tag v1.0.0 && git push --tags
+#
+# The pipeline re-runs both suites on the exact commit being shipped — the KMP
+# core on cheap Ubuntu, the iOS app on a simulator — before it archives.
+#
+# GATED on three repo secrets from an App Store Connect API key:
+#   ASC_KEY_ID / ASC_ISSUER_ID / ASC_KEY_P8
+# Generate them in App Store Connect › Users and Access › Integrations, and
+# note that the .p8 file is downloadable exactly once.
+#
+# Export options: .github/ExportOptions.plist (the pipeline default path).
+#
+# Build numbers: App Store Connect rejects a duplicate build for a version, so
+# bump CURRENT_PROJECT_VERSION in iosApp/project.yml per upload. The Xcode
+# project is generated, so editing it in Xcode's UI will not stick.
+on:
+  push:
+    tags: ['v*']
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  release:
+    uses: QuietFlare/ci-workflows/.github/workflows/release-pipeline.yml@v1
+    with:
+      project: iosApp/iosApp.xcodeproj
+      scheme: iosApp
+      # Shared KMP core — pure domain logic, no simulator needed.
+      gradle-tasks: ':shared:jvmTest'
+      # The iOS app: the Keychain KeyVault actual and the Swift↔Kotlin bridge,
+      # neither of which jvmTest can reach.
+      only-testing: iosAppTests
+      # The Xcode pre-build script runs Gradle to build the shared framework,
+      # so BOTH the test job and the archive job need a JDK 17 on the runner.
+      java-version: '17'
+      # Matches the CI gate: the iPhone 17 Pro runtime ships with Xcode 26, and
+      # the pipeline's test default (Xcode 16) does not have it.
+      test-xcode-version: '26'
+      destination: 'platform=iOS Simulator,name=iPhone 17 Pro'
+      runner: 'macos-26'
+      # release-xcode-version is deliberately left at its default
+      # ('latest-stable'): Apple periodically raises the minimum SDK it will
+      # accept for App Store builds, and pinning here would silently start
+      # failing uploads on that day.
+    secrets:
+      asc-key-id: ${{ secrets.ASC_KEY_ID }}
+      asc-issuer-id: ${{ secrets.ASC_ISSUER_ID }}
+      asc-key-p8: ${{ secrets.ASC_KEY_P8 }}
