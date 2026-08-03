@@ -1,30 +1,55 @@
 name: CI
 
+# PR gate via the shared pipeline (github.com/QuietFlare/ci-workflows):
+# the KMP core's tests on cheap Ubuntu, the iOS app's tests on a simulator,
+# and an AI review — one thin caller.
+#
+# This repo is PUBLIC, so Actions minutes (including macOS) are free — hence
+# push-to-main triggers too, unlike the private FlareFit repo.
+#
+# The AI review needs the GEMINI_API_KEY repo secret and skips automatically
+# when there's no PR context.
 on:
   push:
-    branches: [ main ]
+    branches: [main]
   pull_request:
+  workflow_dispatch:
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+  pull-requests: write   # AI review comments
+  issues: write          # AI review comments
 
 jobs:
-  shared-tests:
-    name: KMP shared-core tests
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-
-      - name: Set up JDK 17 (Temurin)
-        uses: actions/setup-java@v4
-        with:
-          distribution: temurin
-          java-version: '17'
-
-      - name: Cache Gradle
-        uses: actions/cache@v4
-        with:
-          path: |
-            ~/.gradle/caches
-            ~/.gradle/wrapper
-          key: gradle-${{ hashFiles('**/*.gradle.kts', 'gradle/wrapper/gradle-wrapper.properties') }}
-
-      - name: Run shared-core unit tests
-        run: ./gradlew :shared:jvmTest
+  pr:
+    uses: QuietFlare/ci-workflows/.github/workflows/pr-pipeline.yml@v1
+    with:
+      # Shared KMP core — pure domain logic, no simulator needed.
+      gradle-tasks: ':shared:jvmTest'
+      # The iOS app: covers what jvmTest cannot — the Keychain KeyVault actual
+      # and the Swift↔Kotlin bridge (a wrong argument there is invisible to
+      # jvmTest). The Xcode pre-build step runs Gradle, so the job needs a JDK.
+      project: iosApp/iosApp.xcodeproj
+      scheme: iosApp
+      java-version: '17'
+      xcode-version: '26'
+      destination: 'platform=iOS Simulator,name=iPhone 17 Pro'
+      runner: 'macos-26'
+      ai-review: true
+      review-instructions: >-
+        Cycluna is a menstrual-cycle + moon-phase tracker: Kotlin Multiplatform
+        shared core (pure domain logic, no UI or platform APIs) plus a SwiftUI
+        app. Focus on correctness bugs, SwiftUI state pitfalls, and the
+        Swift↔Kotlin bridge (Kotlin Int arrives as Int32; Kotlin default
+        arguments do NOT cross, so every argument must be passed; dates cross
+        as ISO yyyy-MM-dd strings). Numeric ports from the reference web app
+        must use floor(x + 0.5), not roundToInt — JS Math.round is half-up.
+        Health insights must never claim a pattern the data cannot support:
+        guardrails return null and the UI shows an honest empty state. Flag any
+        causal claim about the moon affecting mood. Be brief where the code is fine.
+    secrets:
+      gemini-api-key: ${{ secrets.GEMINI_API_KEY }}

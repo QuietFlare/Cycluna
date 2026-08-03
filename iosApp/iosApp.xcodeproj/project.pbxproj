@@ -82,7 +82,7 @@
 		7C3F7C14F19337B551DEEACD /* moon-events.json */ = {isa = PBXFileReference; lastKnownFileType = text.json; path = "moon-events.json"; sourceTree = "<group>"; };
 		7DE140EA3558B14CFC8BA848 /* PrivacyPolicyView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PrivacyPolicyView.swift; sourceTree = "<group>"; };
 		81AF315B416DF5D3F2E7F674 /* AcknowledgementsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AcknowledgementsView.swift; sourceTree = "<group>"; };
-		86038AE1032E284E79B32AD6 /* iosApp.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = iosApp.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		86038AE1032E284E79B32AD6 /* iosApp.app */ = {isa = PBXFileReference; includeInIndex = 0; lastKnownFileType = wrapper.application; path = iosApp.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		89408DFA4D6E9F0E6970E07A /* MoodLensBridgeTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MoodLensBridgeTests.swift; sourceTree = "<group>"; };
 		8CF396E6CDD244CE50197F69 /* Loggers.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Loggers.swift; sourceTree = "<group>"; };
 		A313E3DEB6A1EFAC8D8E8F6B /* mark.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = mark.png; sourceTree = "<group>"; };
@@ -92,7 +92,7 @@
 		C1B2A2D273CF7EC1AE1615B4 /* AppLock.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppLock.swift; sourceTree = "<group>"; };
 		C369F82A096088FB7CC058E5 /* MoonDisc.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MoonDisc.swift; sourceTree = "<group>"; };
 		C3A6342845F3A129A536C657 /* MoonSection.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MoonSection.swift; sourceTree = "<group>"; };
-		C6D2DD7FE2E0BF5DB2A96B4B /* PrivacyInfo.xcprivacy */ = {isa = PBXFileReference; lastKnownFileType = text.xml; path = PrivacyInfo.xcprivacy; sourceTree = "<group>"; };
+		C6D2DD7FE2E0BF5DB2A96B4B /* PrivacyInfo.xcprivacy */ = {isa = PBXFileReference; path = PrivacyInfo.xcprivacy; sourceTree = "<group>"; };
 		D617A58974EC4C72F4308000 /* HormoneChartCard.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HormoneChartCard.swift; sourceTree = "<group>"; };
 		D9F94C3395012713C454EF47 /* MoodPatternsCard.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MoodPatternsCard.swift; sourceTree = "<group>"; };
 		DA37D0778EF80E07990EDC25 /* mark@2x.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = "mark@2x.png"; sourceTree = "<group>"; };
@@ -304,6 +304,8 @@
 			attributes = {
 				BuildIndependentTargetsInParallel = YES;
 				LastUpgradeCheck = 1430;
+				TargetAttributes = {
+				};
 			};
 			buildConfigurationList = FF7CA1CA754D017066F1822F /* Build configuration list for PBXProject "iosApp" */;
 			developmentRegion = en;
@@ -360,7 +362,7 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 			shellPath = /bin/sh;
-			shellScript = "set -e\ncd \"$SRCROOT/..\"\nJAVA_HOME=\"/Library/Java/JavaVirtualMachines/temurin-17.jdk/Contents/Home\" \\\n  ./gradlew :shared:embedAndSignAppleFrameworkForXcode\n";
+			shellScript = "set -e\ncd \"$SRCROOT/..\"\n# Resolve a JDK 17 without hard-coding a machine-specific path:\n#   1. an inherited JAVA_HOME (CI runners set this)\n#   2. java_home -v 17 (any local JDK 17, wherever installed)\n#   3. JAVA_HOME_FOR_KMP from the build settings (Xcode GUI builds,\n#      which inherit no shell profile)\nif [ -z \"${JAVA_HOME:-}\" ]; then\n  JAVA_HOME=\"$(/usr/libexec/java_home -v 17 2>/dev/null || echo \"$JAVA_HOME_FOR_KMP\")\"\nfi\nif [ ! -x \"$JAVA_HOME/bin/java\" ]; then\n  echo \"error: no JDK 17 found. Install Temurin 17 or set JAVA_HOME.\" >&2\n  exit 1\nfi\nexport JAVA_HOME\n./gradlew :shared:embedAndSignAppleFrameworkForXcode\n";
 		};
 /* End PBXShellScriptBuildPhase section */
 
@@ -583,7 +585,6 @@
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				CODE_SIGN_IDENTITY = "iPhone Developer";
 				CURRENT_PROJECT_VERSION = 1;
-				DEVELOPMENT_TEAM = 5UL5N2DB4N;
 				FRAMEWORK_SEARCH_PATHS = (
 					"$(inherited)",
 					"$(SRCROOT)/../shared/build/xcode-frameworks/$(CONFIGURATION)/$(SDK_NAME)",
@@ -612,7 +613,6 @@
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				CODE_SIGN_IDENTITY = "iPhone Developer";
 				CURRENT_PROJECT_VERSION = 1;
-				DEVELOPMENT_TEAM = 5UL5N2DB4N;
 				FRAMEWORK_SEARCH_PATHS = (
 					"$(inherited)",
 					"$(SRCROOT)/../shared/build/xcode-frameworks/$(CONFIGURATION)/$(SDK_NAME)",

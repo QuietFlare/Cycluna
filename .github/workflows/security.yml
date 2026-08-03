@@ -1,0 +1,37 @@
+name: Security
+
+# Security & compliance via the shared pipeline (github.com/QuietFlare/ci-workflows).
+#
+# Cycluna is a reproductive-health app (App Store Guideline 5.1.3 + heightened
+# privacy law), so this gate matters more here than in a typical app — see
+# COMPLIANCE.md. Per-PR on free Ubuntu: gitleaks full-history secret scan,
+# dependency review, and the App Store preflight (privacy manifest present,
+# ITSAppUsesNonExemptEncryption declared, no committed signing material).
+#
+# The repo is PUBLIC, so both dependency review and CodeQL-to-Security-tab are
+# free. CodeQL still needs a full macOS build, so it runs weekly and on demand
+# rather than per-PR.
+on:
+  pull_request:
+  schedule:
+    - cron: '0 6 * * 1'   # Mondays 06:00 UTC
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  security-events: write   # CodeQL results upload to the Security tab
+
+jobs:
+  security:
+    uses: QuietFlare/ci-workflows/.github/workflows/security-pipeline.yml@v1
+    with:
+      privacy-manifest: iosApp/iosApp/PrivacyInfo.xcprivacy
+      info-plist: iosApp/iosApp/Info.plist
+      # CodeQL only on the weekly schedule / manual runs — not per-PR.
+      codeql: ${{ github.event_name != 'pull_request' }}
+      project: iosApp/iosApp.xcodeproj
+      scheme: iosApp
+      xcode-version: '26'
+      destination: 'platform=iOS Simulator,name=iPhone 17 Pro'
+      runner: 'macos-26'
+      java-version: '17'   # the Xcode pre-build step runs Gradle
