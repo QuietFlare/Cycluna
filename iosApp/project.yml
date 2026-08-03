@@ -11,6 +11,18 @@ settings:
     # none — i.e. Xcode GUI builds, which inherit no shell profile. CI runners
     # export their own JAVA_HOME and it wins; see the script below.
     JAVA_HOME_FOR_KMP: /Library/Java/JavaVirtualMachines/temurin-17.jdk/Contents/Home
+    # Must stay NO. XcodeGen's setting presets default this to YES (Xcode's own
+    # recommendation), but the pre-build script below runs Gradle, which reads
+    # ~/.gradle and writes shared/build + the framework into the app bundle —
+    # all outside the sandbox. `embedAndSignAppleFrameworkForXcode` detects the
+    # sandbox and hard-fails with "User Script Sandboxing Enabled".
+    ENABLE_USER_SCRIPT_SANDBOXING: NO
+    # Signing. Set here, not in Xcode's UI — the .xcodeproj is generated, so a
+    # team picked in the UI is dropped by the next `xcodegen generate`.
+    # A Team ID is not a secret (it ships inside every distributed app), so it
+    # is fine in this public repo.
+    DEVELOPMENT_TEAM: 5UL5N2DB4N
+    CODE_SIGN_STYLE: Automatic
 
 targets:
   iosApp:
