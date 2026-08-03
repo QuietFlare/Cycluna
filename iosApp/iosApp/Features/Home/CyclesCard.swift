@@ -11,14 +11,22 @@ struct CyclesCard: View {
     private struct PastRow: Identifiable { let id = UUID(); let date: Date; let label: String }
     private struct PredRow: Identifiable { let id = UUID(); let date: Date; let fertile: String }
 
+    /// Rows shown per section. The past section is otherwise unbounded — it grew one row
+    /// per logged period, so a year of tracking buried the rest of Home under it. Both
+    /// sections use this so the card stays symmetrical.
+    private static let rowsPerSection = 3
+
     private var past: [PastRow] {
         let starts = store.periodStarts.sorted(by: >)
-        return starts.enumerated().map { i, s in
+        // Map first, THEN truncate: each row's length is measured against the start that
+        // follows it, so trimming the source list first would mislabel the last row.
+        let rows = starts.enumerated().map { i, s -> PastRow in
             if i == 0 { return PastRow(date: s, label: "Current cycle") }
             let len = cal.dateComponents([.day], from: cal.startOfDay(for: s),
                                          to: cal.startOfDay(for: starts[i - 1])).day ?? 0
             return PastRow(date: s, label: "\(len)-day cycle")
         }
+        return Array(rows.prefix(Self.rowsPerSection))
     }
 
     private var predicted: [PredRow] {
@@ -27,7 +35,7 @@ struct CyclesCard: View {
         guard store.tracking == .normal else { return [] }
         let base = store.currentCycleStart
         let cl = store.cycleLength
-        return (1...3).compactMap { i in
+        return (1...Self.rowsPerSection).compactMap { i in
             // Each row pairs a predicted period with the fertile window that PRECEDES it
             // (the web app's pairing) — i.e. the window of the cycle one back from `p`.
             // The dates come from the core so they can't drift from the hero/calendar.

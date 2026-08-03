@@ -49,7 +49,11 @@ targets:
         # Explicit so the About screen and App Store Connect read the same numbers.
         # Bump MARKETING_VERSION per release, CURRENT_PROJECT_VERSION per upload.
         MARKETING_VERSION: "1.0"
-        CURRENT_PROJECT_VERSION: "1"
+        # Build numbers are consumed permanently: once a MARKETING_VERSION +
+        # CURRENT_PROJECT_VERSION pair uploads and processes, App Store Connect
+        # will never accept it again, and expiring the build does not free it.
+        # Bump this for EVERY upload, even a re-ship of the same version.
+        CURRENT_PROJECT_VERSION: "2"
         SWIFT_VERSION: "5.0"
         TARGETED_DEVICE_FAMILY: "1"
         ASSETCATALOG_COMPILER_APPICON_NAME: AppIcon
