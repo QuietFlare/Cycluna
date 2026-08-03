@@ -40,7 +40,6 @@ struct MoonDisc: View {
         // Terminator horizontal offset at mid-height; +r at new, -r at full.
         let a = CGFloat(1 - 2 * k) * r * (waxing ? 1 : -1)
         let top = CGPoint(x: c.x, y: c.y - r)
-        let bottom = CGPoint(x: c.x, y: c.y + r)
 
         var p = Path()
         p.move(to: top)

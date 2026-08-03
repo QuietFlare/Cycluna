@@ -7,7 +7,22 @@ options:
 
 settings:
   base:
+    # Fallback JDK for the KMP pre-build script when the environment supplies
+    # none — i.e. Xcode GUI builds, which inherit no shell profile. CI runners
+    # export their own JAVA_HOME and it wins; see the script below.
     JAVA_HOME_FOR_KMP: /Library/Java/JavaVirtualMachines/temurin-17.jdk/Contents/Home
+    # Must stay NO. XcodeGen's setting presets default this to YES (Xcode's own
+    # recommendation), but the pre-build script below runs Gradle, which reads
+    # ~/.gradle and writes shared/build + the framework into the app bundle —
+    # all outside the sandbox. `embedAndSignAppleFrameworkForXcode` detects the
+    # sandbox and hard-fails with "User Script Sandboxing Enabled".
+    ENABLE_USER_SCRIPT_SANDBOXING: NO
+    # Signing. Set here, not in Xcode's UI — the .xcodeproj is generated, so a
+    # team picked in the UI is dropped by the next `xcodegen generate`.
+    # A Team ID is not a secret (it ships inside every distributed app), so it
+    # is fine in this public repo.
+    DEVELOPMENT_TEAM: 5UL5N2DB4N
+    CODE_SIGN_STYLE: Automatic
 
 targets:
   iosApp:
@@ -52,8 +67,20 @@ targets:
         script: |
           set -e
           cd "$SRCROOT/.."
-          JAVA_HOME="/Library/Java/JavaVirtualMachines/temurin-17.jdk/Contents/Home" \
-            ./gradlew :shared:embedAndSignAppleFrameworkForXcode
+          # Resolve a JDK 17 without hard-coding a machine-specific path:
+          #   1. an inherited JAVA_HOME (CI runners set this)
+          #   2. java_home -v 17 (any local JDK 17, wherever installed)
+          #   3. JAVA_HOME_FOR_KMP from the build settings (Xcode GUI builds,
+          #      which inherit no shell profile)
+          if [ -z "${JAVA_HOME:-}" ]; then
+            JAVA_HOME="$(/usr/libexec/java_home -v 17 2>/dev/null || echo "$JAVA_HOME_FOR_KMP")"
+          fi
+          if [ ! -x "$JAVA_HOME/bin/java" ]; then
+            echo "error: no JDK 17 found. Install Temurin 17 or set JAVA_HOME." >&2
+            exit 1
+          fi
+          export JAVA_HOME
+          ./gradlew :shared:embedAndSignAppleFrameworkForXcode
 
   # Unit tests for the app's own logic (reminder planning, cycle copy). The shared KMP core
   # has its own tests — run those with `./gradlew :shared:jvmTest`.
