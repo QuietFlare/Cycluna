@@ -36,6 +36,15 @@ class CycleDataTest {
     }
 
     @Test
+    fun withLastPeriodStartOntoAnExistingDateDoesNotDuplicateIt() {
+        // Editing the last start back onto an earlier logged date must dedup like logPeriod —
+        // a duplicated start showed up as a "0-day cycle" in the history list.
+        val d = CycleData.EMPTY.logPeriod("2026-01-05").logPeriod("2026-03-10")
+        val edited = d.withLastPeriodStart("2026-01-05")
+        assertEquals(listOf("2026-01-05"), edited.periodStarts)
+    }
+
+    @Test
     fun persistenceRoundTrips() {
         val original = CycleData(
             periodStarts = listOf("2026-01-05", "2026-03-10"),

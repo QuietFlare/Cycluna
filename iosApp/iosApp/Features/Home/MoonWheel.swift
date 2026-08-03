@@ -6,17 +6,25 @@ import SwiftUI
 struct MoonWheel: View {
     let cycleDay: Int
     let cycleLength: Int
+    let periodLength: Int
     let phaseLabel: String            // "Menstrual" / "Follicular" / "Ovulatory" / "Luteal"
     var size: CGFloat = 280
 
+    // Same boundaries as the core's phase model (`Cycle.status`) — the arc under the
+    // current-day dot must be the phase the label names, whatever the period length.
+    // Menstrual wins overlaps there too, so later phases start no earlier than it ends;
+    // a squeezed-out phase becomes a zero-width segment, which the drawing loop skips.
     private var segments: [(from: Double, to: Double, name: String, color: Color)] {
         let half = Double(cycleLength / 2)
         let len = Double(cycleLength)
+        let period = Double(periodLength)
+        let folEnd = max(period, half - 2)
+        let ovEnd = max(folEnd, half + 2)
         return [
-            (0,        5,        "Menstrual",  Theme.phaseMenstrual),
-            (5,        half - 2, "Follicular", Theme.phaseFollicular),
-            (half - 2, half + 2, "Ovulatory",  Theme.phaseOvulatory),
-            (half + 2, len,      "Luteal",     Theme.phaseLuteal),
+            (0,      period, "Menstrual",  Theme.phaseMenstrual),
+            (period, folEnd, "Follicular", Theme.phaseFollicular),
+            (folEnd, ovEnd,  "Ovulatory",  Theme.phaseOvulatory),
+            (ovEnd,  len,    "Luteal",     Theme.phaseLuteal),
         ]
     }
 
@@ -46,8 +54,9 @@ struct MoonWheel: View {
                     with: .color(Theme.inkSoft.opacity(0.22)), lineWidth: 1
                 )
 
-                // Phase arcs (active thicker + opaque).
-                for s in segments {
+                // Phase arcs (active thicker + opaque). Zero-width segments are skipped —
+                // a degenerate arc with a round cap would render as a stray dot.
+                for s in segments where s.to > s.from {
                     let active = s.name == phaseLabel
                     ctx.stroke(
                         arc(from: s.from, to: s.to, center: c, radius: r),

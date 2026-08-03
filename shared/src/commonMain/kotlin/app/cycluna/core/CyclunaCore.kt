@@ -123,6 +123,15 @@ object CyclunaCore {
     fun fertileEndIso(lastPeriodStartIso: String, cycleLength: Int): String =
         Cycle.fertileWindow(LocalDate.parse(lastPeriodStartIso), cycleLength).second.toString()
 
+    // Un-rolled variant for list UIs (the predicted-cycles card): the window of the ONE
+    // cycle starting at the given date. Keeps future windows on the same offsets as the
+    // hero tile and calendar — a native re-derivation drifted by a day on odd lengths.
+    fun fertileStartForCycleIso(cycleStartIso: String, cycleLength: Int): String =
+        Cycle.fertileWindowForCycle(LocalDate.parse(cycleStartIso), cycleLength).first.toString()
+
+    fun fertileEndForCycleIso(cycleStartIso: String, cycleLength: Int): String =
+        Cycle.fertileWindowForCycle(LocalDate.parse(cycleStartIso), cycleLength).second.toString()
+
     // --- Per-date lookups for the calendar ---
     fun phaseLabelForDate(lastPeriodStartIso: String, cycleLength: Int, periodLength: Int, dateIso: String): String =
         Cycle.phaseForDate(inputFrom(lastPeriodStartIso, cycleLength, periodLength), LocalDate.parse(dateIso))?.label ?: ""

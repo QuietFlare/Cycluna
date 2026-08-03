@@ -55,6 +55,7 @@ struct HomeView: View {
         VStack(spacing: 18) {
             MoonWheel(cycleDay: store.cycleDay,
                       cycleLength: store.cycleLength,
+                      periodLength: store.periodLength,
                       phaseLabel: store.phaseLabel,
                       size: 260)
 

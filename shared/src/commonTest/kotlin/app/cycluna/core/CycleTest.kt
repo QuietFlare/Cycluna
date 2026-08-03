@@ -137,6 +137,24 @@ class CycleTest {
     }
 
     @Test
+    fun fertileWindowForCycleMatchesTheRollingWindowsOffsets() {
+        // The un-rolled per-cycle window (used by the predicted-cycles list) must sit on
+        // exactly the same day offsets as the rolling one — including odd lengths, where a
+        // native re-derivation from the NEXT period's date drifted by a day.
+        val start = LocalDate(2026, 7, 22)
+        for (cl in listOf(28, 29)) {
+            val (a, b) = Cycle.fertileWindowForCycle(start, cl)
+            val (ra, rb) = Cycle.fertileWindow(start, cl, today = start)
+            assertEquals(ra, a, "start, cl=$cl")
+            assertEquals(rb, b, "end, cl=$cl")
+        }
+        // Pinned absolute dates for the odd case: days 12–16 of a 29-day cycle.
+        val (s29, e29) = Cycle.fertileWindowForCycle(start, 29)
+        assertEquals(LocalDate(2026, 8, 2), s29)
+        assertEquals(LocalDate(2026, 8, 6), e29)
+    }
+
+    @Test
     fun mostRecentStartLeavesRecentDateUnchanged() {
         val picked = LocalDate(2024, 2, 26)
         val today = LocalDate(2024, 3, 1) // 4 days later, within one cycle

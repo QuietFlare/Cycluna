@@ -34,8 +34,8 @@ object HeadacheInsights {
     internal fun byPhase(data: CycleData, today: LocalDate): List<PhaseCount> {
         val input = inputOf(data)
         return data.headaches
-            .filter { it.date.length == 10 }
-            .mapNotNull { Cycle.phaseForDate(input, LocalDate.parse(it.date)) }
+            .mapNotNull { runCatching { LocalDate.parse(it.date) }.getOrNull() }
+            .mapNotNull { Cycle.phaseForDate(input, it) }
             .groupingBy { it }.eachCount()
             .map { (phase, count) -> PhaseCount(phase, count) }
     }

@@ -24,6 +24,22 @@ class HeadacheInsightsTest {
     }
 
     @Test
+    fun unparseableTimestampsAreSkippedNotFatal() {
+        // "2026-99-99" is 10 characters, so a length check alone let it through to
+        // LocalDate.parse, which threw while building the Journal insight.
+        val d = CycleData(
+            periodStarts = listOf("2026-01-01"), cycleLengthSetting = 28, periodLength = 5,
+            headaches = listOf(
+                HeadacheLog("h0", "2026-99-99T10:00", 2),
+                HeadacheLog("h1", "garbage", 2),
+                HeadacheLog("h2", "2026-01-22T10:00", 2),
+            ),
+        )
+        val counts = HeadacheInsights.byPhase(d, LocalDate(2026, 2, 1))
+        assertEquals(listOf(PhaseCount(Phase.LUTEAL, 1)), counts)
+    }
+
+    @Test
     fun noInsightWithTooFew() {
         assertNull(HeadacheInsights.insight(data("2026-01-22", "2026-02-19"), LocalDate(2026, 3, 1)))
     }

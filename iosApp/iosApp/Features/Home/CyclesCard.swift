@@ -28,10 +28,13 @@ struct CyclesCard: View {
         let base = store.currentCycleStart
         let cl = store.cycleLength
         return (1...3).compactMap { i in
-            guard let p = cal.date(byAdding: .day, value: cl * i, to: base) else { return nil }
-            let fs = cal.date(byAdding: .day, value: -(cl / 2 + 3), to: p) ?? p
-            let fe = cal.date(byAdding: .day, value: -(cl / 2 - 1), to: p) ?? p
-            return PredRow(date: p, fertile: "\(fmt(fs, "MMM d")) – \(fmt(fe, "MMM d"))")
+            // Each row pairs a predicted period with the fertile window that PRECEDES it
+            // (the web app's pairing) — i.e. the window of the cycle one back from `p`.
+            // The dates come from the core so they can't drift from the hero/calendar.
+            guard let p = cal.date(byAdding: .day, value: cl * i, to: base),
+                  let s = cal.date(byAdding: .day, value: cl * (i - 1), to: base) else { return nil }
+            let w = store.fertileWindow(forCycleStarting: s)
+            return PredRow(date: p, fertile: "\(fmt(w.start, "MMM d")) – \(fmt(w.end, "MMM d"))")
         }
     }
 

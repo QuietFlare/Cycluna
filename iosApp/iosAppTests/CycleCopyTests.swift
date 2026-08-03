@@ -19,6 +19,12 @@ final class CycleCopyTests: XCTestCase {
             "Today")
     }
 
+    func testNextPeriodSaysTomorrowRatherThanInOneDays() {
+        XCTAssertEqual(
+            CycleCopy.nextPeriodShort(tracking: .normal, daysLate: 0, daysUntilNextPeriod: 1),
+            "Tomorrow")
+    }
+
     func testNextPeriodReportsLatenessInsteadOfACountdown() {
         XCTAssertEqual(
             CycleCopy.nextPeriodShort(tracking: .late, daysLate: 3, daysUntilNextPeriod: 0),
@@ -44,6 +50,18 @@ final class CycleCopyTests: XCTestCase {
             CycleCopy.fertileContext(tracking: .normal, daysLate: 0, daysUntilFertileStart: 4,
                                      daysUntilFertileEnd: 8, daysUntilNextPeriod: 18),
             "Your fertile window opens in 4 days.")
+    }
+
+    func testContextUsesSingularFormsOnTheLastDay() {
+        // The web app's exact wording — never "in 1 days" / "1 days until".
+        XCTAssertEqual(
+            CycleCopy.fertileContext(tracking: .normal, daysLate: 0, daysUntilFertileStart: 1,
+                                     daysUntilFertileEnd: 5, daysUntilNextPeriod: 15),
+            "Your fertile window opens tomorrow.")
+        XCTAssertEqual(
+            CycleCopy.fertileContext(tracking: .normal, daysLate: 0, daysUntilFertileStart: -9,
+                                     daysUntilFertileEnd: -5, daysUntilNextPeriod: 1),
+            "1 day until your next period.")
     }
 
     func testContextRecognisesTheWindowIsOpen() {

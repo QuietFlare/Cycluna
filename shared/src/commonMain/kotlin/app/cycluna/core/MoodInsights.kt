@@ -259,7 +259,7 @@ object MoodInsights {
         val anchor = Cycle.mostRecentStart(last, cl, today)
         val end = anchor.plus(DatePeriod(days = cl))
         return data.moods.mapNotNull { m ->
-            val d = LocalDate.parse(m.date)
+            val d = runCatching { LocalDate.parse(m.date) }.getOrNull() ?: return@mapNotNull null
             if (d >= anchor && d < end) MoodPoint(anchor.daysUntil(d) + 1, m.mood) else null
         }.sortedBy { it.cycleDay }
     }

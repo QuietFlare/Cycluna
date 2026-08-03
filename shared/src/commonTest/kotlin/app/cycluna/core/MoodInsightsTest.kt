@@ -30,6 +30,16 @@ class MoodInsightsTest {
     }
 
     @Test
+    fun currentCyclePointsSkipsUnparseableMoodDates() {
+        // Mood dates are plain strings on disk and are NOT sanitised by decode (only period
+        // starts are). This ran at app launch and threw on the first corrupt date — one bad
+        // entry must be skipped, not take the whole screen (and the launch) down.
+        val d = data(MoodLog("2026-01-14", 5), MoodLog("not-a-date", 3), MoodLog("2026-13-99", 2))
+        val points = MoodInsights.currentCyclePoints(d, LocalDate(2026, 1, 20))
+        assertEquals(listOf(MoodPoint(cycleDay = 14, mood = 5)), points)
+    }
+
+    @Test
     fun noInsightWithTooFewLogs() {
         val d = data(MoodLog("2026-01-14", 5), MoodLog("2026-01-22", 2))
         assertNull(MoodInsights.insight(d, LocalDate(2026, 1, 25)))

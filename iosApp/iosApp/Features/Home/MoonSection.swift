@@ -82,6 +82,15 @@ struct MoonAlignmentCard: View {
     }
     private var atFullMoon: String { store.phaseAtNextFullMoon.lowercased() }
 
+    /// "is today" / "is tomorrow" / "is in N days" — never "in 0 days" or "in 1 days".
+    private var fullMoonWhen: String {
+        switch store.daysUntilNextFullMoon {
+        case 0:  return "is today"
+        case 1:  return "is tomorrow"
+        case let d: return "is in \(d) days"
+        }
+    }
+
     var body: some View {
         HStack(spacing: 16) {
             MoonDisc(
@@ -94,7 +103,7 @@ struct MoonAlignmentCard: View {
                 Text("Your cycle & the moon")
                     .font(.cyclunaSerif(19))
                     .foregroundStyle(Theme.ink)
-                Text("Your last period began on a \(startedOn) moon. The next full moon is in \(store.daysUntilNextFullMoon) days, during your \(atFullMoon) phase.")
+                Text("Your last period began on a \(startedOn) moon. The next full moon \(fullMoonWhen), during your \(atFullMoon) phase.")
                     .font(.system(size: 13.5))
                     .foregroundStyle(Theme.inkSoft)
                     .fixedSize(horizontal: false, vertical: true)

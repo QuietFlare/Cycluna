@@ -126,6 +126,16 @@ object Cycle {
     }
 
     /**
+     * The fertile window (start..end, inclusive) of the SINGLE cycle starting at [start] —
+     * no rolling. The one home for the day offsets: [fertileWindow], the calendar's
+     * markers, and the predicted-cycles list must all agree on these dates.
+     */
+    fun fertileWindowForCycle(start: LocalDate, cycleLength: Int): Pair<LocalDate, LocalDate> {
+        val cl = normalizeCycleLength(cycleLength)
+        return start.plus(DatePeriod(days = cl / 2 - 3)) to start.plus(DatePeriod(days = cl / 2 + 1))
+    }
+
+    /**
      * The UPCOMING fertile window (start..end, inclusive) around ovulation. Rolls the
      * anchor to the current cycle, then advances one more cycle if that window has already
      * passed — so the "next fertile window" never shows a date in the past.
@@ -133,8 +143,7 @@ object Cycle {
     fun fertileWindow(anchor: LocalDate, cycleLength: Int, today: LocalDate = today()): Pair<LocalDate, LocalDate> {
         val cl = normalizeCycleLength(cycleLength)
         val base = mostRecentStart(anchor, cl, today)
-        var start = base.plus(DatePeriod(days = cl / 2 - 3))
-        var end = base.plus(DatePeriod(days = cl / 2 + 1))
+        var (start, end) = fertileWindowForCycle(base, cl)
         if (end < today) {
             start = start.plus(DatePeriod(days = cl))
             end = end.plus(DatePeriod(days = cl))

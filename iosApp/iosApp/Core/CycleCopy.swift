@@ -25,7 +25,11 @@ enum CycleCopy {
             // Nothing honest to show: the prediction is too stale to name a date.
             return "Unknown"
         case .normal:
-            return daysUntilNextPeriod == 0 ? "Today" : "in \(daysUntilNextPeriod) days"
+            switch daysUntilNextPeriod {
+            case 0:  return "Today"
+            case 1:  return "Tomorrow"
+            default: return "in \(daysUntilNextPeriod) days"
+            }
         }
     }
 
@@ -48,15 +52,20 @@ enum CycleCopy {
             // just finished setup.
             return "It's been a while. Log your period when it starts."
         case .normal:
+            // Singular forms match the web app's Home copy exactly.
             if daysUntilFertileStart > 0 {
-                return "Your fertile window opens in \(daysUntilFertileStart) days."
+                return daysUntilFertileStart == 1
+                    ? "Your fertile window opens tomorrow."
+                    : "Your fertile window opens in \(daysUntilFertileStart) days."
             }
             if daysUntilFertileEnd >= 0 {
                 return "You're in your fertile window."
             }
-            return daysUntilNextPeriod == 0
-                ? "Your period may start today."
-                : "\(daysUntilNextPeriod) days until your next period."
+            switch daysUntilNextPeriod {
+            case 0:  return "Your period may start today."
+            case 1:  return "1 day until your next period."
+            default: return "\(daysUntilNextPeriod) days until your next period."
+            }
         }
     }
 }

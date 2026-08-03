@@ -64,10 +64,11 @@ data class CycleData(
         if (periodStarts.contains(iso)) this
         else copy(periodStarts = (periodStarts + iso).sorted())
 
-    /** Edit the most recent period start in place. */
+    /** Edit the most recent period start in place. Dedups like [logPeriod] — editing the
+     *  last start onto a date already in history must not create a zero-length cycle. */
     fun withLastPeriodStart(iso: String): CycleData {
         val rest = periodStarts.sorted().dropLast(1)
-        return copy(periodStarts = (rest + iso).sorted())
+        return copy(periodStarts = (rest + iso).distinct().sorted())
     }
 
     fun withCycleLength(days: Int): CycleData = copy(cycleLengthSetting = days)

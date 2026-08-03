@@ -358,6 +358,16 @@ final class CycleStore {
                           periodLength: Int32(periodLength)))
     }
 
+    /// Fertile window of the SINGLE cycle starting on `start` — un-rolled, straight from the
+    /// core, so future windows (the predicted-cycles list) sit on exactly the same offsets
+    /// as the hero tile and calendar. A native re-derivation drifted by a day on odd lengths.
+    func fertileWindow(forCycleStarting start: Date) -> (start: Date, end: Date) {
+        let s = iso(start)
+        let cl = Int32(cycleLength)
+        return (parseISO(core.fertileStartForCycleIso(cycleStartIso: s, cycleLength: cl)),
+                parseISO(core.fertileEndForCycleIso(cycleStartIso: s, cycleLength: cl)))
+    }
+
     var nextPeriodShort: String {
         CycleCopy.nextPeriodShort(tracking: tracking, daysLate: daysLate,
                                   daysUntilNextPeriod: daysUntilNextPeriod)
