@@ -36,3 +36,8 @@ JAVA_HOME=/Library/Java/JavaVirtualMachines/temurin-17.jdk/Contents/Home \
 
 Backend lives in the private `cycluna-backend` repo. Full plan:
 `cycluna-backend/docs/native-migration-plan.md`.
+
+## License
+Source-available under the **PolyForm Noncommercial License 1.0.0** — see [`LICENSE`](LICENSE).
+You're welcome to read, learn from, and use Cycluna for **noncommercial** purposes, but not to sell
+it or ship it (or a derivative) commercially. Copyright © 2026 Seema Jagadeesh / Quietflare.
