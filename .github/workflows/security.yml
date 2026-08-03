@@ -25,6 +25,12 @@ jobs:
   security:
     uses: QuietFlare/ci-workflows/.github/workflows/security-pipeline.yml@v1
     with:
+      # Off until the repo's Dependency graph is switched on (Settings →
+      # Code security → Dependency graph). It's free on a public repo, so flip
+      # this back to true once it is enabled. Note Gradle/KMP dependencies do
+      # not land in the graph from manifests alone — that needs a dependency
+      # submission step — but the check still covers GitHub Actions versions.
+      dependency-review: false
       privacy-manifest: iosApp/iosApp/PrivacyInfo.xcprivacy
       info-plist: iosApp/iosApp/Info.plist
       # CodeQL only on the weekly schedule / manual runs — not per-PR.
