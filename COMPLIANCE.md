@@ -85,6 +85,15 @@ not collected, so the whole form collapses to a short set of answers.
 - ✅ **No ads, no analytics, no third-party SDKs** — dependency list is AndroidX + Compose only.
 - ✅ **Backup opt-out** — `allowBackup=false` + `data_extraction_rules.xml` refuse both cloud
       backup and device-to-device transfer, so cycle data cannot reach Google's servers that way.
+- ✅ **Permissions in the MERGED release manifest** — verified, not assumed (libraries can inject
+      permissions the source manifest never asks for):
+      `POST_NOTIFICATIONS`, `RECEIVE_BOOT_COMPLETED`, `USE_BIOMETRIC`,
+      plus two that arrive via manifest merger and are worth recognising before Play does:
+      `USE_FINGERPRINT` (androidx.biometric, for the pre-API-28 fingerprint path) and
+      `DYNAMIC_RECEIVER_NOT_EXPORTED_PERMISSION` (a signature-level self-permission AndroidX
+      adds for safe `registerReceiver` on 33+; it grants nothing to anyone else).
+      **No `INTERNET`.** Re-check with:
+      `grep uses-permission androidApp/build/intermediates/merged_manifest/release/*/AndroidManifest.xml`
 
 ### Health / sensitive data
 Menstrual data is **sensitive personal data** under Play's User Data policy. The policy's

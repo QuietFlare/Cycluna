@@ -20,7 +20,9 @@ DerivedData/
 .idea/
 *.iml
 
-# Android release signing — NEVER commit these (public repo)
-androidApp/keystore.properties
+# Android release signing — NEVER commit these (public repo).
+# Bare name so it is ignored wherever it is put, not just the one expected path.
+keystore.properties
+androidApp/keystore/
 *.jks
 *.keystore
