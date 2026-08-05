@@ -3,6 +3,9 @@ package app.cycluna.android.features.journal
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.layout.offset
+import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
@@ -227,20 +230,29 @@ fun PhaseMoodAxis(page: CycleStore.MoodPage, periodLength: Int, modifier: Modifi
 
         // Real calendar dates as well as cycle phases — "day 14" is hard to place in a month
         // without them.
-        Row(Modifier.fillMaxWidth()) {
-            tickDays.forEachIndexed { i, day ->
+        //
+        // Each label is positioned at its day's OWN fraction of the span, the same fraction
+        // the chart plots that day at. Equal-width cells were tried first and quietly lied:
+        // ticks for days 1/8/15/22 belong at 0%, 26%, 52% and 78%, but four equal cells put
+        // them at 0%, 37%, 62% and 100% — so the last date sat at the far right of a chart
+        // where that day is three-quarters along.
+        BoxWithConstraints(Modifier.fillMaxWidth()) {
+            val full = maxWidth
+            val labelWidth = 44.dp
+            tickDays.forEach { day ->
+                val fraction = (day - 1).toFloat() / (span - 1).coerceAtLeast(1)
                 Text(
                     start?.plusDays((day - 1).toLong())?.format(DAY_MONTH) ?: "",
-                    Modifier.weight(1f),
+                    Modifier
+                        .width(labelWidth)
+                        // Clamped so the first and last labels stay inside the chart rather
+                        // than hanging off the edge.
+                        .offset(x = (full * fraction - labelWidth / 2).coerceIn(0.dp, full - labelWidth)),
                     fontSize = 8.sp,
                     lineHeight = 10.sp,
                     color = Theme.inkSoft.copy(alpha = 0.8f),
                     maxLines = 1,
-                    textAlign = when (i) {
-                        0 -> TextAlign.Start
-                        tickDays.lastIndex -> TextAlign.End
-                        else -> TextAlign.Center
-                    },
+                    textAlign = TextAlign.Center,
                 )
             }
         }
