@@ -19,3 +19,8 @@ DerivedData/
 # IDE
 .idea/
 *.iml
+
+# Android release signing — NEVER commit these (public repo)
+androidApp/keystore.properties
+*.jks
+*.keystore

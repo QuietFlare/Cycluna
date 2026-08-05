@@ -1,7 +1,28 @@
+import java.util.Properties
+
 plugins {
     id("com.android.application")
     kotlin("android")
     kotlin("plugin.compose")
+}
+
+/**
+ * Release signing, read from an untracked `keystore.properties` beside this file:
+ *
+ *     storeFile=/absolute/path/to/cycluna-release.jks
+ *     storePassword=…
+ *     keyAlias=…
+ *     keyPassword=…
+ *
+ * The repo is PUBLIC, so neither the keystore nor its passwords may ever be committed —
+ * `keystore.properties` and `*.jks` are git-ignored. Without that file the release build
+ * still compiles and shrinks, it simply comes out unsigned and cannot be installed, which is
+ * the safe failure: a release must never fall back to the debug key, or the app would ship
+ * signed with a key that is in every checkout of this repository.
+ */
+val keystoreProperties = Properties().apply {
+    val file = rootProject.file("androidApp/keystore.properties")
+    if (file.exists()) file.inputStream().use { load(it) }
 }
 
 android {
@@ -16,6 +37,29 @@ android {
         targetSdk = 35
         versionCode = 1
         versionName = "1.0"
+    }
+
+    signingConfigs {
+        if (keystoreProperties.isNotEmpty()) {
+            create("release") {
+                storeFile = file(keystoreProperties.getProperty("storeFile"))
+                storePassword = keystoreProperties.getProperty("storePassword")
+                keyAlias = keystoreProperties.getProperty("keyAlias")
+                keyPassword = keystoreProperties.getProperty("keyPassword")
+            }
+        }
+    }
+
+    buildTypes {
+        release {
+            isMinifyEnabled = true
+            isShrinkResources = true
+            proguardFiles(
+                getDefaultProguardFile("proguard-android-optimize.txt"),
+                "proguard-rules.pro",
+            )
+            signingConfig = signingConfigs.findByName("release")
+        }
     }
 
     buildFeatures {
