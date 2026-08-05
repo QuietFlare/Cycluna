@@ -129,7 +129,16 @@ swift tools/RenderIcon.swift iosApp/iosApp/Assets.xcassets/AppIcon.appiconset/ic
 ./gradlew :androidApp:testDebugUnitTest
 ./gradlew :androidApp:lintDebug       # catches minSdk-26 API misuse — do not skip
 ./gradlew :androidApp:installDebug
+
+# Android release. Needs androidApp/keystore.properties (untracked) or the output is
+# UNSIGNED on purpose — a release must never fall back to the debug key in a public repo.
+./gradlew :androidApp:bundleRelease   # the .aab you upload to Play
+./gradlew :androidApp:assembleRelease # an APK, for sideloading/testing only
 ```
+
+**Play signing**: you sign the bundle ONCE with your own upload key; Google's Play App Signing
+re-signs what reaches devices, automatically. Losing the upload key is recoverable (Google can
+reset it); a self-managed signing key is not.
 
 ⚠️ Adding a file under `iosApp/` requires `xcodegen generate` before it is compiled —
 a new test file silently does not run otherwise.
