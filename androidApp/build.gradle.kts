@@ -7,23 +7,29 @@ plugins {
 }
 
 /**
- * Release signing, read from an untracked `keystore.properties` beside this file:
+ * Release signing, read from `androidApp/keystore/` — a directory git-ignores wholesale, so
+ * anything dropped in it (the properties file, the .jks itself) is covered by default:
  *
  *     storeFile=/absolute/path/to/cycluna-release.jks
  *     storePassword=…
  *     keyAlias=…
  *     keyPassword=…
  *
- * The repo is PUBLIC, so neither the keystore nor its passwords may ever be committed —
- * `keystore.properties` and `*.jks` are git-ignored. Without that file the release build
- * still compiles and shrinks, it simply comes out unsigned and cannot be installed, which is
- * the safe failure: a release must never fall back to the debug key, or the app would ship
- * signed with a key that is in every checkout of this repository.
+ * The repo is PUBLIC, so neither the keystore nor its passwords may ever be committed.
+ *
+ * Missing or incomplete credentials fail the build LOUDLY rather than producing a quietly
+ * unsigned artifact — an unsigned .aab is rejected only later, by Play, long after you have
+ * stopped thinking about it. A release must also never fall back to the debug key, which is
+ * in every checkout of this repository.
  */
+val keystoreFile = rootProject.file("androidApp/keystore/keystore.properties")
 val keystoreProperties = Properties().apply {
-    val file = rootProject.file("androidApp/keystore.properties")
-    if (file.exists()) file.inputStream().use { load(it) }
+    if (keystoreFile.exists()) keystoreFile.inputStream().use { load(it) }
 }
+
+/** True only when every field needed to sign is actually filled in. */
+val canSignRelease = listOf("storeFile", "storePassword", "keyAlias", "keyPassword")
+    .all { !keystoreProperties.getProperty(it).isNullOrBlank() }
 
 android {
     namespace = "app.cycluna.android"
@@ -40,7 +46,7 @@ android {
     }
 
     signingConfigs {
-        if (keystoreProperties.isNotEmpty()) {
+        if (canSignRelease) {
             create("release") {
                 storeFile = file(keystoreProperties.getProperty("storeFile"))
                 storePassword = keystoreProperties.getProperty("storePassword")
@@ -69,6 +75,28 @@ android {
     compileOptions {
         sourceCompatibility = JavaVersion.VERSION_17
         targetCompatibility = JavaVersion.VERSION_17
+    }
+}
+
+// Fail at the moment the release artifact is requested, naming exactly what is missing.
+// Discovering this from Play's upload dialog instead is a much worse afternoon.
+tasks.matching { it.name in setOf("bundleRelease", "assembleRelease") }.configureEach {
+    doFirst {
+        check(canSignRelease) {
+            buildString {
+                appendLine("Release signing is not configured.")
+                appendLine("Expected: ${keystoreFile.path}")
+                appendLine(
+                    if (keystoreFile.exists()) {
+                        "The file exists but these keys are missing or blank: " +
+                            listOf("storeFile", "storePassword", "keyAlias", "keyPassword")
+                                .filter { keystoreProperties.getProperty(it).isNullOrBlank() }
+                    } else {
+                        "Copy androidApp/keystore.properties.example there and fill it in."
+                    }
+                )
+            }
+        }
     }
 }
 
