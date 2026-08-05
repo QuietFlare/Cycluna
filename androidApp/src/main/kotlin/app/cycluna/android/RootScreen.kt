@@ -33,7 +33,9 @@ import app.cycluna.android.designsystem.Crescent
 import app.cycluna.android.designsystem.Theme
 import app.cycluna.android.designsystem.serif
 import app.cycluna.android.features.home.HomeScreen
+import app.cycluna.android.features.journal.JournalScreen
 import app.cycluna.android.features.onboarding.OnboardingScreen
+import app.cycluna.android.features.phases.PhasesScreen
 
 /**
  * The four tabs. Flat, with no cross-tab navigation and no route graph — the iOS app has
@@ -96,8 +98,8 @@ private fun MainTabs() {
         Box(Modifier.fillMaxSize().padding(insets)) {
             when (selected) {
                 Tab.TODAY -> HomeScreen()
-                Tab.PHASES -> Placeholder("Phases")
-                Tab.JOURNAL -> Placeholder("Journal")
+                Tab.PHASES -> PhasesScreen()
+                Tab.JOURNAL -> JournalScreen()
                 Tab.ME -> Placeholder("Me")
             }
         }
