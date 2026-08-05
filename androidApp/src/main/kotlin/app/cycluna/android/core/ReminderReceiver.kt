@@ -12,8 +12,10 @@ import androidx.core.content.ContextCompat
 import app.cycluna.android.CyclunaApp
 import app.cycluna.android.MainActivity
 import app.cycluna.android.R
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.first
-import kotlinx.coroutines.runBlocking
+import kotlinx.coroutines.launch
 
 /**
  * Posts a reminder when its alarm fires.
@@ -59,21 +61,34 @@ class ReminderReceiver : BroadcastReceiver() {
 /**
  * Alarms do not survive a reboot, so everything is rebuilt from the stored predictions and
  * settings once the device comes back up.
+ *
+ * The work happens off the main thread behind `goAsync()`. `onReceive` runs on the main
+ * thread, and reading the settings means reading a file — at boot, with every installed app
+ * contending for I/O, blocking there risks an ANR. The cost of that would be silent: no UI
+ * to show it, just reminders that never come back until the app is next opened by hand.
  */
 class BootReceiver : BroadcastReceiver() {
 
     override fun onReceive(context: Context, intent: Intent) {
         if (intent.action != Intent.ACTION_BOOT_COMPLETED) return
         val app = context.applicationContext as? CyclunaApp ?: return
-        val settings = runBlocking { app.settings.settings.first() }
-        if (!settings.anyCycleReminder && !settings.anyCheckIn) return
 
-        val logged = app.store.hasLoggedPeriod
-        ReminderScheduler.reschedule(
-            context = context,
-            nextPeriod = if (logged) app.store.nextPeriodDate else null,
-            fertileStart = if (logged) app.store.fertileStartDate else null,
-            settings = settings,
-        )
+        val pending = goAsync()
+        CoroutineScope(Dispatchers.Default).launch {
+            try {
+                val settings = app.settings.settings.first()
+                if (!settings.anyCycleReminder && !settings.anyCheckIn) return@launch
+                val logged = app.store.hasLoggedPeriod
+                ReminderScheduler.reschedule(
+                    context = context,
+                    nextPeriod = if (logged) app.store.nextPeriodDate else null,
+                    fertileStart = if (logged) app.store.fertileStartDate else null,
+                    settings = settings,
+                )
+            } finally {
+                // Releases the wake lock the broadcast holds; skipping it leaks it.
+                pending.finish()
+            }
+        }
     }
 }

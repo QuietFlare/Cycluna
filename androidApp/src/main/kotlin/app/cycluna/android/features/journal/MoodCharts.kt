@@ -203,8 +203,11 @@ fun PhaseMoodAxis(page: CycleStore.MoodPage, periodLength: Int, modifier: Modifi
             },
         verticalArrangement = Arrangement.spacedBy(2.dp),
     ) {
-        // Phase names, each sized to its own band.
-        Row(Modifier.fillMaxWidth().height(13.dp)) {
+        // Both rows size to their own text. Pinning them to 13dp and 12dp clipped the
+        // descenders off "Menstrual" and "28 Jun" — and would have sliced the labels in half
+        // for anyone running a larger font scale, where the text grows but a fixed dp box
+        // does not. `lineHeight` keeps the two rows tight without cropping them.
+        Row(Modifier.fillMaxWidth()) {
             PhaseContent.entries.forEach { phase ->
                 val r = phase.dayRange(span, periodLength)
                 val days = (r.last - r.first + 1).coerceAtLeast(0)
@@ -213,6 +216,7 @@ fun PhaseMoodAxis(page: CycleStore.MoodPage, periodLength: Int, modifier: Modifi
                         phase.key,
                         Modifier.weight(days.toFloat()),
                         fontSize = 9.sp,
+                        lineHeight = 11.sp,
                         color = Theme.inkSoft,
                         maxLines = 1,
                         textAlign = TextAlign.Center,
@@ -223,22 +227,21 @@ fun PhaseMoodAxis(page: CycleStore.MoodPage, periodLength: Int, modifier: Modifi
 
         // Real calendar dates as well as cycle phases — "day 14" is hard to place in a month
         // without them.
-        Box(Modifier.fillMaxWidth().height(12.dp)) {
-            Row(Modifier.fillMaxSize()) {
-                tickDays.forEachIndexed { i, day ->
-                    Text(
-                        start?.plusDays((day - 1).toLong())?.format(DAY_MONTH) ?: "",
-                        Modifier.weight(1f),
-                        fontSize = 8.sp,
-                        color = Theme.inkSoft.copy(alpha = 0.8f),
-                        maxLines = 1,
-                        textAlign = when (i) {
-                            0 -> TextAlign.Start
-                            tickDays.lastIndex -> TextAlign.End
-                            else -> TextAlign.Center
-                        },
-                    )
-                }
+        Row(Modifier.fillMaxWidth()) {
+            tickDays.forEachIndexed { i, day ->
+                Text(
+                    start?.plusDays((day - 1).toLong())?.format(DAY_MONTH) ?: "",
+                    Modifier.weight(1f),
+                    fontSize = 8.sp,
+                    lineHeight = 10.sp,
+                    color = Theme.inkSoft.copy(alpha = 0.8f),
+                    maxLines = 1,
+                    textAlign = when (i) {
+                        0 -> TextAlign.Start
+                        tickDays.lastIndex -> TextAlign.End
+                        else -> TextAlign.Center
+                    },
+                )
             }
         }
     }
