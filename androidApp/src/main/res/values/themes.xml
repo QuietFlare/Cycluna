@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources xmlns:tools="http://schemas.android.com/tools">
+
+    <!--
+      Cycluna is light-only: the cream/mauve palette is the brand, and a theme switch is a
+      setting nobody needs to make. `forceDarkAllowed=false` stops the system from inverting
+      the app when the user turns on device-wide dark mode; Compose never reads
+      isSystemInDarkTheme(). The bars are transparent because the app draws edge to edge.
+    -->
+    <style name="Theme.Cycluna" parent="android:Theme.Material.Light.NoActionBar">
+        <item name="android:statusBarColor">@android:color/transparent</item>
+        <item name="android:navigationBarColor">@android:color/transparent</item>
+        <item name="android:windowLightStatusBar">true</item>
+        <item name="android:windowBackground">@color/background</item>
+        <item name="android:forceDarkAllowed" tools:targetApi="29">false</item>
+    </style>
+
+</resources>

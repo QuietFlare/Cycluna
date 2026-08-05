@@ -15,3 +15,7 @@ DerivedData/
 .env
 .env.*
 !.env.example
+
+# IDE
+.idea/
+*.iml

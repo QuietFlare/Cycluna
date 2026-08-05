@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  Cycluna is English-only by decision, so UI copy lives with the composable that shows it,
+  the way the iOS app keeps its copy in Swift. Only resources the *system* reads — the
+  launcher label — belong here.
+-->
+<resources>
+    <string name="app_name">Cycluna</string>
+</resources>
