@@ -1,19 +1,24 @@
 package app.cycluna.android
 
 import androidx.compose.foundation.background
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material.icons.filled.Person
+import androidx.compose.material3.CenterAlignedTopAppBar
+import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.NavigationBar
 import androidx.compose.material3.NavigationBarItem
 import androidx.compose.material3.NavigationBarItemDefaults
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
+import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -27,6 +32,7 @@ import androidx.compose.ui.unit.dp
 import app.cycluna.android.designsystem.Crescent
 import app.cycluna.android.designsystem.Theme
 import app.cycluna.android.designsystem.serif
+import app.cycluna.android.features.home.HomeScreen
 import app.cycluna.android.features.onboarding.OnboardingScreen
 
 /**
@@ -64,6 +70,9 @@ private fun MainTabs() {
 
     Scaffold(
         containerColor = Theme.background,
+        // A real top bar, not a scrolling header: the brand stays put and content passes
+        // under it. Hiding it was what made the iOS screen read as a web page.
+        topBar = { CyclunaTopBar(selected) },
         bottomBar = {
             NavigationBar(containerColor = Theme.surface) {
                 Tab.entries.forEach { tab ->
@@ -84,15 +93,41 @@ private fun MainTabs() {
             }
         },
     ) { insets ->
-        Box(Modifier.fillMaxSize().padding(insets), contentAlignment = Alignment.Center) {
+        Box(Modifier.fillMaxSize().padding(insets)) {
             when (selected) {
-                Tab.TODAY -> Placeholder("Today")
+                Tab.TODAY -> HomeScreen()
                 Tab.PHASES -> Placeholder("Phases")
                 Tab.JOURNAL -> Placeholder("Journal")
                 Tab.ME -> Placeholder("Me")
             }
         }
     }
+}
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+private fun CyclunaTopBar(tab: Tab) {
+    CenterAlignedTopAppBar(
+        title = {
+            if (tab == Tab.TODAY) {
+                Row(
+                    horizontalArrangement = Arrangement.spacedBy(6.dp),
+                    verticalAlignment = Alignment.CenterVertically,
+                ) {
+                    Crescent(
+                        modifier = Modifier.size(14.dp),
+                        brush = Brush.linearGradient(listOf(Theme.primary, Theme.primary)),
+                    )
+                    Text("Cycluna", style = serif(17).copy(color = Theme.ink))
+                }
+            } else {
+                Text(tab.label, style = serif(20).copy(color = Theme.ink))
+            }
+        },
+        colors = TopAppBarDefaults.centerAlignedTopAppBarColors(
+            containerColor = Theme.background,
+        ),
+    )
 }
 
 @Composable

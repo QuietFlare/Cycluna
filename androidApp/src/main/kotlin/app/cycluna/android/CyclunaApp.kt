@@ -6,6 +6,7 @@ import androidx.lifecycle.DefaultLifecycleObserver
 import androidx.lifecycle.LifecycleOwner
 import androidx.lifecycle.ProcessLifecycleOwner
 import app.cycluna.android.core.CycleStore
+import app.cycluna.android.core.MoonEventCatalog
 import app.cycluna.android.core.SettingsStore
 import app.cycluna.core.security.KeyVaultContext
 
@@ -32,6 +33,7 @@ class CyclunaApp : Application() {
 
         store = CycleStore(this)
         settings = SettingsStore(this)
+        MoonEventCatalog.load(this)
 
         // The counterpart of the iOS scenePhase `.background` flush. Android can kill a
         // backgrounded process without further warning, so a debounced write that is still
