@@ -31,6 +31,23 @@ val keystoreProperties = Properties().apply {
 val canSignRelease = listOf("storeFile", "storePassword", "keyAlias", "keyPassword")
     .all { !keystoreProperties.getProperty(it).isNullOrBlank() }
 
+/**
+ * Declared up here so the artifact name can reuse them. `versionCode` must increase for every
+ * upload — Play rejects a repeat — while `versionName` is the string users see.
+ */
+val appVersionCode = 1
+val appVersionName = "1.0"
+
+/**
+ * Output artifacts are named for the app, not the Gradle module. Without this they come out
+ * as `androidApp-release.aab`, which says nothing about which app or which build it is once a
+ * few of them are sitting in a folder together. Includes the version code because that is the
+ * number Play actually distinguishes uploads by.
+ */
+base {
+    archivesName = "cycluna-$appVersionName-$appVersionCode"
+}
+
 android {
     namespace = "app.cycluna.android"
     compileSdk = 35
@@ -41,8 +58,8 @@ android {
         applicationId = "net.quietflare.cycluna"
         minSdk = 26
         targetSdk = 35
-        versionCode = 1
-        versionName = "1.0"
+        versionCode = appVersionCode
+        versionName = appVersionName
     }
 
     signingConfigs {
