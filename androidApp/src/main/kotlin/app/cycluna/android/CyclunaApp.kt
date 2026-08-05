@@ -7,6 +7,7 @@ import androidx.lifecycle.LifecycleOwner
 import androidx.lifecycle.ProcessLifecycleOwner
 import app.cycluna.android.core.CycleStore
 import app.cycluna.android.core.MoonEventCatalog
+import app.cycluna.android.core.ReminderScheduler
 import app.cycluna.android.core.SettingsStore
 import app.cycluna.core.security.KeyVaultContext
 
@@ -31,6 +32,7 @@ class CyclunaApp : Application() {
         // `defaultKeyVault()` has no other way to reach a Context.
         KeyVaultContext.install(this)
 
+        ReminderScheduler.createChannel(this)
         store = CycleStore(this)
         settings = SettingsStore(this)
         MoonEventCatalog.load(this)

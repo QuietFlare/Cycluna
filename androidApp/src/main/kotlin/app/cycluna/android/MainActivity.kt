@@ -2,7 +2,7 @@ package app.cycluna.android
 
 import android.graphics.Color
 import android.os.Bundle
-import androidx.activity.ComponentActivity
+import androidx.fragment.app.FragmentActivity
 import androidx.activity.SystemBarStyle
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
@@ -15,7 +15,11 @@ import app.cycluna.android.designsystem.CyclunaTheme
  */
 private val DARK_SCRIM = Color.argb(0x80, 0x1b, 0x1b, 0x1b)
 
-class MainActivity : ComponentActivity() {
+/**
+ * A FragmentActivity rather than a plain ComponentActivity: `BiometricPrompt` shows itself
+ * through a fragment and will not accept anything less.
+ */
+class MainActivity : FragmentActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         // Both bars are pinned to the LIGHT style — dark icons on our cream background.
