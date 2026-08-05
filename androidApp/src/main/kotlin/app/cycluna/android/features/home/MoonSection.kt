@@ -17,6 +17,8 @@ import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.semantics.contentDescription
+import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.font.FontStyle
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
@@ -32,6 +34,7 @@ import java.time.format.TextStyle
 import java.util.Locale
 
 private val MONTH_DAY = DateTimeFormatter.ofPattern("MMM d", Locale.ENGLISH)
+private val CELL_DATE = DateTimeFormatter.ofPattern("EEEE d MMMM", Locale.ENGLISH)
 private val BLOOD = Color(0xFFC0473F)
 
 /**
@@ -82,7 +85,12 @@ private fun MoonDayCell(date: LocalDate, today: LocalDate) {
             .width(76.dp)
             .background(if (isToday) Theme.primary.copy(alpha = 0.07f) else Color.Transparent, shape)
             .border(1.dp, if (isToday) Theme.primary.copy(alpha = 0.25f) else Color.Transparent, shape)
-            .padding(vertical = 12.dp),
+            .padding(vertical = 12.dp)
+            // The disc is a Canvas and the three labels would be read as three separate
+            // fragments; merge the cell into one sentence instead.
+            .semantics(mergeDescendants = true) {
+                contentDescription = "${if (isToday) "Today" else date.format(CELL_DATE)}, $phaseName"
+            },
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.spacedBy(8.dp),
     ) {

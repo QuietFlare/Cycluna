@@ -70,7 +70,8 @@ shared/src/commonMain/kotlin/app/cycluna/core/
     MoonMoodInsights.kt  mood grouped by moon phase; lunation paging
     HeadacheInsights.kt  hormonal-cluster headache insight
     security/KeyVault.kt expect: secure string storage contract
-shared/src/iosMain/.../KeyVault.ios.kt   actual: Keychain
+shared/src/iosMain/.../KeyVault.ios.kt       actual: Keychain
+shared/src/androidMain/.../KeyVault.android.kt  actual: AES-GCM under an AndroidKeyStore key
 shared/src/jvmMain/.../KeyVault.jvm.kt   actual: in-memory (tests only — the Keychain
                                          actual is covered by iosAppTests instead)
 iosApp/
@@ -81,8 +82,17 @@ iosApp/
     iosApp/LaunchScreen.storyboard + LaunchAssets/*.png   see "Launch screen" below
     iosApp/Features/Journal/MoodPatternsCard.swift, MoodCharts.swift
     iosAppTests/              XCTest bundle (reminder planning, copy, Keychain, KMP bridge)
+androidApp/
+    build.gradle.kts          applicationId net.quietflare.cycluna, namespace app.cycluna.android
+    src/main/assets/moon-events.json  byte-identical copy of the iOS resource (pinned by a test)
+    src/main/res/drawable/ic_launcher_*.xml  adaptive icon, the iOS "day" crescent as vectors
+    src/main/kotlin/app/cycluna/android/
+        CyclunaApp.kt  MainActivity.kt  RootScreen.kt   ≈ iOSApp/RootView
+        core/          CycleStore, Settings, ReminderPlan/Scheduler/Receiver, AppLock, CycleCopy
+        designsystem/  Theme.kt (tokens), Crescent.kt, Glyphs.kt (drop/heart/leaf/sun)
+        features/      onboarding · home · phases · journal · settings
 tools/
-    RenderIcon.swift          generates the app icon (night|day variants)
+    RenderIcon.swift          generates the iOS app icon (night|day variants)
     RenderMark.swift          generates the launch-screen crescent
 ```
 
@@ -114,6 +124,11 @@ xcodebuild test -project iosApp/iosApp.xcodeproj -scheme iosApp \
 
 # Regenerate the app icon / launch mark after changing tools/Render*.swift
 swift tools/RenderIcon.swift iosApp/iosApp/Assets.xcassets/AppIcon.appiconset/icon-1024.png day
+
+# Android: unit tests, lint, and install on a running emulator/device
+./gradlew :androidApp:testDebugUnitTest
+./gradlew :androidApp:lintDebug       # catches minSdk-26 API misuse — do not skip
+./gradlew :androidApp:installDebug
 ```
 
 ⚠️ Adding a file under `iosApp/` requires `xcodegen generate` before it is compiled —
@@ -174,7 +189,7 @@ These were decided deliberately and are easy to undo by accident:
 
 ## Current state
 - ✅ Shared core: `Moon`, `Cycle` (incl. late/unclear model), `CycleData`, `CyclunaCore`,
-  `MoodInsights`, `MoonMoodInsights`, `HeadacheInsights`, `KeyVault`. **95 tests**.
+  `MoodInsights`, `MoonMoodInsights`, `HeadacheInsights`, `KeyVault`. **102 tests**.
 - ✅ iOS app, 4 tabs. Real navigation bars on every tab (hiding them was what made the
   app feel like a web page). Home: greeting · hero (`MoonWheel`, fertile/next-period,
   "Start period today") · hormone highlight · 7-day mood strip · month calendar · cycles
@@ -186,10 +201,36 @@ These were decided deliberately and are easy to undo by accident:
 - ✅ About: version from the bundle, privacy policy, health disclaimer, support links.
 - ✅ **32 iOS tests** — reminder planning, cycle copy, the Keychain actual, and the
   Swift↔Kotlin bridge (a wrong argument there is invisible to `jvmTest`).
-- ⏳ Next: encrypted Journal (`enc:v1`), Android app, Cloudflare backend.
+- ✅ **Android app, 4 tabs, feature-equivalent with iOS.** Same `CycleData` file format, same
+  reminder ids and settings keys, same guardrails and copy. **27 Android unit tests**
+  (`ReminderPlanTest`, `CycleCopyTest` — both ported case-for-case from the iOS suites — plus
+  `AndroidAcknowledgementsTest` and `MoonEventsParityTest`, which pins the duplicated
+  `moon-events.json` byte-for-byte against the iOS copy).
+- ⏳ Next: encrypted Journal (`enc:v1`), Cloudflare backend.
   Backlog: `Cycle.isIrregular` is dead code (and flags gaps outside 21–35 while
   `MAX_CYCLE_LENGTH` is 45 — reconcile or delete); Dynamic Type audit; App Store
-  screenshots + Health & Fitness category + release signing.
+  screenshots + Health & Fitness category + release signing; Android release signing +
+  R8/minify (debug-only so far) and the Play Data safety declaration; instrumented tests for
+  the Keystore `KeyVault` actual, which local unit tests cannot reach.
+
+## Android specifics worth knowing
+- **minSdk 26 / target-compile 35.** Lint checks every API call against 26 — it has already
+  caught two real crashes-in-waiting. `:androidApp:lintDebug` is not optional.
+- **AGP 8.10.1 is the ceiling** for the Gradle 8.11.1 wrapper. Plugin versions live in the
+  root `build.gradle.kts` so the Kotlin plugin loads once for the whole build.
+- **Light-only is enforced in three places**: a fixed `lightColorScheme`, `forceDarkAllowed=false`
+  in the theme, and `enableEdgeToEdge(SystemBarStyle.light(...))` in `MainActivity`. The last
+  one matters — the no-argument `enableEdgeToEdge()` picks bar-icon colour from the *system*
+  dark-mode setting and drew white status icons on the cream background.
+- **Reminders use `AlarmManager.setWindow`**, not exact alarms: `SCHEDULE_EXACT_ALARM` is
+  denied by default on 14+ and is meant for alarm-clock apps. Android has no repeating
+  *notification*, so the daily check-in re-arms itself in `ReminderReceiver`, and `BootReceiver`
+  rebuilds everything after a reboot.
+- **Reschedule effects must not be keyed on the settings they read.** Adding a lifecycle
+  observer replays `ON_START` immediately, so a `DisposableEffect(settings)` re-ran the
+  foreground path on every settings change — which silently un-did "delete everything" by
+  rescheduling from the pre-delete snapshot. Read through `rememberUpdatedState` instead.
+- **No `material-icons-extended`**: the drop, heart, leaf and sun are drawn in `Glyphs.kt`.
 
 ## Backend (later)
 Cloudflare **Workers + D1 (SQLite)**, JWT auth (**passkey-first + Apple/Google recovery**),

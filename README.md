@@ -6,12 +6,15 @@ minutes). Contains **no secrets** — only the public Cloudflare Worker base URL
 ## Structure
 
 ```
-shared/      ← Kotlin Multiplatform core (iOS framework + JVM test target)
+shared/      ← Kotlin Multiplatform core (iOS framework + Android library + JVM test target)
              ├── Moon.kt    — synodic moon-phase math (ported from web moon.ts)
              └── Cycle.kt   — cycle-day/phase prediction (ported from cycle.ts)
-iosApp/      ← SwiftUI  [next: build in Xcode 26, links the Shared framework]
-androidApp/  ← Jetpack Compose  [later — needs Android Studio]
+iosApp/      ← SwiftUI, links the Shared framework
+androidApp/  ← Jetpack Compose, depends on :shared directly
 ```
+
+Both apps are feature-equivalent and share the same `CycleData` format, so a JSON export
+from one reads identically on the other.
 
 ## Toolchain (verified working)
 
@@ -33,6 +36,19 @@ JAVA_HOME=/Library/Java/JavaVirtualMachines/temurin-17.jdk/Contents/Home \
 JAVA_HOME=/Library/Java/JavaVirtualMachines/temurin-17.jdk/Contents/Home \
   ./gradlew :shared:linkDebugFrameworkIosSimulatorArm64
 ```
+
+## Build and run the Android app
+
+Needs the Android SDK (platform 35). Android Studio is optional — the command line is
+enough; point `local.properties` at your SDK with `sdk.dir=…` (it is git-ignored).
+
+```bash
+JAVA_HOME=/Library/Java/JavaVirtualMachines/temurin-17.jdk/Contents/Home \
+  ./gradlew :androidApp:installDebug
+```
+
+`applicationId` is `net.quietflare.cycluna`, matching the iOS bundle id; the code lives in
+the `app.cycluna.android` namespace. minSdk 26, target/compile 35.
 
 Backend lives in the private `cycluna-backend` repo. Full plan:
 `cycluna-backend/docs/native-migration-plan.md`.
