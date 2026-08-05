@@ -5,6 +5,7 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.geometry.Rect
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.Path
 import androidx.compose.ui.graphics.drawscope.DrawScope
@@ -22,16 +23,41 @@ import androidx.compose.ui.unit.dp
  * clear their semantics rather than announcing a second time to TalkBack.
  */
 
+/**
+ * A teardrop, built the way one actually is: a circle for the bowl, and two straight sides
+ * running from the apex down to where they meet that circle *tangentially*.
+ *
+ * Freehand cubics were tried first and read as a garlic bulb — the sides flared wide
+ * immediately below the point, so the shape was squat and the tip stubby. Tangency is what
+ * makes the silhouette look like a drop: the straight edge and the curve join with no corner.
+ *
+ * With the bowl at (0.5, 0.68) r=0.30 and the apex at (0.5, 0.02), the tangent points work
+ * out at x = 0.5 ± 0.267, y = 0.544 — i.e. −27° and 207° around the bowl, leaving a 234°
+ * sweep across the bottom.
+ */
+private const val BOWL_CX = 0.5f
+private const val BOWL_CY = 0.68f
+private const val BOWL_R = 0.30f
+private const val TANGENT_START_DEG = -27f
+private const val TANGENT_SWEEP_DEG = 234f
+
 private fun DrawScope.dropPath(): Path {
     val w = size.width
     val h = size.height
-    // A teardrop: a point at the top, widening into a circular bowl at the bottom.
     return Path().apply {
-        moveTo(w * 0.5f, h * 0.05f)
-        cubicTo(w * 0.5f, h * 0.35f, w * 0.95f, h * 0.5f, w * 0.95f, h * 0.68f)
-        cubicTo(w * 0.95f, h * 0.92f, w * 0.75f, h * 0.98f, w * 0.5f, h * 0.98f)
-        cubicTo(w * 0.25f, h * 0.98f, w * 0.05f, h * 0.92f, w * 0.05f, h * 0.68f)
-        cubicTo(w * 0.05f, h * 0.5f, w * 0.5f, h * 0.35f, w * 0.5f, h * 0.05f)
+        moveTo(w * BOWL_CX, h * 0.02f)
+        lineTo(w * 0.767f, h * 0.544f)
+        arcTo(
+            rect = Rect(
+                left = w * (BOWL_CX - BOWL_R),
+                top = h * (BOWL_CY - BOWL_R),
+                right = w * (BOWL_CX + BOWL_R),
+                bottom = h * (BOWL_CY + BOWL_R),
+            ),
+            startAngleDegrees = TANGENT_START_DEG,
+            sweepAngleDegrees = TANGENT_SWEEP_DEG,
+            forceMoveTo = false,
+        )
         close()
     }
 }
