@@ -24,7 +24,9 @@ import androidx.compose.material3.SegmentedButtonDefaults
 import androidx.compose.material3.SingleChoiceSegmentedButtonRow
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
-import androidx.compose.material3.TimeInput
+import androidx.compose.material3.AlertDialog
+import androidx.compose.material3.TimePicker
+import androidx.compose.material3.TimePickerDefaults
 import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.material3.rememberTimePickerState
 import androidx.compose.runtime.Composable
@@ -213,30 +215,23 @@ fun HeadacheSheet(dateIso: String, existing: HeadacheLog?, onDismiss: () -> Unit
             }
 
             SectionLabel("Time")
-            if (editingTime) {
-                // The compact numeric input, not the analog dial: this sheet already carries
-                // an intensity row, two chip groups and a note, and the dial pushed all of
-                // them off the screen.
-                TimeInput(state = timeState)
-            } else {
-                Row(
+            Row(
+                Modifier
+                    .fillMaxWidth()
+                    .background(Theme.background, RoundedCornerShape(12.dp))
+                    .clickable { editingTime = true }
+                    .padding(vertical = 12.dp, horizontal = 16.dp),
+                verticalAlignment = Alignment.CenterVertically,
+            ) {
+                Text("Onset", Modifier.weight(1f), fontSize = 16.sp, color = Theme.ink)
+                Text(
+                    formatTime(timeState.hour, timeState.minute, use24Hour),
                     Modifier
-                        .fillMaxWidth()
-                        .background(Theme.background, RoundedCornerShape(12.dp))
-                        .clickable { editingTime = true }
-                        .padding(vertical = 12.dp, horizontal = 16.dp),
-                    verticalAlignment = Alignment.CenterVertically,
-                ) {
-                    Text("Onset", Modifier.weight(1f), fontSize = 16.sp, color = Theme.ink)
-                    Text(
-                        formatTime(timeState.hour, timeState.minute, use24Hour),
-                        Modifier
-                            .background(Theme.surface, RoundedCornerShape(8.dp))
-                            .padding(horizontal = 12.dp, vertical = 6.dp),
-                        fontSize = 16.sp,
-                        color = Theme.ink,
-                    )
-                }
+                        .background(Theme.surface, RoundedCornerShape(8.dp))
+                        .padding(horizontal = 12.dp, vertical = 6.dp),
+                    fontSize = 16.sp,
+                    color = Theme.ink,
+                )
             }
 
             SectionLabel("Symptoms")
@@ -259,6 +254,33 @@ fun HeadacheSheet(dateIso: String, existing: HeadacheLog?, onDismiss: () -> Unit
                 }
             }
         }
+    }
+
+    // The dial in a dialog, rather than a text field inline: the inline numeric input takes
+    // focus the moment it appears, so the keyboard covered the symptom and trigger chips and
+    // the sheet had to be scrolled blind. The dial needs no keyboard at all.
+    if (editingTime) {
+        AlertDialog(
+            onDismissRequest = { editingTime = false },
+            containerColor = Theme.surface,
+            title = { Text("Onset time", style = serif(20).copy(color = Theme.ink)) },
+            text = {
+                TimePicker(
+                    state = timeState,
+                    colors = TimePickerDefaults.colors(
+                        selectorColor = Theme.primary,
+                        containerColor = Theme.background,
+                        periodSelectorSelectedContainerColor = Theme.primary.copy(alpha = 0.15f),
+                        timeSelectorSelectedContainerColor = Theme.primary.copy(alpha = 0.15f),
+                    ),
+                )
+            },
+            confirmButton = {
+                TextButton(onClick = { editingTime = false }) {
+                    Text("Done", color = Theme.primary)
+                }
+            },
+        )
     }
 }
 
