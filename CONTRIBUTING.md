@@ -16,7 +16,8 @@ building it, and it is how work gets claimed so two people do not do it twice.
 Please do not send a pull request for a feature that has no issue. It may be something already
 decided against, and it is kinder to find that out before you write the code than after.
 
-Issues labelled `good first issue` are scoped to be picked up without reading the whole codebase.
+Not sure where to start? Open an issue saying what you would like to work on, and it can be scoped
+from there.
 
 ## Ways to help without code
 
