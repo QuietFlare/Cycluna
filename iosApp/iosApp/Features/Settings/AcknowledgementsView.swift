@@ -6,8 +6,8 @@ import SwiftUI
 /// notices to travel with any distributed work containing the code, and the Kotlin runtime
 /// plus the kotlinx libraries are linked into the app binary.
 ///
-/// Distinct from the repo's own PolyForm Noncommercial licence, which covers the *source*
-/// and never reaches someone who installs from the App Store.
+/// Distinct from the repo's own MIT licence, which covers the *source* and never reaches
+/// someone who installs from the App Store.
 ///
 /// ⚠️ Keep `libraries` in step with `shared/build.gradle.kts`. `AcknowledgementsTest` in the
 /// shared module fails if a runtime dependency is added there and not listed here.
@@ -82,7 +82,7 @@ struct AcknowledgementsView: View {
                 }
                 .padding(.top, 4)
 
-                Text("Cycluna's own source is published under the PolyForm Noncommercial License 1.0.0.")
+                Text("Cycluna's own source is open, published under the MIT License.")
                     .font(.caption).foregroundStyle(Theme.inkSoft)
                     .fixedSize(horizontal: false, vertical: true)
             }
