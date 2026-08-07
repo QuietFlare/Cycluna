@@ -7,16 +7,26 @@ stay free.
 Contributions from women are especially welcome. Lived experience counts as expertise here, and
 much of the most useful work needs no code.
 
+## Everything starts with an issue
+
+Open an issue first, for anything: a feature idea, a bug, a translation you want to take on, or a
+sentence you think is wrong. That is where it gets discussed and agreed before anyone spends time
+building it, and it is how work gets claimed so two people do not do it twice.
+
+Please do not send a pull request for a feature that has no issue. It may be something already
+decided against, and it is kinder to find that out before you write the code than after.
+
+Issues labelled `good first issue` are scoped to be picked up without reading the whole codebase.
+
 ## Ways to help without code
 
-- **Translations.** The highest value contribution right now.
+- **Feature ideas.** If you have ever wished a cycle app did something differently, open an issue
+  and describe it. This is a real contribution, and often the most valuable one.
+- **Translations.** The highest value code-adjacent contribution right now.
 - **The words.** The text describing each cycle phase. If it reads wrong or condescending, say so
   and suggest better.
 - **Bug reports.** What you expected, what happened, your iOS or Android version.
 - **Design and accessibility.** Type sizes, contrast, VoiceOver and TalkBack labels.
-
-Open an issue for any of these. Issues labelled `good first issue` are scoped to be picked up
-without reading the whole codebase.
 
 ## Code
 
@@ -45,13 +55,17 @@ Cycluna's promise is that cycle data never leaves the device. These are out of s
 - Network calls, analytics, crash reporting, or third-party SDKs
 - Advertising, tracking, or monetizing user data
 - Accounts or cloud sync in the current version
-- Anything that diagnoses, predicts disease, or acts as contraception
-- Claims that the moon influences cycles or mood
+- Medical claims. Cycluna is educational. It does not diagnose, treat, predict disease, or act as
+  contraception, and it does not interpret lab results.
+- Religious claims, or content that frames cycles, fertility, or menstruation through the beliefs
+  or practices of any faith.
+- Astrological claims. The moon is in Cycluna because it is beautiful, and the app never says it
+  influences a cycle or a mood.
 
 ## Pull requests
 
-One change per pull request. Add tests for anything in `shared/` and run `./gradlew
-:shared:jvmTest` before pushing. Screenshots help for visual changes.
+Link the issue your pull request closes. One change per pull request. Add tests for anything in
+`shared/` and run `./gradlew :shared:jvmTest` before pushing. Screenshots help for visual changes.
 
 There is no contributor licence agreement. Cycluna is MIT licensed, and opening a pull request
 offers your contribution under that same licence.
