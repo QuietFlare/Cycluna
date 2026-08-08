@@ -39,7 +39,7 @@ JAVA_HOME=/Library/Java/JavaVirtualMachines/temurin-17.jdk/Contents/Home \
 
 ## Build and run the Android app
 
-Needs the Android SDK (platform 35). Android Studio is optional — the command line is
+Needs the Android SDK (platform 36). Android Studio is optional — the command line is
 enough; point `local.properties` at your SDK with `sdk.dir=…` (it is git-ignored).
 
 ```bash
@@ -48,7 +48,7 @@ JAVA_HOME=/Library/Java/JavaVirtualMachines/temurin-17.jdk/Contents/Home \
 ```
 
 `applicationId` is `net.quietflare.cycluna`, matching the iOS bundle id; the code lives in
-the `app.cycluna.android` namespace. minSdk 26, target/compile 35.
+the `app.cycluna.android` namespace. minSdk 26, target/compile 36.
 
 Backend lives in the private `cycluna-backend` repo. Full plan:
 `cycluna-backend/docs/native-migration-plan.md`.

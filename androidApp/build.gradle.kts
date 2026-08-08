@@ -35,7 +35,7 @@ val canSignRelease = listOf("storeFile", "storePassword", "keyAlias", "keyPasswo
  * Declared up here so the artifact name can reuse them. `versionCode` must increase for every
  * upload — Play rejects a repeat — while `versionName` is the string users see.
  */
-val appVersionCode = 1
+val appVersionCode = 3
 val appVersionName = "1.0"
 
 /**
@@ -50,14 +50,16 @@ base {
 
 android {
     namespace = "app.cycluna.android"
-    compileSdk = 35
+    compileSdk = 36
 
     defaultConfig {
         // Matches the iOS bundle id. Changing it later makes Android treat the build as a
         // different app — older installs stop updating and have to be deleted by hand.
         applicationId = "net.quietflare.cycluna"
         minSdk = 26
-        targetSdk = 35
+        // Play requires API 36 for uploads from 31 Aug 2026. AGP 8.10's maximum supported
+        // compileSdk is exactly 36, so this is the ceiling until the Gradle wrapper moves.
+        targetSdk = 36
         versionCode = appVersionCode
         versionName = appVersionName
     }

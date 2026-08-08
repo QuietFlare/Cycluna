@@ -223,8 +223,10 @@ These were decided deliberately and are easy to undo by accident:
   the Keystore `KeyVault` actual, which local unit tests cannot reach.
 
 ## Android specifics worth knowing
-- **minSdk 26 / target-compile 35.** Lint checks every API call against 26 — it has already
-  caught two real crashes-in-waiting. `:androidApp:lintDebug` is not optional.
+- **minSdk 26 / target-compile 36.** Lint checks every API call against 26 — it has already
+  caught two real crashes-in-waiting. `:androidApp:lintDebug` is not optional. 36 is Play's
+  requirement for uploads from 31 Aug 2026, and it is also AGP 8.10's maximum `compileSdk` —
+  the next bump needs a newer Gradle wrapper first.
 - **AGP 8.10.1 is the ceiling** for the Gradle 8.11.1 wrapper. Plugin versions live in the
   root `build.gradle.kts` so the Kotlin plugin loads once for the whole build.
 - **Light-only is enforced in three places**: a fixed `lightColorScheme`, `forceDarkAllowed=false`
