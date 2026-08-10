@@ -256,6 +256,17 @@ final class CycleStore {
         apply(.cycle) { $0.logPeriod(iso: self.iso(Calendar.current.startOfDay(for: date))) }
     }
 
+    /// One-line what-if for a candidate anchor date — "Day 5 · Menstrual · next period
+    /// around Sep 3" — so the date sheet can show what a choice means before it's saved.
+    /// Pure preview: nothing is stored.
+    func previewLine(anchor: Date) -> String {
+        let a = iso(Calendar.current.startOfDay(for: anchor))
+        let day = Int(core.cycleDay(lastPeriodStartIso: a, cycleLength: Int32(cycleLength), periodLength: Int32(periodLength)))
+        let phase = core.cyclePhaseLabel(lastPeriodStartIso: a, cycleLength: Int32(cycleLength), periodLength: Int32(periodLength))
+        let next = parseISO(core.nextPeriodIso(lastPeriodStartIso: a, cycleLength: Int32(cycleLength)))
+        return "Day \(day) · \(phase) · next period around \(fmt(next, "MMM d"))"
+    }
+
     /// Finish onboarding: set the chosen cycle length and log the user's ACTUAL selected
     /// last-period date as truth (it's an explicitly logged period → shown solid on the
     /// calendar). Handling an old date is done at read-time by the core, which rolls the
@@ -378,13 +389,14 @@ final class CycleStore {
     /// either way the next window can't be dated until the period actually starts.
     var showsFertileWindow: Bool { tracking == .normal }
 
+    /// Today falls inside the logged period — the cycle is normal and still in its first days.
+    var isInLoggedPeriod: Bool { tracking == .normal && cycleDay <= periodLength }
+
+    /// "Period started 10 Aug" — shown in place of the start button while the period is on.
+    var periodStartedText: String { "Period started \(fmt(lastPeriodStart, "d MMM"))" }
+
     var fertileContext: String {
-        CycleCopy.fertileContext(
-            tracking: tracking,
-            daysLate: daysLate,
-            daysUntilFertileStart: daysBetween(.now, fertileStartDate),
-            daysUntilFertileEnd: daysBetween(.now, fertileEndDate),
-            daysUntilNextPeriod: daysUntilNextPeriod)
+        CycleCopy.fertileContext(tracking: tracking, daysLate: daysLate)
     }
 
     // MARK: - Moon

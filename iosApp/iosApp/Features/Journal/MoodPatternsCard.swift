@@ -13,10 +13,19 @@ import Shared
 struct MoodPatternsCard: View {
     @Environment(CycleStore.self) private var store
 
-    /// A paging TabView needs one fixed height, so all three lenses share it.
+    /// A paging TabView needs one fixed height, so all pages of a lens share it.
     private static let chartHeight: CGFloat = 150
-    /// Tall enough for the phase axis, which carries two rows (phase names + real dates).
-    private static let axisHeight: CGFloat = 38
+
+    /// The axis differs per lens — one row of dates (daily), phase names + dates (phase),
+    /// disc + name + date (moon). Sizing all three to the tallest left the daily page with
+    /// a band of dead space between its dates and whatever came next.
+    private var axisHeight: CGFloat {
+        switch store.moodLens {
+        case .daily: return 14
+        case .phase: return 28
+        case .moon:  return 40
+        }
+    }
 
     var body: some View {
         @Bindable var store = store
@@ -34,7 +43,6 @@ struct MoodPatternsCard: View {
                 emptyState
             } else {
                 pager
-                pageFooter
             }
 
             moodLegend
@@ -74,36 +82,34 @@ struct MoodPatternsCard: View {
                     chart(for: page)
                         .frame(height: Self.chartHeight)
                     axis(for: page)
-                        .frame(height: Self.axisHeight)
+                        .frame(height: axisHeight)
                 }
                 .tag(index)
             }
         }
         .tabViewStyle(.page(indexDisplayMode: .never))
-        .frame(height: Self.chartHeight + Self.axisHeight + 5)
-    }
-
-    /// Just the span this page covers. The chevrons say whether there's more to swipe to.
-    private var pageFooter: some View {
-        let page = currentPage
-        return HStack(spacing: 8) {
-            Spacer(minLength: 0)
-            Text(page?.title ?? "")
-                .font(.caption2).foregroundStyle(Theme.inkSoft)
-            Spacer(minLength: 0)
-        }
+        .frame(height: Self.chartHeight + axisHeight + 5)
+        // The paging affordance lives ON the chart — a row of its own was just a gap. The
+        // chevrons sit in the plot's own edge padding, level with the chart's midline.
         .overlay(alignment: .leading) {
-            if store.moodPageIndex > 0 {
-                Image(systemName: "chevron.left")
-                    .font(.caption2).foregroundStyle(Theme.inkSoft.opacity(0.5))
-            }
+            if store.moodPageIndex > 0 { pagingChevron("chevron.left") }
         }
         .overlay(alignment: .trailing) {
-            if !store.isOnCurrentMoodPage {
-                Image(systemName: "chevron.right")
-                    .font(.caption2).foregroundStyle(Theme.inkSoft.opacity(0.5))
-            }
+            if !store.isOnCurrentMoodPage { pagingChevron("chevron.right") }
         }
+    }
+
+    private func pagingChevron(_ symbol: String) -> some View {
+        Image(systemName: symbol)
+            .font(.footnote.weight(.semibold))
+            .foregroundStyle(Theme.inkSoft)
+            // A small surface chip: the daily line's first dot lands exactly here, and a
+            // bare glyph vanished into the data.
+            .padding(6)
+            .background(Theme.surface.opacity(0.92), in: Circle())
+            .padding(.horizontal, 2)
+            // Centre on the chart, not on chart + axis.
+            .offset(y: -axisHeight / 2)
     }
 
     private var currentPage: CycleStore.MoodPage? {
@@ -152,41 +158,14 @@ struct MoodPatternsCard: View {
     /// A claim only when the page's own data earns one, and only about the span on screen.
     ///
     /// There is deliberately nothing to say otherwise: a running "n logs · averaging mid"
-    /// restated what the chart already showed. The empty-page line stays, because a blank
-    /// chart with no explanation reads as broken rather than as "nothing here".
+    /// restated what the chart already showed, and an empty page stays visually quiet —
+    /// the blank chart is the empty state. Plain text, no emoji prefix.
     @ViewBuilder
     private var narrative: some View {
-        if let page = currentPage {
-            if page.summary.count == 0 {
-                row("🌙", emptyPageText)
-            } else if let insight = page.insight {
-                row("💡", insightSentence(insight))
-            }
-
-            // Required disclaimer — this view invites a causal reading the evidence doesn't
-            // support, so it stays regardless of what else is on screen.
-            if store.moodLens == .moon {
-                Text("Research hasn't found a strong moon–mood link — your own pattern is yours to discover. Educational only.")
-                    .font(.caption2).foregroundStyle(Theme.inkSoft)
-                    .fixedSize(horizontal: false, vertical: true)
-            }
-        }
-    }
-
-    private func row(_ icon: String, _ text: String) -> some View {
-        HStack(alignment: .top, spacing: 10) {
-            Text(icon)
-            Text(text)
+        if let page = currentPage, page.summary.count > 0, let insight = page.insight {
+            Text(insightSentence(insight))
                 .font(.footnote).foregroundStyle(Theme.inkSoft)
                 .fixedSize(horizontal: false, vertical: true)
-        }
-    }
-
-    private var emptyPageText: String {
-        switch store.moodLens {
-        case .daily: return "Nothing logged in these two weeks."
-        case .phase: return "Nothing logged during this cycle."
-        case .moon:  return "Nothing logged during this lunar month."
         }
     }
 

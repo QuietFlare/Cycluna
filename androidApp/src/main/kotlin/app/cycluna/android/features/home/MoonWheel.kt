@@ -41,6 +41,12 @@ fun MoonWheel(
     phaseLabel: String,
     modifier: Modifier = Modifier,
     size: Dp = 260.dp,
+    // The dot's position along the ring, animated by the caller so a date change sweeps the
+    // dot to its new place instead of teleporting it. The "Day N" text deliberately snaps.
+    dayProgress: Float = cycleDay.toFloat(),
+    // The predicted-ovulation marker; off with fertility insights. The ovulatory phase band
+    // stays — that's biology education, not a prediction.
+    showOvulation: Boolean = true,
 ) {
     // Same boundaries as the core's phase model (`Cycle.status`) — the arc under the
     // current-day dot must be the phase the label names, whatever the period length.
@@ -106,11 +112,13 @@ fun MoonWheel(
             }
 
             // Predicted ovulation + period markers.
-            drawMarker((cycleLength / 2).toDouble(), c, r, cycleLength, Theme.phaseOvulatory)
+            if (showOvulation) {
+                drawMarker((cycleLength / 2).toDouble(), c, r, cycleLength, Theme.phaseOvulatory)
+            }
             drawMarker(cycleLength.toDouble(), c, r, cycleLength, Theme.phaseMenstrual)
 
             // Current-day dot, with a soft outer ring.
-            val p = pointOnRing(((cycleDay - 1).toDouble() / len) * 360.0 - 90.0, c, r)
+            val p = pointOnRing(((dayProgress - 1).toDouble() / len) * 360.0 - 90.0, c, r)
             drawCircle(Theme.accent.copy(alpha = 0.5f), 14.dp.toPx(), p, style = Stroke(1.dp.toPx()))
             drawCircle(Theme.background, 10.5.dp.toPx(), p)
             drawCircle(Theme.accent, 9.dp.toPx(), p)

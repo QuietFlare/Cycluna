@@ -19,14 +19,14 @@ final class ReminderPlanTests: XCTestCase {
         periodOn: Bool = false, ovulationOn: Bool = false,
         periodLead: Int = 1, ovulationLead: Int = 0, cycleMinute: Int = 9 * 60,
         mood: Bool = false, headache: Bool = false, checkInMinute: Int = 20 * 60,
-        discreet: Bool = false
+        discreet: Bool = false, fertility: Bool = true
     ) -> ReminderSettings {
         ReminderSettings(
             periodOn: periodOn, ovulationOn: ovulationOn,
             periodLeadDays: periodLead, ovulationLeadDays: ovulationLead,
             cycleMinute: cycleMinute,
             moodCheckIn: mood, headacheCheckIn: headache, checkInMinute: checkInMinute,
-            discreet: discreet)
+            discreet: discreet, fertility: fertility)
     }
 
     private func plan(_ s: ReminderSettings) -> [ReminderManager.Planned] {
@@ -120,6 +120,16 @@ final class ReminderPlanTests: XCTestCase {
                                      calendar: cal)
         // Only the check-in survives — it doesn't depend on the cycle.
         XCTAssertEqual(p.map(\.id), [ReminderManager.checkInID])
+    }
+
+    // MARK: - Fertility insights
+
+    func testFertilityInsightsOffSuppressesTheOvulationReminder() {
+        // The stored ovulation toggle keeps its value; nothing fertility-shaped may fire.
+        let p = plan(settings(periodOn: true, ovulationOn: true, fertility: false))
+        XCTAssertNil(p.first { $0.id == ReminderManager.ovulationID })
+        // The period reminders are untouched.
+        XCTAssertNotNil(p.first { $0.id == ReminderManager.periodID })
     }
 
     // MARK: - Discreet mode

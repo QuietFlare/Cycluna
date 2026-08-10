@@ -133,6 +133,16 @@ class ReminderPlanTest {
     }
 
     @Test
+    fun fertilityInsightsOffSuppressesTheOvulationReminder() {
+        // The stored ovulation toggle keeps its value; nothing fertility-shaped may fire.
+        val s = settings(periodOn = true, ovulationOn = true).copy(fertility = false)
+        val plan = ReminderPlan.plan(period, fertile, s)
+        assertNull(plan.byId(ReminderPlan.OVULATION_ID))
+        // The period reminders are untouched.
+        assertTrue(plan.byId(ReminderPlan.PERIOD_ID) != null)
+    }
+
+    @Test
     fun discreetModeSwapsTheWordingButKeepsScheduleAndIds() {
         val loud = settings(periodOn = true, ovulationOn = true, moodCheckIn = true)
         val plain = ReminderPlan.plan(period, fertile, loud)

@@ -90,7 +90,6 @@ private object Plot {
     }
 }
 
-private val DAY_OF_MONTH = DateTimeFormatter.ofPattern("d", Locale.ENGLISH)
 private val DAY_MONTH = DateTimeFormatter.ofPattern("d MMM", Locale.ENGLISH)
 
 private fun parse(iso: String): LocalDate? = runCatching { LocalDate.parse(iso) }.getOrNull()
@@ -133,19 +132,33 @@ fun DailyMoodChart(page: CycleStore.MoodPage, modifier: Modifier = Modifier) {
 @Composable
 fun DailyMoodAxis(page: CycleStore.MoodPage, modifier: Modifier = Modifier) {
     val start = parse(page.startIso)
-    Row(
+    // The phase axis's tick density — enough to place any dot in the month, so the page
+    // needs no separate caption naming its range. Positioned at each day's own fraction of
+    // the span, the same fraction the chart plots that day at.
+    val span = (page.spanDays - 1).coerceAtLeast(1)
+    val step = (span / (DATE_TICKS - 1)).coerceAtLeast(1)
+    val tickOffsets = (0..span step step).toList()
+
+    BoxWithConstraints(
         modifier
             .fillMaxWidth()
-            .padding(horizontal = Plot.PAD_X)
             .semantics { contentDescription = "${page.title}, ${page.summary.count} logs" },
     ) {
-        (0 until page.spanDays).forEach { offset ->
+        val full = maxWidth
+        val labelWidth = 44.dp
+        tickOffsets.forEach { offset ->
+            val fraction = offset.toFloat() / span
             Text(
-                // Only every other day, or fourteen labels collide.
-                if (offset % 2 == 0) start?.plusDays(offset.toLong())?.format(DAY_OF_MONTH) ?: "" else " ",
-                Modifier.weight(1f),
+                start?.plusDays(offset.toLong())?.format(DAY_MONTH) ?: "",
+                Modifier
+                    .width(labelWidth)
+                    // Clamped so the first and last labels stay inside the chart rather
+                    // than hanging off the edge.
+                    .offset(x = (full * fraction - labelWidth / 2).coerceIn(0.dp, full - labelWidth)),
                 fontSize = 8.sp,
+                lineHeight = 10.sp,
                 color = Theme.inkSoft,
+                maxLines = 1,
                 textAlign = TextAlign.Center,
             )
         }
@@ -299,8 +312,9 @@ fun MoonMoodChart(page: CycleStore.MoodPage, modifier: Modifier = Modifier) {
 @Composable
 fun MoonMoodAxis(page: CycleStore.MoodPage, modifier: Modifier = Modifier) {
     val store = LocalCycleStore.current
+    val start = parse(page.startIso)
     Row(modifier.fillMaxWidth().padding(horizontal = Plot.PAD_X)) {
-        page.moonAverages.forEach { band ->
+        page.moonAverages.forEachIndexed { index, band ->
             val count = band.count
             val spoken = if (count == 0) {
                 "${MoonNames.full(band.bucketKey)}, no logs"
@@ -326,9 +340,22 @@ fun MoonMoodAxis(page: CycleStore.MoodPage, modifier: Modifier = Modifier) {
                     fontSize = 7.5.sp,
                     lineHeight = 9.sp,
                     color = Theme.inkSoft,
-                    maxLines = 2,
+                    maxLines = 1,
                     textAlign = TextAlign.Center,
                 )
+                // Real calendar dates under the principal phases, like the cycle axis —
+                // this is what places the lunation in the month, so the page needs no
+                // separate caption. All eight would collide.
+                if (index % 2 == 0) {
+                    Text(
+                        start?.plusDays((index * page.spanDays / 8).toLong())?.format(DAY_MONTH) ?: "",
+                        fontSize = 8.sp,
+                        lineHeight = 9.sp,
+                        color = Theme.inkSoft.copy(alpha = 0.8f),
+                        maxLines = 1,
+                        textAlign = TextAlign.Center,
+                    )
+                }
             }
         }
     }

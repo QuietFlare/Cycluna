@@ -29,6 +29,7 @@ object SettingsKeys {
     val HEADACHE_CHECK_IN = booleanPreferencesKey("headacheCheckInReminder")
     val CHECK_IN_MINUTE = intPreferencesKey("checkInReminderMinute")
     val DISCREET_REMINDERS = booleanPreferencesKey("discreetReminders")
+    val FERTILITY_INSIGHTS = booleanPreferencesKey("fertilityInsights")
 }
 
 /**
@@ -46,6 +47,14 @@ data class AppSettings(
     val headacheCheckIn: Boolean = false,
     val checkInMinute: Int = 20 * 60,
     val discreet: Boolean = false,
+    /**
+     * Fertile window, ovulation reminders, and fertile calendar days. ON by default; the
+     * off state turns Cycluna into a plain period-and-wellbeing tracker — for anyone (a
+     * teen especially) for whom fertility predictions are unwanted or, given irregular
+     * cycles, simply wrong. Deliberately not an age question: that would mean collecting
+     * exactly the data this app is built to never hold.
+     */
+    val fertility: Boolean = true,
 ) {
     val anyCycleReminder: Boolean get() = periodOn || ovulationOn
     val anyCheckIn: Boolean get() = moodCheckIn || headacheCheckIn
@@ -62,6 +71,7 @@ data class AppSettings(
             headacheCheckIn = prefs[SettingsKeys.HEADACHE_CHECK_IN] ?: false,
             checkInMinute = prefs[SettingsKeys.CHECK_IN_MINUTE] ?: (20 * 60),
             discreet = prefs[SettingsKeys.DISCREET_REMINDERS] ?: false,
+            fertility = prefs[SettingsKeys.FERTILITY_INSIGHTS] ?: true,
         )
     }
 }

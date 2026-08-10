@@ -2,6 +2,8 @@ import SwiftUI
 
 struct HomeView: View {
     @Environment(CycleStore.self) private var store
+    @State private var adjustOpen = false
+    @AppStorage(ReminderSettings.Key.fertility) private var fertilityInsights = true
 
     var body: some View {
         NavigationStack {
@@ -53,16 +55,38 @@ struct HomeView: View {
 
     private var heroCard: some View {
         VStack(spacing: 18) {
-            MoonWheel(cycleDay: store.cycleDay,
-                      cycleLength: store.cycleLength,
-                      periodLength: store.periodLength,
-                      phaseLabel: store.phaseLabel,
-                      size: 260)
+            // The wheel is the way in to fixing the dates it draws: tap it (or the chip,
+            // which is the visible hint that this is possible) to adjust the last period
+            // start in place, and watch the dot sweep to where it belongs.
+            Button {
+                UIImpactFeedbackGenerator(style: .soft).impactOccurred()
+                adjustOpen = true
+            } label: {
+                VStack(spacing: 12) {
+                    MoonWheel(cycleDay: store.cycleDay,
+                              cycleLength: store.cycleLength,
+                              periodLength: store.periodLength,
+                              phaseLabel: store.phaseLabel,
+                              size: 260,
+                              showsOvulation: fertilityInsights)
+                        .animation(.easeInOut(duration: 0.8), value: store.cycleDay)
+
+                    Label("Adjust dates", systemImage: "pencil")
+                        .font(.caption.weight(.medium))
+                        .foregroundStyle(Theme.primary)
+                        .padding(.vertical, 6)
+                        .padding(.horizontal, 12)
+                        .background(Theme.primary.opacity(0.10), in: Capsule())
+                }
+            }
+            .buttonStyle(PressScaleStyle())
+            .accessibilityHint("Opens a calendar to adjust when your last period started")
 
             HStack(spacing: 12) {
                 // Once tracking is unclear the fertile window is guesswork — showing a
-                // confident date range would be the misleading part, so it goes away.
-                if store.showsFertileWindow {
+                // confident date range would be the misleading part, so it goes away. It
+                // also hides with fertility insights switched off.
+                if store.showsFertileWindow && fertilityInsights {
                     infoTile(icon: "heart.fill", tint: Theme.phaseOvulatory,
                              eyebrow: "Fertile window", value: store.fertileWindowText)
                 }
@@ -70,26 +94,55 @@ struct HomeView: View {
                          eyebrow: "Next period", value: store.nextPeriodShort)
             }
 
-            Text(store.fertileContext)
-                .font(.subheadline)
-                .foregroundStyle(store.tracking == .normal ? Theme.inkSoft : Theme.accentText)
-                .multilineTextAlignment(.center)
-
-            Button {
-                store.startPeriod()
-            } label: {
-                HStack(spacing: 8) {
-                    Image(systemName: "drop.fill")
-                    Text("Start period today").fontWeight(.semibold)
-                }
-                .foregroundStyle(.white)
-                .padding(.vertical, 14)
-                .padding(.horizontal, 26)
-                .background(Theme.primary, in: Capsule())
+            // Speaks only when the tiles can't: a late period, or tracking gone unclear.
+            if !store.fertileContext.isEmpty {
+                Text(store.fertileContext)
+                    .font(.subheadline)
+                    .foregroundStyle(Theme.accentText)
+                    .multilineTextAlignment(.center)
             }
-            .accessibilityHint("Logs a new period starting today")
+
+            // While the logged period is on, offering "Start period today" only invites an
+            // accidental second log that corrupts the cycle history — a quiet confirmation
+            // replaces it. The button returns the moment it's needed again, including the
+            // late/unclear states, which is exactly when logging matters most.
+            if store.isInLoggedPeriod {
+                HStack(spacing: 8) {
+                    Image(systemName: "drop.fill").foregroundStyle(Theme.phaseMenstrual)
+                    Text(store.periodStartedText)
+                        .fontWeight(.medium)
+                        .foregroundStyle(Theme.inkSoft)
+                }
+                .padding(.vertical, 14)
+            } else {
+                Button {
+                    store.startPeriod()
+                } label: {
+                    HStack(spacing: 8) {
+                        Image(systemName: "drop.fill")
+                        Text("Start period today").fontWeight(.semibold)
+                    }
+                    .foregroundStyle(.white)
+                    .padding(.vertical, 14)
+                    .padding(.horizontal, 26)
+                    .background(Theme.primary, in: Capsule())
+                }
+                .accessibilityHint("Logs a new period starting today")
+            }
         }
         .cyclunaCard(padding: 24)
+        .sheet(isPresented: $adjustOpen) {
+            PeriodDateSheet(initialDate: store.lastPeriodStart)
+        }
+    }
+
+    /// A soft press-down so the wheel feels touchable the moment a finger lands on it.
+    private struct PressScaleStyle: ButtonStyle {
+        func makeBody(configuration: Configuration) -> some View {
+            configuration.label
+                .scaleEffect(configuration.isPressed ? 0.97 : 1)
+                .animation(.easeOut(duration: 0.15), value: configuration.isPressed)
+        }
     }
 
     private func infoTile(icon: String, tint: Color, eyebrow: String, value: String) -> some View {

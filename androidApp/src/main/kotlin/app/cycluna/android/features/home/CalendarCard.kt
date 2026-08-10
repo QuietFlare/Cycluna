@@ -35,7 +35,10 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import app.cycluna.android.LocalCycleStore
+import app.cycluna.android.LocalSettingsStore
+import app.cycluna.android.core.AppSettings
 import app.cycluna.android.core.MoodScale
 import app.cycluna.android.designsystem.DropGlyph
 import app.cycluna.android.designsystem.HeartGlyph
@@ -61,6 +64,7 @@ private val MONTH_DAY = DateTimeFormatter.ofPattern("MMMM d", Locale.ENGLISH)
 @Composable
 fun CalendarCard() {
     val store = LocalCycleStore.current
+    val settings by LocalSettingsStore.current.settings.collectAsStateWithLifecycle(AppSettings())
     val today = remember { LocalDate.now() }
     var monthAnchor by rememberSaveable { mutableStateOf(today.withDayOfMonth(1).toEpochDay()) }
     var selectedDay by rememberSaveable { mutableStateOf(today.toEpochDay()) }
@@ -127,6 +131,7 @@ fun CalendarCard() {
                                 date = date,
                                 isToday = date == today,
                                 isSelected = date == selected,
+                                fertility = settings.fertility,
                                 onClick = { selectedDay = date.toEpochDay() },
                                 modifier = Modifier.weight(1f),
                             )
@@ -136,8 +141,8 @@ fun CalendarCard() {
             }
         }
 
-        Legend()
-        SelectedPanel(selected)
+        Legend(fertility = settings.fertility)
+        SelectedPanel(selected, fertility = settings.fertility)
     }
 }
 
@@ -157,9 +162,11 @@ private fun styleFor(marker: String): DayStyle = when (marker) {
     else -> DayStyle(Color.Transparent, "", Color.Transparent, "")
 }
 
-/** Friendly note for the selected-day panel, keyed off the same marker. */
+/**
+ * Friendly note for the selected-day panel, keyed off the same marker. A logged period gets
+ * no note — the pink cell with its drop already says it, and the red text read as alarm.
+ */
 private fun dayNote(marker: String): Pair<String, Color>? = when (marker) {
-    "period" -> "Logged period" to Theme.phaseMenstrual
     "predicted-period" -> "Predicted period" to Theme.inkSoft
     "fertile-peak" -> "Peak fertile day" to Theme.accentText
     "fertile-high" -> "High fertility" to Theme.accentText
@@ -167,17 +174,22 @@ private fun dayNote(marker: String): Pair<String, Color>? = when (marker) {
     else -> null
 }
 
+/** Fertile-day markers are withheld entirely when fertility insights are off. */
+private fun visibleMarker(marker: String, fertility: Boolean): String =
+    if (!fertility && marker.startsWith("fertile")) "none" else marker
+
 @Composable
 private fun DayCell(
     date: LocalDate,
     isToday: Boolean,
     isSelected: Boolean,
+    fertility: Boolean,
     onClick: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
     val store = LocalCycleStore.current
     val iso = date.toString()
-    val style = styleFor(store.dayMarker(iso))
+    val style = styleFor(visibleMarker(store.dayMarker(iso), fertility))
     val cycleDay = store.linearCycleDay(iso)
     val shape = RoundedCornerShape(10.dp)
 
@@ -247,7 +259,7 @@ private fun logDotColor(iso: String): Color? {
 }
 
 @Composable
-private fun Legend() {
+private fun Legend(fertility: Boolean) {
     Column(
         verticalArrangement = Arrangement.spacedBy(6.dp),
         horizontalAlignment = Alignment.CenterHorizontally,
@@ -255,11 +267,13 @@ private fun Legend() {
         Row(horizontalArrangement = Arrangement.spacedBy(14.dp), verticalAlignment = Alignment.CenterVertically) {
             LegendDot(Theme.phaseMenstrual.copy(alpha = 0.55f), "Period")
             LegendDot(Theme.phaseMenstrual.copy(alpha = 0.22f), "Predicted")
-            Row(horizontalArrangement = Arrangement.spacedBy(3.dp), verticalAlignment = Alignment.CenterVertically) {
-                listOf(0.3f, 0.5f, 0.75f).forEach {
-                    Box(Modifier.size(9.dp).background(Theme.phaseOvulatory.copy(alpha = it), CircleShape))
+            if (fertility) {
+                Row(horizontalArrangement = Arrangement.spacedBy(3.dp), verticalAlignment = Alignment.CenterVertically) {
+                    listOf(0.3f, 0.5f, 0.75f).forEach {
+                        Box(Modifier.size(9.dp).background(Theme.phaseOvulatory.copy(alpha = it), CircleShape))
+                    }
+                    Text("Fertile", fontSize = 11.sp, color = Theme.inkSoft)
                 }
-                Text("Fertile", fontSize = 11.sp, color = Theme.inkSoft)
             }
         }
         Row(horizontalArrangement = Arrangement.spacedBy(14.dp), verticalAlignment = Alignment.CenterVertically) {
@@ -281,12 +295,11 @@ private fun LegendDot(color: Color, label: String) {
 }
 
 @Composable
-private fun SelectedPanel(selected: LocalDate) {
+private fun SelectedPanel(selected: LocalDate, fertility: Boolean) {
     val store = LocalCycleStore.current
     val iso = selected.toString()
     val phase = store.phaseForDate(iso)
-    val cycleDay = store.linearCycleDay(iso)
-    val note = dayNote(store.dayMarker(iso))
+    val note = dayNote(visibleMarker(store.dayMarker(iso), fertility))
     val mood = store.mood(iso)
     val headacheCount = store.headaches(iso).size
     val noteCount = store.journalEntries(iso).size
@@ -302,15 +315,10 @@ private fun SelectedPanel(selected: LocalDate) {
             letterSpacing = 0.5.sp,
             color = Theme.inkSoft,
         )
-        val summary = buildString {
-            if (cycleDay > 0) {
-                append("Cycle day $cycleDay")
-                if (phase.isNotEmpty()) append(" · ")
-            }
-            if (phase.isNotEmpty()) append("$phase phase")
-        }
-        if (summary.isNotEmpty()) {
-            Text(summary, fontSize = 13.sp, fontWeight = FontWeight.Medium, color = Theme.ink)
+        // The phase alone — the cycle-day number already sits in the day cell itself, and
+        // "Cycle day 1" beside "Menstrual phase" read as a puzzle, not a summary.
+        if (phase.isNotEmpty()) {
+            Text("$phase phase", fontSize = 13.sp, fontWeight = FontWeight.Medium, color = Theme.ink)
         }
         note?.let { (text, color) ->
             Text(text, fontSize = 12.sp, fontWeight = FontWeight.Medium, color = color)

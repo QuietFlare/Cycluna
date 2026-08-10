@@ -160,6 +160,14 @@ fun MeScreen(settings: AppSettings, onAbout: () -> Unit) {
                     color = Theme.inkSoft,
                 )
             }
+            SwitchRow("Fertility insights", settings.fertility) {
+                put(SettingsKeys.FERTILITY_INSIGHTS, it, settings.copy(fertility = it))
+            }
+            Text(
+                "Fertile window, fertile days and ovulation reminders.",
+                fontSize = 12.sp,
+                color = Theme.inkSoft,
+            )
         }
 
         SettingsCard("Cycle reminders") {
@@ -171,15 +179,17 @@ fun MeScreen(settings: AppSettings, onAbout: () -> Unit) {
                     put(SettingsKeys.PERIOD_REMINDER_LEAD, it, settings.copy(periodLead = it))
                 }
             }
-            SwitchRow("Ovulation reminders", settings.ovulationOn) {
-                put(SettingsKeys.OVULATION_REMINDERS, it, settings.copy(ovulationOn = it))
-            }
-            if (settings.ovulationOn) {
-                LeadPicker("Remind me", settings.ovulationLead) {
-                    put(SettingsKeys.OVULATION_REMINDER_LEAD, it, settings.copy(ovulationLead = it))
+            if (settings.fertility) {
+                SwitchRow("Ovulation reminders", settings.ovulationOn) {
+                    put(SettingsKeys.OVULATION_REMINDERS, it, settings.copy(ovulationOn = it))
+                }
+                if (settings.ovulationOn) {
+                    LeadPicker("Remind me", settings.ovulationLead) {
+                        put(SettingsKeys.OVULATION_REMINDER_LEAD, it, settings.copy(ovulationLead = it))
+                    }
                 }
             }
-            if (settings.anyCycleReminder) {
+            if (settings.periodOn || (settings.ovulationOn && settings.fertility)) {
                 SettingRow("Time", onClick = { editingCycleTime = true }) {
                     Text(formatMinute(settings.cycleMinute), fontSize = 15.sp, color = Theme.inkSoft)
                 }

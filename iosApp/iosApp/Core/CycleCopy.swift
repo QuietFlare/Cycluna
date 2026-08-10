@@ -33,15 +33,11 @@ enum CycleCopy {
         }
     }
 
-    /// The sentence under the hero card.
-    ///
-    /// `daysUntilFertileStart` / `daysUntilFertileEnd` are whole days from today — negative
-    /// once the date has passed.
-    static func fertileContext(tracking: TrackingState,
-                               daysLate: Int,
-                               daysUntilFertileStart: Int,
-                               daysUntilFertileEnd: Int,
-                               daysUntilNextPeriod: Int) -> String {
+    /// The sentence under the hero card — only when something needs saying. Empty in normal
+    /// tracking on purpose: everything it used to say there (fertile countdown, days to the
+    /// next period) duplicated the tiles directly above it. Text appears only when the tiles
+    /// can't carry the state: a late period, or tracking gone unclear.
+    static func fertileContext(tracking: TrackingState, daysLate: Int) -> String {
         switch tracking {
         case .late:
             return "Your period is \(lateText(daysLate: daysLate)). Log it when it starts."
@@ -52,20 +48,7 @@ enum CycleCopy {
             // just finished setup.
             return "It's been a while. Log your period when it starts."
         case .normal:
-            // Singular forms match the web app's Home copy exactly.
-            if daysUntilFertileStart > 0 {
-                return daysUntilFertileStart == 1
-                    ? "Your fertile window opens tomorrow."
-                    : "Your fertile window opens in \(daysUntilFertileStart) days."
-            }
-            if daysUntilFertileEnd >= 0 {
-                return "You're in your fertile window."
-            }
-            switch daysUntilNextPeriod {
-            case 0:  return "Your period may start today."
-            case 1:  return "1 day until your next period."
-            default: return "\(daysUntilNextPeriod) days until your next period."
-            }
+            return ""
         }
     }
 }

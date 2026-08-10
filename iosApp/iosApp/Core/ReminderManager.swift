@@ -20,6 +20,13 @@ struct ReminderSettings {
     /// Swap every reminder's visible text for a neutral message (see `ReminderManager`).
     var discreet: Bool
 
+    /// Fertility insights: fertile window, fertile calendar days, ovulation reminders.
+    /// ON by default; off turns Cycluna into a plain period-and-wellbeing tracker — for
+    /// anyone (a teen especially) for whom fertility predictions are unwanted or, given
+    /// irregular cycles, simply wrong. Deliberately not an age question: that would mean
+    /// collecting exactly the data this app is built to never hold.
+    var fertility: Bool
+
     var anyCycleReminder: Bool { periodOn || ovulationOn }
     var anyCheckIn: Bool { moodCheckIn || headacheCheckIn }
 
@@ -33,6 +40,7 @@ struct ReminderSettings {
         static let headacheCheckIn = "headacheCheckInReminder"
         static let checkInMinute = "checkInReminderMinute"
         static let discreet = "discreetReminders"
+        static let fertility = "fertilityInsights"
     }
 
     /// Defaults: period a day ahead so there's time to prepare, ovulation on the day it
@@ -57,7 +65,9 @@ struct ReminderSettings {
             moodCheckIn: d.bool(forKey: Key.moodCheckIn),
             headacheCheckIn: d.bool(forKey: Key.headacheCheckIn),
             checkInMinute: int(Key.checkInMinute, defaultCheckInMinute),
-            discreet: d.bool(forKey: Key.discreet)
+            discreet: d.bool(forKey: Key.discreet),
+            // Defaults to true, so `bool(forKey:)` (which defaults to false) won't do.
+            fertility: (d.object(forKey: Key.fertility) as? Bool) ?? true
         )
     }
 }
@@ -131,7 +141,9 @@ enum ReminderManager {
             }
         }
 
-        if settings.ovulationOn, let fertile = fertileStart,
+        // No ovulation reminder when fertility insights are off — the stored toggle keeps
+        // its value, but nothing fertility-shaped may reach the lock screen.
+        if settings.ovulationOn, settings.fertility, let fertile = fertileStart,
            let fire = calendar.date(byAdding: .day, value: -settings.ovulationLeadDays, to: fertile) {
             out.append(Planned(id: ovulationID,
                                title: ovulationTitle(leadDays: settings.ovulationLeadDays),

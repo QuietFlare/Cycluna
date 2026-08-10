@@ -38,14 +38,26 @@ struct JournalView: View {
                     tiles
                     timelineCard
                     MoodPatternsCard()
+                    // Required disclaimer for the moon lens — that chart invites a causal
+                    // reading the evidence doesn't support. A quiet hint under the card,
+                    // shown exactly while the moon view is on screen.
+                    if store.moodLens == .moon {
+                        Text("Research hasn't found a strong moon–mood link — your own pattern is yours to discover. Educational only.")
+                            .font(.caption2).italic()
+                            .foregroundStyle(Theme.inkSoft)
+                            .frame(maxWidth: .infinity, alignment: .leading)
+                            .padding(.horizontal, 6)
+                            .fixedSize(horizontal: false, vertical: true)
+                    }
                     if let hi = store.headacheInsight { HeadacheInsightCard(insight: hi) }
                 }
                 .padding()
             }
             .background(Theme.background.ignoresSafeArea())
-            // Titled with the day being logged, not the tab's own name again — the tab bar
-            // already says "Journal"; the title answers "which day am I looking at?".
-            .cyclunaTitle(isToday ? "Today" : Self.dayTitle.string(from: selectedDate))
+            // The title is a masthead: always the present day, never the day being browsed —
+            // the timeline card already shows that, and a title that followed it read as the
+            // app's "today" moving. It still beats echoing the tab's own name.
+            .cyclunaTitle(Self.dayTitle.string(from: Date()))
             .sheet(isPresented: $moodOpen) { MoodSheet(dateISO: iso) }
             .sheet(isPresented: $headacheOpen) { HeadacheSheet(dateISO: iso) }
             .sheet(isPresented: $noteOpen) { NoteSheet(dateISO: iso) }

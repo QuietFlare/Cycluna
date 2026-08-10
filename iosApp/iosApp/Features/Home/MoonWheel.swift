@@ -3,12 +3,37 @@ import SwiftUI
 /// Circular cycle ring — SwiftUI port of the web app's MoonWheel SVG.
 /// Phase arcs (active one thicker), predicted ovulation/period markers, the
 /// current-day dot, and a serif "Day N" center.
-struct MoonWheel: View {
+struct MoonWheel: View, Animatable {
     let cycleDay: Int
     let cycleLength: Int
     let periodLength: Int
     let phaseLabel: String            // "Menstrual" / "Follicular" / "Ovulatory" / "Luteal"
     var size: CGFloat = 280
+
+    /// The predicted-ovulation marker; off with fertility insights. The ovulatory phase
+    /// band stays — that's biology education, not a prediction.
+    let showsOvulation: Bool
+
+    /// The dot's position along the ring. Animatable so a date change sweeps the dot to its
+    /// new place instead of teleporting it — the feedback that makes an edit feel understood.
+    /// The "Day N" text deliberately snaps; a number counting through fractions reads as noise.
+    private var dayProgress: Double
+
+    var animatableData: Double {
+        get { dayProgress }
+        set { dayProgress = newValue }
+    }
+
+    init(cycleDay: Int, cycleLength: Int, periodLength: Int, phaseLabel: String,
+         size: CGFloat = 280, showsOvulation: Bool = true) {
+        self.cycleDay = cycleDay
+        self.cycleLength = cycleLength
+        self.periodLength = periodLength
+        self.phaseLabel = phaseLabel
+        self.size = size
+        self.showsOvulation = showsOvulation
+        self.dayProgress = Double(cycleDay)
+    }
 
     // Same boundaries as the core's phase model (`Cycle.status`) — the arc under the
     // current-day dot must be the phase the label names, whatever the period length.
@@ -66,11 +91,13 @@ struct MoonWheel: View {
                 }
 
                 // Predicted ovulation + period markers.
-                marker(ctx, day: Double(cycleLength / 2), center: c, radius: r, color: Theme.phaseOvulatory)
-                marker(ctx, day: Double(cycleLength),     center: c, radius: r, color: Theme.phaseMenstrual)
+                if showsOvulation {
+                    marker(ctx, day: Double(cycleLength / 2), center: c, radius: r, color: Theme.phaseOvulatory)
+                }
+                marker(ctx, day: Double(cycleLength), center: c, radius: r, color: Theme.phaseMenstrual)
 
                 // Current-day dot (accent) with a soft outer ring.
-                let p = point(((Double(cycleDay) - 1) / Double(cycleLength)) * 360 - 90, center: c, radius: r)
+                let p = point(((dayProgress - 1) / Double(cycleLength)) * 360 - 90, center: c, radius: r)
                 ctx.stroke(Path(ellipseIn: CGRect(x: p.x - 14, y: p.y - 14, width: 28, height: 28)),
                            with: .color(Theme.accent.opacity(0.5)), lineWidth: 1)
                 ctx.fill(Path(ellipseIn: CGRect(x: p.x - 10.5, y: p.y - 10.5, width: 21, height: 21)),

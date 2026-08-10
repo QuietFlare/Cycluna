@@ -27,6 +27,7 @@ struct MeView: View {
     @AppStorage(ReminderSettings.Key.headacheCheckIn) private var headacheCheckIn = false
     @AppStorage(ReminderSettings.Key.checkInMinute) private var checkInMinute = ReminderSettings.defaultCheckInMinute
     @AppStorage(ReminderSettings.Key.discreet) private var discreetReminders = false
+    @AppStorage(ReminderSettings.Key.fertility) private var fertilityInsights = true
     @State private var confirmDelete = false
     @State private var aboutOpen = false
     @State private var exportItem: ExportItem?
@@ -52,13 +53,18 @@ struct MeView: View {
                                in: ...Date.now, displayedComponents: .date)
                     Stepper("Cycle length: \(store.cycleLengthSetting) days", value: $store.cycleLengthSetting, in: 21...45)
                     Stepper("Period length: \(store.periodLength) days", value: $store.periodLength, in: 2...10)
+                    Toggle("Fertility insights", isOn: $fertilityInsights)
+                        .onChange(of: fertilityInsights) { _, _ in remindersChanged() }
                 } header: {
                     Text("Cycle")
                 } footer: {
-                    // Shown only when it's surprising: the app is ignoring the stepper above.
-                    // Explaining the normal case every time is just noise.
-                    if store.cycleLength != store.cycleLengthSetting {
-                        Text("Using **\(store.cycleLength) days** from your logged periods.")
+                    VStack(alignment: .leading, spacing: 4) {
+                        Text("Fertile window, fertile days and ovulation reminders.")
+                        // Shown only when it's surprising: the app is ignoring the stepper
+                        // above. Explaining the normal case every time is just noise.
+                        if store.cycleLength != store.cycleLengthSetting {
+                            Text("Using **\(store.cycleLength) days** from your logged periods.")
+                        }
                     }
                 }
 
@@ -73,16 +79,18 @@ struct MeView: View {
                         .onChange(of: periodLead) { _, _ in remindersChanged() }
                     }
 
-                    Toggle("Ovulation reminders", isOn: $ovulationReminders)
-                        .onChange(of: ovulationReminders) { _, _ in remindersChanged() }
-                    if ovulationReminders {
-                        Picker("Remind me", selection: $ovulationLead) {
-                            ForEach(leadOptions, id: \.self) { Text(leadLabel($0)).tag($0) }
+                    if fertilityInsights {
+                        Toggle("Ovulation reminders", isOn: $ovulationReminders)
+                            .onChange(of: ovulationReminders) { _, _ in remindersChanged() }
+                        if ovulationReminders {
+                            Picker("Remind me", selection: $ovulationLead) {
+                                ForEach(leadOptions, id: \.self) { Text(leadLabel($0)).tag($0) }
+                            }
+                            .onChange(of: ovulationLead) { _, _ in remindersChanged() }
                         }
-                        .onChange(of: ovulationLead) { _, _ in remindersChanged() }
                     }
 
-                    if periodReminders || ovulationReminders {
+                    if periodReminders || (ovulationReminders && fertilityInsights) {
                         DatePicker("Time", selection: timeBinding($cycleMinute),
                                    displayedComponents: .hourAndMinute)
                             .onChange(of: cycleMinute) { _, _ in remindersChanged() }

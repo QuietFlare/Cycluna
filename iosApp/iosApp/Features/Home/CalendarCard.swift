@@ -6,8 +6,15 @@ struct CalendarCard: View {
     @Environment(CycleStore.self) private var store
     @State private var monthAnchor = Date()
     @State private var selected = Date()
+    @AppStorage(ReminderSettings.Key.fertility) private var fertilityInsights = true
 
     private let cal = Calendar.current
+
+    /// Fertile-day markers are withheld entirely when fertility insights are off.
+    private func visibleMarker(_ iso: String) -> String {
+        let marker = store.dayMarker(iso)
+        return !fertilityInsights && marker.hasPrefix("fertile") ? "none" : marker
+    }
 
     var body: some View {
         VStack(spacing: 14) {
@@ -89,10 +96,10 @@ struct CalendarCard: View {
         }
     }
 
-    /// Friendly note for the selected-day panel, keyed off the marker.
+    /// Friendly note for the selected-day panel, keyed off the marker. A logged period gets
+    /// no note — the pink cell with its drop already says it, and the red text read as alarm.
     private func dayNote(_ marker: String) -> (text: String, color: Color)? {
         switch marker {
-        case "period":            return ("Logged period", Theme.phaseMenstrual)
         case "predicted-period":  return ("Predicted period", Theme.inkSoft)
         case "fertile-peak":      return ("Peak fertile day", Theme.accentText)
         case "fertile-high":      return ("High fertility", Theme.accentText)
@@ -103,7 +110,7 @@ struct CalendarCard: View {
 
     private func dayCell(_ date: Date) -> some View {
         let iso = fmt(date, "yyyy-MM-dd")
-        let marker = store.dayMarker(iso)
+        let marker = visibleMarker(iso)
         let cycleDay = store.linearCycleDay(iso)
         let style = markerStyle(marker)
         let isSelected = cal.isDate(date, inSameDayAs: selected)
@@ -157,11 +164,13 @@ struct CalendarCard: View {
             HStack(spacing: 14) {
                 legendDot(Theme.phaseMenstrual.opacity(0.55), "Period")
                 legendDot(Theme.phaseMenstrual.opacity(0.22), "Predicted")
-                HStack(spacing: 3) {
-                    Circle().fill(Theme.phaseOvulatory.opacity(0.3)).frame(width: 9, height: 9)
-                    Circle().fill(Theme.phaseOvulatory.opacity(0.5)).frame(width: 9, height: 9)
-                    Circle().fill(Theme.phaseOvulatory.opacity(0.75)).frame(width: 9, height: 9)
-                    Text("Fertile").font(.caption2).foregroundStyle(Theme.inkSoft)
+                if fertilityInsights {
+                    HStack(spacing: 3) {
+                        Circle().fill(Theme.phaseOvulatory.opacity(0.3)).frame(width: 9, height: 9)
+                        Circle().fill(Theme.phaseOvulatory.opacity(0.5)).frame(width: 9, height: 9)
+                        Circle().fill(Theme.phaseOvulatory.opacity(0.75)).frame(width: 9, height: 9)
+                        Text("Fertile").font(.caption2).foregroundStyle(Theme.inkSoft)
+                    }
                 }
             }
             HStack(spacing: 14) {
@@ -185,21 +194,18 @@ struct CalendarCard: View {
     private var selectedPanel: some View {
         let iso = fmt(selected, "yyyy-MM-dd")
         let phase = store.phaseForDate(iso)
-        let cycleDay = store.linearCycleDay(iso)
-        let note = dayNote(store.dayMarker(iso))
+        let note = dayNote(visibleMarker(iso))
         return VStack(spacing: 4) {
             Text(fmt(selected, "EEEE, MMMM d").uppercased())
                 .font(.caption2).tracking(0.5)
                 .foregroundStyle(Theme.inkSoft)
-            HStack(spacing: 6) {
-                if cycleDay > 0 {
-                    Text("Cycle day \(cycleDay)")
-                    if !phase.isEmpty { Text("·").foregroundStyle(Theme.inkSoft) }
-                }
-                if !phase.isEmpty { Text("\(phase) phase") }
+            // The phase alone — the cycle-day number already sits in the day cell itself,
+            // and "Cycle day 1" beside "Menstrual phase" read as a puzzle, not a summary.
+            if !phase.isEmpty {
+                Text("\(phase) phase")
+                    .font(.footnote.weight(.medium))
+                    .foregroundStyle(Theme.ink)
             }
-            .font(.footnote.weight(.medium))
-            .foregroundStyle(Theme.ink)
             if let note {
                 Text(note.text)
                     .font(.caption).fontWeight(.medium)

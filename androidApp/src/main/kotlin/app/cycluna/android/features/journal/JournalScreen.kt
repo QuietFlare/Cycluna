@@ -42,6 +42,7 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import app.cycluna.android.LocalCycleStore
+import app.cycluna.android.core.CycleStore
 import app.cycluna.android.core.HeadacheScale
 import app.cycluna.android.core.MoodScale
 import app.cycluna.android.designsystem.HeartGlyph
@@ -107,6 +108,20 @@ fun JournalScreen(selectedDay: Long, onSelectDay: (Long) -> Unit) {
         )
 
         MoodPatternsCard()
+
+        // Required disclaimer for the moon lens — that chart invites a causal reading the
+        // evidence doesn't support. A quiet hint under the card, shown exactly while the
+        // moon view is on screen.
+        if (store.moodLens == CycleStore.MoodLens.MOON) {
+            Text(
+                "Research hasn't found a strong moon–mood link — your own pattern is yours " +
+                    "to discover. Educational only.",
+                fontSize = 11.sp,
+                fontStyle = FontStyle.Italic,
+                color = Theme.inkSoft,
+                modifier = Modifier.padding(horizontal = 6.dp),
+            )
+        }
 
         store.headacheInsight?.let {
             HeadacheInsightCard(it.phase.label, it.count, it.total)

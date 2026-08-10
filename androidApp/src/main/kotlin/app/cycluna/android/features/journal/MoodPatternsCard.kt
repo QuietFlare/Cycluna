@@ -7,6 +7,7 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.pager.HorizontalPager
@@ -23,6 +24,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontStyle
 import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import app.cycluna.android.LocalCycleStore
@@ -36,8 +38,16 @@ import app.cycluna.core.MoodInsight
 /** A pager needs one fixed height, so all three lenses share it. */
 private val CHART_HEIGHT = 150.dp
 
-/** Tall enough for the phase axis, which carries two rows (phase names + real dates). */
-private val AXIS_HEIGHT = 38.dp
+/**
+ * The axis differs per lens — one row of dates (daily), phase names + dates (phase),
+ * disc + name + date (moon). Sizing all three to the tallest left the daily page with a
+ * band of dead space between its dates and whatever came next.
+ */
+private fun axisHeight(lens: CycleStore.MoodLens): Dp = when (lens) {
+    CycleStore.MoodLens.DAILY -> 16.dp
+    CycleStore.MoodLens.PHASE -> 30.dp
+    CycleStore.MoodLens.MOON -> 42.dp
+}
 
 /**
  * "Mood patterns" — the same logged moods seen through three lenses: by day, by cycle phase,
@@ -112,40 +122,35 @@ fun MoodPatternsCard() {
                 snapshotFlow { pagerState.currentPage }.collect { store.moodPageIndex = it }
             }
 
-            HorizontalPager(
-                state = pagerState,
-                modifier = Modifier.height(CHART_HEIGHT + AXIS_HEIGHT + 5.dp),
-            ) { index ->
-                val page = pages[index]
-                Column(verticalArrangement = Arrangement.spacedBy(5.dp)) {
-                    val chartModifier = Modifier.fillMaxWidth().height(CHART_HEIGHT)
-                    when (store.moodLens) {
-                        CycleStore.MoodLens.DAILY -> DailyMoodChart(page, chartModifier)
-                        CycleStore.MoodLens.PHASE -> PhaseMoodChart(page, store.periodLength, chartModifier)
-                        CycleStore.MoodLens.MOON -> MoonMoodChart(page, chartModifier)
-                    }
-                    val axisModifier = Modifier.fillMaxWidth().height(AXIS_HEIGHT)
-                    when (store.moodLens) {
-                        CycleStore.MoodLens.DAILY -> DailyMoodAxis(page, axisModifier)
-                        CycleStore.MoodLens.PHASE -> PhaseMoodAxis(page, store.periodLength, axisModifier)
-                        CycleStore.MoodLens.MOON -> MoonMoodAxis(page, axisModifier)
+            // The paging affordance lives ON the chart — a row of its own was just a gap.
+            // The chevrons sit in the plot's own edge padding, level with the chart's
+            // midline.
+            Box {
+                HorizontalPager(
+                    state = pagerState,
+                    modifier = Modifier.height(CHART_HEIGHT + axisHeight(store.moodLens) + 5.dp),
+                ) { index ->
+                    val page = pages[index]
+                    Column(verticalArrangement = Arrangement.spacedBy(5.dp)) {
+                        val chartModifier = Modifier.fillMaxWidth().height(CHART_HEIGHT)
+                        when (store.moodLens) {
+                            CycleStore.MoodLens.DAILY -> DailyMoodChart(page, chartModifier)
+                            CycleStore.MoodLens.PHASE -> PhaseMoodChart(page, store.periodLength, chartModifier)
+                            CycleStore.MoodLens.MOON -> MoonMoodChart(page, chartModifier)
+                        }
+                        val axisModifier = Modifier.fillMaxWidth().height(axisHeight(store.moodLens))
+                        when (store.moodLens) {
+                            CycleStore.MoodLens.DAILY -> DailyMoodAxis(page, axisModifier)
+                            CycleStore.MoodLens.PHASE -> PhaseMoodAxis(page, store.periodLength, axisModifier)
+                            CycleStore.MoodLens.MOON -> MoonMoodAxis(page, axisModifier)
+                        }
                     }
                 }
-            }
-
-            // Just the span this page covers. The chevrons say whether there's more to swipe to.
-            Box(Modifier.fillMaxWidth()) {
                 if (pagerState.currentPage > 0) {
-                    Text("‹", Modifier.align(Alignment.CenterStart), fontSize = 14.sp, color = Theme.inkSoft.copy(alpha = 0.5f))
+                    PagingChevron("‹", Modifier.align(Alignment.CenterStart))
                 }
-                Text(
-                    pages.getOrNull(pagerState.currentPage)?.title ?: "",
-                    Modifier.align(Alignment.Center),
-                    fontSize = 11.sp,
-                    color = Theme.inkSoft,
-                )
                 if (pagerState.currentPage < pages.lastIndex) {
-                    Text("›", Modifier.align(Alignment.CenterEnd), fontSize = 14.sp, color = Theme.inkSoft.copy(alpha = 0.5f))
+                    PagingChevron("›", Modifier.align(Alignment.CenterEnd))
                 }
             }
         }
@@ -170,39 +175,34 @@ fun MoodPatternsCard() {
  * A claim only when the page's own data earns one, and only about the span on screen.
  *
  * There is deliberately nothing to say otherwise: a running "n logs · averaging mid" restated
- * what the chart already showed. The empty-page line stays, because a blank chart with no
- * explanation reads as broken rather than as "nothing here".
+ * what the chart already showed, and an empty page stays visually quiet — the blank chart is
+ * the empty state. Plain text, no emoji prefix.
  */
 @Composable
 private fun Narrative(page: CycleStore.MoodPage?) {
     val store = LocalCycleStore.current
-    if (page == null) return
+    if (page == null || page.summary.count == 0) return
 
-    Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
-        if (page.summary.count == 0) {
-            NarrativeRow(
-                "🌙",
-                when (store.moodLens) {
-                    CycleStore.MoodLens.DAILY -> "Nothing logged in these two weeks."
-                    CycleStore.MoodLens.PHASE -> "Nothing logged during this cycle."
-                    CycleStore.MoodLens.MOON -> "Nothing logged during this lunar month."
-                },
-            )
-        } else {
-            page.insight?.let { NarrativeRow("💡", insightSentence(it, store.moodLens)) }
-        }
-
-        // Required disclaimer — this view invites a causal reading the evidence doesn't
-        // support, so it stays regardless of what else is on screen.
-        if (store.moodLens == CycleStore.MoodLens.MOON) {
-            Text(
-                "Research hasn't found a strong moon–mood link — your own pattern is yours " +
-                    "to discover. Educational only.",
-                fontSize = 11.sp,
-                color = Theme.inkSoft,
-            )
-        }
+    page.insight?.let {
+        Text(insightSentence(it, store.moodLens), fontSize = 13.sp, color = Theme.inkSoft)
     }
+}
+
+@Composable
+private fun PagingChevron(glyph: String, modifier: Modifier) {
+    Text(
+        glyph,
+        // Centred on the chart, not on chart + axis: the axis sits below the plot, so the
+        // chevron is nudged up by half its height. On a small surface chip because the
+        // daily line's first dot lands exactly here — a bare glyph vanished into the data.
+        modifier
+            .padding(horizontal = 2.dp)
+            .offset(y = (-14).dp)
+            .background(Theme.surface.copy(alpha = 0.92f), CircleShape)
+            .padding(horizontal = 8.dp, vertical = 1.dp),
+        fontSize = 16.sp,
+        color = Theme.inkSoft,
+    )
 }
 
 private fun insightSentence(insight: MoodInsight, lens: CycleStore.MoodLens): String {
@@ -216,10 +216,3 @@ private fun insightSentence(insight: MoodInsight, lens: CycleStore.MoodLens): St
         "and lower during your ${phaseWord(insight.lowest.label)}."
 }
 
-@Composable
-private fun NarrativeRow(icon: String, text: String) {
-    Row(horizontalArrangement = Arrangement.spacedBy(10.dp), verticalAlignment = Alignment.Top) {
-        Text(icon, fontSize = 14.sp)
-        Text(text, fontSize = 13.sp, color = Theme.inkSoft)
-    }
-}

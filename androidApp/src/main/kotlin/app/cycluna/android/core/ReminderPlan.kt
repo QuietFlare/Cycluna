@@ -88,7 +88,9 @@ object ReminderPlan {
             )
         }
 
-        if (settings.ovulationOn && fertileStart != null) {
+        // No ovulation reminder when fertility insights are off — the stored toggle keeps
+        // its value, but nothing fertility-shaped may reach the lock screen.
+        if (settings.ovulationOn && settings.fertility && fertileStart != null) {
             add(
                 Planned(
                     id = OVULATION_ID,

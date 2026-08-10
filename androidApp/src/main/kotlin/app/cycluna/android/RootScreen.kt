@@ -165,7 +165,9 @@ private fun MainTabs(settings: AppSettings) {
     var selected by rememberSaveable { mutableStateOf(Tab.TODAY) }
     var aboutPage by rememberSaveable { mutableStateOf<AboutPage?>(null) }
 
-    // Hoisted from JournalScreen so the top bar can title itself with the day being logged.
+    // Hoisted from JournalScreen so the browsed day survives a tab switch — inside the
+    // screen it left composition with the tab and snapped back to today, where iOS (whose
+    // TabView keeps every tab alive) kept it.
     var journalDay by rememberSaveable { mutableStateOf(LocalDate.now().toEpochDay()) }
 
     // A tapped notification picks the tab: the daily check-in lands in Journal (that's where
@@ -208,11 +210,11 @@ private fun MainTabs(settings: AppSettings) {
                         }
                         selected == Tab.PHASES ->
                             Text("Your four phases", style = serif(20).copy(color = Theme.ink))
-                        selected == Tab.JOURNAL -> {
-                            val day = LocalDate.ofEpochDay(journalDay)
-                            val title = if (day == LocalDate.now()) "Today" else day.format(DAY_TITLE)
-                            Text(title, style = serif(20).copy(color = Theme.ink))
-                        }
+                        // A masthead: always the present day, never the day being browsed —
+                        // the timeline card already shows that, and a title that followed it
+                        // read as the app's "today" moving.
+                        selected == Tab.JOURNAL ->
+                            Text(LocalDate.now().format(DAY_TITLE), style = serif(20).copy(color = Theme.ink))
                         else -> Text(
                             store.displayName.trim().ifEmpty { "Me" },
                             style = serif(20).copy(color = Theme.ink),

@@ -39,18 +39,12 @@ object CycleCopy {
         }
 
     /**
-     * The sentence under the hero card.
-     *
-     * [daysUntilFertileStart] / [daysUntilFertileEnd] are whole days from today — negative
-     * once the date has passed.
+     * The sentence under the hero card — only when something needs saying. Empty in normal
+     * tracking on purpose: everything it used to say there (fertile countdown, days to the
+     * next period) duplicated the tiles directly above it. Text appears only when the tiles
+     * can't carry the state: a late period, or tracking gone unclear.
      */
-    fun fertileContext(
-        tracking: TrackingState,
-        daysLate: Int,
-        daysUntilFertileStart: Int,
-        daysUntilFertileEnd: Int,
-        daysUntilNextPeriod: Int,
-    ): String = when (tracking) {
+    fun fertileContext(tracking: TrackingState, daysLate: Int): String = when (tracking) {
         TrackingState.LATE ->
             "Your period is ${lateText(daysLate)}. Log it when it starts."
         // Deliberately plain, and true in both situations this state occurs in: a long gap
@@ -59,15 +53,6 @@ object CycleCopy {
         // setup.
         TrackingState.UNCLEAR ->
             "It's been a while. Log your period when it starts."
-        TrackingState.NORMAL -> when {
-            // Singular forms match the web app's Home copy exactly.
-            daysUntilFertileStart > 0 ->
-                if (daysUntilFertileStart == 1) "Your fertile window opens tomorrow."
-                else "Your fertile window opens in $daysUntilFertileStart days."
-            daysUntilFertileEnd >= 0 -> "You're in your fertile window."
-            daysUntilNextPeriod == 0 -> "Your period may start today."
-            daysUntilNextPeriod == 1 -> "1 day until your next period."
-            else -> "$daysUntilNextPeriod days until your next period."
-        }
+        TrackingState.NORMAL -> ""
     }
 }

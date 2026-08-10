@@ -36,6 +36,7 @@
 		B11508CD3EB80271125D3AA3 /* NotificationRouter.swift in Sources */ = {isa = PBXBuildFile; fileRef = 69AEAD2492BD26BB443045CF /* NotificationRouter.swift */; };
 		BE2E8D16F11987509CB5E2EF /* MoodPatternsCard.swift in Sources */ = {isa = PBXBuildFile; fileRef = D9F94C3395012713C454EF47 /* MoodPatternsCard.swift */; };
 		C00A19C4025DBDD8419121CB /* mark@3x.png in Resources */ = {isa = PBXBuildFile; fileRef = 1264EAAACB9E11EE8BF373DD /* mark@3x.png */; };
+		C08419C7CE26D34E7A11FC7D /* PeriodDateSheet.swift in Sources */ = {isa = PBXBuildFile; fileRef = 310C1D6A76E69700426F2D3E /* PeriodDateSheet.swift */; };
 		DDFDC474602B4FE4C55995CD /* PhasesView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6616FEEC09173BCB13239AC9 /* PhasesView.swift */; };
 		E2F9A808E6F7310A695291A7 /* MoonSection.swift in Sources */ = {isa = PBXBuildFile; fileRef = C3A6342845F3A129A536C657 /* MoonSection.swift */; };
 		E669EB6D4CDFED87B82DFCE9 /* MoodLensBridgeTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 89408DFA4D6E9F0E6970E07A /* MoodLensBridgeTests.swift */; };
@@ -71,6 +72,7 @@
 		2925723D1B4AC9FBF45C9F3F /* RootView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RootView.swift; sourceTree = "<group>"; };
 		293C803154C68DC21F70850C /* Theme.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Theme.swift; sourceTree = "<group>"; };
 		2F58225F23A0ECAD68D3F797 /* CalendarCard.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CalendarCard.swift; sourceTree = "<group>"; };
+		310C1D6A76E69700426F2D3E /* PeriodDateSheet.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PeriodDateSheet.swift; sourceTree = "<group>"; };
 		32A1E76CB0E09914E41A3753 /* CycleCopyTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CycleCopyTests.swift; sourceTree = "<group>"; };
 		35C9BD4A028EF537A38FFF0D /* MoonWheel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MoonWheel.swift; sourceTree = "<group>"; };
 		56583BC252B5F01ED9DEA19D /* iosAppTests.xctest */ = {isa = PBXFileReference; includeInIndex = 0; lastKnownFileType = wrapper.cfbundle; path = iosAppTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
@@ -255,6 +257,7 @@
 				C369F82A096088FB7CC058E5 /* MoonDisc.swift */,
 				C3A6342845F3A129A536C657 /* MoonSection.swift */,
 				35C9BD4A028EF537A38FFF0D /* MoonWheel.swift */,
+				310C1D6A76E69700426F2D3E /* PeriodDateSheet.swift */,
 			);
 			path = Home;
 			sourceTree = "<group>";
@@ -403,6 +406,7 @@
 				3CC7B86A9A87D4BD10AAF15C /* MoonWheel.swift in Sources */,
 				B11508CD3EB80271125D3AA3 /* NotificationRouter.swift in Sources */,
 				3D105B6469EFC7FE8F3B8187 /* OnboardingView.swift in Sources */,
+				C08419C7CE26D34E7A11FC7D /* PeriodDateSheet.swift in Sources */,
 				0BBE51BE44A7F51FBB5C3DAC /* PhaseContent.swift in Sources */,
 				DDFDC474602B4FE4C55995CD /* PhasesView.swift in Sources */,
 				771B757953061958DA272057 /* PrivacyPolicyView.swift in Sources */,

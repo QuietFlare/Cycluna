@@ -304,6 +304,19 @@ class CycleStore(context: Context) {
     }
 
     /**
+     * One-line what-if for a candidate anchor date — "Day 5 · Menstrual · next period
+     * around Sep 3" — so the date sheet can show what a choice means before it's saved.
+     * Pure preview: nothing is stored.
+     */
+    fun previewLine(anchor: LocalDate): String {
+        val a = anchor.toString()
+        val day = CyclunaCore.cycleDay(a, cycleLength, periodLength)
+        val phase = CyclunaCore.cyclePhaseLabel(a, cycleLength, periodLength)
+        val next = LocalDate.parse(CyclunaCore.nextPeriodIso(a, cycleLength))
+        return "Day $day · $phase · next period around ${next.format(MONTH_DAY)}"
+    }
+
+    /**
      * Finish onboarding: set the chosen lengths and log the user's ACTUAL selected
      * last-period date as truth (an explicitly logged period → shown solid on the calendar).
      * An old date is handled at read time by the core, which rolls the anchor into the
@@ -429,17 +442,14 @@ class CycleStore(context: Context) {
      */
     val showsFertileWindow: Boolean get() = tracking == TrackingState.NORMAL
 
+    /** Today falls inside the logged period — the cycle is normal and still in its first days. */
+    val isInLoggedPeriod: Boolean get() = tracking == TrackingState.NORMAL && cycleDay <= periodLength
+
+    /** "Period started 10 Aug" — shown in place of the start button while the period is on. */
+    val periodStartedText: String get() = "Period started ${lastPeriodStart.format(DAY_MONTH)}"
+
     val fertileContext: String
-        get() {
-            val today = LocalDate.now()
-            return CycleCopy.fertileContext(
-                tracking = tracking,
-                daysLate = daysLate,
-                daysUntilFertileStart = daysBetween(today, fertileStartDate),
-                daysUntilFertileEnd = daysBetween(today, fertileEndDate),
-                daysUntilNextPeriod = daysUntilNextPeriod,
-            )
-        }
+        get() = CycleCopy.fertileContext(tracking, daysLate)
 
     // ---------------------------------------------------------------------------------
     // Moon

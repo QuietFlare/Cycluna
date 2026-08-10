@@ -87,27 +87,39 @@ struct DailyMoodChart: View {
 struct DailyMoodAxis: View {
     let page: CycleStore.MoodPage
 
+    /// The phase axis's tick density — enough to place any dot in the month, so the page
+    /// needs no separate caption naming its range.
+    private static let dateTicks = 5
+
     var body: some View {
-        HStack(spacing: 0) {
-            ForEach(0..<page.spanDays, id: \.self) { offset in
-                Text(dayLabel(offset))
-                    .font(.system(size: 8))
-                    .foregroundStyle(Theme.inkSoft)
-                    .frame(maxWidth: .infinity)
+        GeometryReader { geo in
+            ZStack(alignment: .topLeading) {
+                ForEach(tickOffsets, id: \.self) { offset in
+                    let span = CGFloat(max(1, page.spanDays - 1))
+                    let x = geo.size.width * CGFloat(offset) / span
+                    Text(dateLabel(offset))
+                        .font(.system(size: 8))
+                        .foregroundStyle(Theme.inkSoft)
+                        .frame(width: 44)
+                        .offset(x: min(max(0, x - 22), geo.size.width - 44))
+                }
             }
         }
-        .padding(.horizontal, Plot.padX)
         .accessibilityElement(children: .ignore)
         .accessibilityLabel("\(page.title), \(Int(page.summary.count)) logs")
     }
 
-    private func dayLabel(_ offset: Int) -> String {
+    private var tickOffsets: [Int] {
+        let span = max(1, page.spanDays - 1)
+        let step = max(1, span / (Self.dateTicks - 1))
+        return Array(stride(from: 0, through: span, by: step))
+    }
+
+    private func dateLabel(_ offset: Int) -> String {
         let f = DateFormatter(); f.dateFormat = "yyyy-MM-dd"
         guard let start = f.date(from: page.startIso),
               let d = Calendar.current.date(byAdding: .day, value: offset, to: start) else { return "" }
-        // Only every other day, or 14 labels collide.
-        guard offset % 2 == 0 else { return " " }
-        let out = DateFormatter(); out.dateFormat = "d"
+        let out = DateFormatter(); out.dateFormat = "d MMM"
         return out.string(from: d)
     }
 }
@@ -262,7 +274,7 @@ struct MoonMoodAxis: View {
 
     var body: some View {
         HStack(spacing: 0) {
-            ForEach(page.moonAverages, id: \.bucketKey) { band in
+            ForEach(Array(page.moonAverages.enumerated()), id: \.element.bucketKey) { index, band in
                 VStack(spacing: 2) {
                     MoonDisc(illumination: store.moonBucketIllumination(band.bucketKey),
                              waxing: store.moonBucketIsWaxing(band.bucketKey),
@@ -271,8 +283,16 @@ struct MoonMoodAxis: View {
                     Text(MoonNames.short(band.bucketKey))
                         .font(.system(size: 7.5))
                         .foregroundStyle(Theme.inkSoft)
-                        .multilineTextAlignment(.center)
-                        .lineLimit(2).minimumScaleFactor(0.7)
+                        .lineLimit(1).minimumScaleFactor(0.6)
+                    // Real calendar dates under the principal phases, like the cycle axis —
+                    // this is what places the lunation in the month, so the page needs no
+                    // separate caption. All eight would collide.
+                    if let date = bucketDate(index) {
+                        Text(date)
+                            .font(.system(size: 8))
+                            .foregroundStyle(Theme.inkSoft.opacity(0.8))
+                            .lineLimit(1).minimumScaleFactor(0.6)
+                    }
                 }
                 .frame(maxWidth: .infinity)
                 .accessibilityElement(children: .ignore)
@@ -280,6 +300,18 @@ struct MoonMoodAxis: View {
             }
         }
         .padding(.horizontal, Plot.padX)
+    }
+
+    /// The day this bucket begins, for every other bucket (new, first quarter, full, last
+    /// quarter). Within one lunation the buckets are date-ordered eighths of its span.
+    private func bucketDate(_ index: Int) -> String? {
+        guard index % 2 == 0 else { return nil }
+        let f = DateFormatter(); f.dateFormat = "yyyy-MM-dd"
+        guard let start = f.date(from: page.startIso),
+              let d = Calendar.current.date(byAdding: .day, value: index * page.spanDays / 8, to: start)
+        else { return nil }
+        let out = DateFormatter(); out.dateFormat = "d MMM"
+        return out.string(from: d)
     }
 
     private func description(_ band: MoonMood) -> String {

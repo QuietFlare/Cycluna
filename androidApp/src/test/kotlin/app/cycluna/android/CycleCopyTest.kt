@@ -66,54 +66,17 @@ class CycleCopyTest {
     // ---- Hero card sentence -----------------------------------------------------------
 
     @Test
-    fun contextCountsDownToTheFertileWindow() {
-        assertEquals(
-            "Your fertile window opens in 4 days.",
-            CycleCopy.fertileContext(TrackingState.NORMAL, 0, 4, 8, 18),
-        )
-    }
-
-    @Test
-    fun contextUsesSingularFormsOnTheLastDay() {
-        // The web app's exact wording — never "in 1 days" / "1 days until".
-        assertEquals(
-            "Your fertile window opens tomorrow.",
-            CycleCopy.fertileContext(TrackingState.NORMAL, 0, 1, 5, 15),
-        )
-        assertEquals(
-            "1 day until your next period.",
-            CycleCopy.fertileContext(TrackingState.NORMAL, 0, -9, -5, 1),
-        )
-    }
-
-    @Test
-    fun contextRecognisesTheWindowIsOpen() {
-        // Start has passed (0 or negative), end has not.
-        assertEquals(
-            "You're in your fertile window.",
-            CycleCopy.fertileContext(TrackingState.NORMAL, 0, 0, 4, 14),
-        )
-        assertEquals(
-            "the final day of the window still counts as inside it",
-            "You're in your fertile window.",
-            CycleCopy.fertileContext(TrackingState.NORMAL, 0, -2, 0, 12),
-        )
-    }
-
-    @Test
-    fun contextFallsBackToTheNextPeriodOnceTheWindowHasPassed() {
-        assertEquals(
-            "6 days until your next period.",
-            CycleCopy.fertileContext(TrackingState.NORMAL, 0, -9, -5, 6),
-        )
+    fun contextIsSilentWhileTrackingIsNormal() {
+        // Everything it used to say in this state duplicated the fertile/next-period tiles
+        // directly above it, so it deliberately says nothing.
+        assertEquals("", CycleCopy.fertileContext(TrackingState.NORMAL, 0))
     }
 
     @Test
     fun contextStatesLatenessPlainly() {
         assertEquals(
-            "lateness must win over any fertile-window sentence",
             "Your period is 3 days late. Log it when it starts.",
-            CycleCopy.fertileContext(TrackingState.LATE, 3, 5, 9, 0),
+            CycleCopy.fertileContext(TrackingState.LATE, 3),
         )
     }
 
@@ -123,7 +86,7 @@ class CycleCopyTest {
         // an old date, where anything alarming reads as the app being broken.
         assertEquals(
             "It's been a while. Log your period when it starts.",
-            CycleCopy.fertileContext(TrackingState.UNCLEAR, 40, 3, 7, 0),
+            CycleCopy.fertileContext(TrackingState.UNCLEAR, 40),
         )
     }
 
