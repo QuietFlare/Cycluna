@@ -58,4 +58,19 @@ extension View {
             .overlay(RoundedRectangle(cornerRadius: radius).stroke(Theme.inkSoft.opacity(0.12)))
             .shadow(color: Theme.primary.opacity(0.10), radius: 16, x: 0, y: 6)
     }
+
+    /// The Cycluna navigation title: centred brand serif in ink, the same treatment the
+    /// Android top bar uses — not the stock system large title, which reads off-brand.
+    func cyclunaTitle(_ title: String) -> some View {
+        navigationBarTitleDisplayMode(.inline)
+            .toolbar {
+                ToolbarItem(placement: .principal) {
+                    Text(title)
+                        .font(.cyclunaSerif(20))
+                        .foregroundStyle(Theme.ink)
+                        .lineLimit(1)
+                        .accessibilityAddTraits(.isHeader)
+                }
+            }
+    }
 }

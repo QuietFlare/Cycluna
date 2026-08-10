@@ -18,8 +18,7 @@ struct PhasesView: View {
             }
             .background(Theme.background.ignoresSafeArea())
             // Large title collapsing to inline — the standard iOS browse-screen behaviour.
-            .navigationTitle("Your four phases")
-            .navigationBarTitleDisplayMode(.large)
+            .cyclunaTitle("Your four phases")
         }
     }
 

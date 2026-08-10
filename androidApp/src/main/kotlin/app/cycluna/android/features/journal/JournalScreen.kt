@@ -32,7 +32,6 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -69,10 +68,9 @@ private const val MILLIS_PER_DAY = 86_400_000L
  */
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun JournalScreen() {
+fun JournalScreen(selectedDay: Long, onSelectDay: (Long) -> Unit) {
     val store = LocalCycleStore.current
     val today = remember { LocalDate.now() }
-    var selectedDay by rememberSaveable { mutableStateOf(today.toEpochDay()) }
     val selected = LocalDate.ofEpochDay(selectedDay)
     val iso = selected.toString()
     val isToday = selected == today
@@ -101,7 +99,7 @@ fun JournalScreen() {
         TimelineCard(
             selected = selected,
             isToday = isToday,
-            onToday = { selectedDay = today.toEpochDay() },
+            onToday = { onSelectDay(today.toEpochDay()) },
             onPickDate = { showDatePicker = true },
             onEditMood = { moodOpen = true },
             onEditHeadache = { editingHeadache = it },
@@ -137,7 +135,7 @@ fun JournalScreen() {
             confirmButton = {
                 TextButton(onClick = {
                     state.selectedDateMillis?.let {
-                        selectedDay = Instant.ofEpochMilli(it).atZone(ZoneOffset.UTC).toLocalDate().toEpochDay()
+                        onSelectDay(Instant.ofEpochMilli(it).atZone(ZoneOffset.UTC).toLocalDate().toEpochDay())
                     }
                     showDatePicker = false
                 }) { Text("Done", color = Theme.primary) }

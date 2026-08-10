@@ -208,7 +208,7 @@ fun MeScreen(settings: AppSettings, onAbout: () -> Unit) {
                 put(SettingsKeys.DISCREET_REMINDERS, it, settings.copy(discreet = it))
             }
             Text(
-                "Reminders keep their schedule but show a neutral message instead of cycle details.",
+                "Reminders arrive as usual, without cycle details.",
                 fontSize = 12.sp,
                 color = Theme.inkSoft,
             )

@@ -23,6 +23,14 @@ struct JournalView: View {
     private var iso: String { store.isoDay(selectedDate) }
     private var isToday: Bool { cal.isDateInToday(selectedDate) }
 
+    /// Fixed English pattern by decision (no localisation), e.g. "Sun 9 Aug".
+    private static let dayTitle: DateFormatter = {
+        let f = DateFormatter()
+        f.locale = Locale(identifier: "en_US")
+        f.dateFormat = "EEE d MMM"
+        return f
+    }()
+
     var body: some View {
         NavigationStack {
             ScrollView {
@@ -35,8 +43,9 @@ struct JournalView: View {
                 .padding()
             }
             .background(Theme.background.ignoresSafeArea())
-            .navigationTitle("Your journal")
-            .navigationBarTitleDisplayMode(.large)
+            // Titled with the day being logged, not the tab's own name again — the tab bar
+            // already says "Journal"; the title answers "which day am I looking at?".
+            .cyclunaTitle(isToday ? "Today" : Self.dayTitle.string(from: selectedDate))
             .sheet(isPresented: $moodOpen) { MoodSheet(dateISO: iso) }
             .sheet(isPresented: $headacheOpen) { HeadacheSheet(dateISO: iso) }
             .sheet(isPresented: $noteOpen) { NoteSheet(dateISO: iso) }

@@ -37,6 +37,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.fragment.app.FragmentActivity
 import androidx.lifecycle.Lifecycle
@@ -58,6 +59,9 @@ import app.cycluna.android.features.settings.AboutPage
 import app.cycluna.android.features.settings.AboutScreen
 import app.cycluna.android.features.settings.LockScreen
 import app.cycluna.android.features.settings.MeScreen
+import java.time.LocalDate
+import java.time.format.DateTimeFormatter
+import java.util.Locale
 
 /**
  * The four tabs. Flat, with no cross-tab navigation and no route graph — the iOS app has none
@@ -148,13 +152,21 @@ fun RootScreen() {
     }
 }
 
+/** Fixed English pattern by decision (no localisation), e.g. "Sun 9 Aug". */
+private val DAY_TITLE = DateTimeFormatter.ofPattern("EEE d MMM", Locale.ENGLISH)
+
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 private fun MainTabs(settings: AppSettings) {
+    val store = LocalCycleStore.current
+
     // rememberSaveable so the selected tab survives a configuration change (rotation, a
     // font-scale change) rather than snapping back to Today.
     var selected by rememberSaveable { mutableStateOf(Tab.TODAY) }
     var aboutPage by rememberSaveable { mutableStateOf<AboutPage?>(null) }
+
+    // Hoisted from JournalScreen so the top bar can title itself with the day being logged.
+    var journalDay by rememberSaveable { mutableStateOf(LocalDate.now().toEpochDay()) }
 
     // A tapped notification picks the tab: the daily check-in lands in Journal (that's where
     // mood and headaches are logged), the cycle reminders on Today, where the predictions live.
@@ -180,6 +192,8 @@ private fun MainTabs(settings: AppSettings) {
         topBar = {
             CenterAlignedTopAppBar(
                 title = {
+                    // Titles add information rather than echoing the tab bar: the concept on
+                    // Phases, the day being logged on Journal, the user's own name on Me.
                     when {
                         aboutPage != null -> Text("About", style = serif(20).copy(color = Theme.ink))
                         selected == Tab.TODAY -> Row(
@@ -192,7 +206,19 @@ private fun MainTabs(settings: AppSettings) {
                             )
                             Text("Cycluna", style = serif(17).copy(color = Theme.ink))
                         }
-                        else -> Text(selected.label, style = serif(20).copy(color = Theme.ink))
+                        selected == Tab.PHASES ->
+                            Text("Your four phases", style = serif(20).copy(color = Theme.ink))
+                        selected == Tab.JOURNAL -> {
+                            val day = LocalDate.ofEpochDay(journalDay)
+                            val title = if (day == LocalDate.now()) "Today" else day.format(DAY_TITLE)
+                            Text(title, style = serif(20).copy(color = Theme.ink))
+                        }
+                        else -> Text(
+                            store.displayName.trim().ifEmpty { "Me" },
+                            style = serif(20).copy(color = Theme.ink),
+                            maxLines = 1,
+                            overflow = TextOverflow.Ellipsis,
+                        )
                     }
                 },
                 navigationIcon = {
@@ -237,7 +263,10 @@ private fun MainTabs(settings: AppSettings) {
                 when (selected) {
                     Tab.TODAY -> HomeScreen()
                     Tab.PHASES -> PhasesScreen()
-                    Tab.JOURNAL -> JournalScreen()
+                    Tab.JOURNAL -> JournalScreen(
+                        selectedDay = journalDay,
+                        onSelectDay = { journalDay = it },
+                    )
                     Tab.ME -> MeScreen(settings) { aboutPage = AboutPage.ROOT }
                 }
             }

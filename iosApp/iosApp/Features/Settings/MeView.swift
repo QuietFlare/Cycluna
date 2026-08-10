@@ -114,7 +114,7 @@ struct MeView: View {
                 } header: {
                     Text("Privacy")
                 } footer: {
-                    Text("Reminders keep their schedule but show a neutral message instead of cycle details.")
+                    Text("Reminders arrive as usual, without cycle details.")
                 }
 
                 // Required by App Store Guideline 5.1.1(v) + GDPR/CCPA. All on-device.
@@ -141,7 +141,9 @@ struct MeView: View {
             }
             .scrollContentBackground(.hidden)
             .background(Theme.background.ignoresSafeArea())
-            .navigationTitle("Me")
+            // The user's own name where it exists — the tab bar already says "Me", and the
+            // name field sits right below, so echoing "Me" up here said nothing twice.
+            .cyclunaTitle(displayTitle)
             .confirmationDialog(
                 "Delete all your data? This erases everything on this device and cannot be undone.",
                 isPresented: $confirmDelete, titleVisibility: .visible
@@ -160,6 +162,11 @@ struct MeView: View {
     }
 
     // MARK: - Reminders
+
+    private var displayTitle: String {
+        let name = store.displayName.trimmingCharacters(in: .whitespaces)
+        return name.isEmpty ? "Me" : name
+    }
 
     /// Marketing version only — the full "1.0 (3)" lives on the About screen.
     private var shortVersion: String {
