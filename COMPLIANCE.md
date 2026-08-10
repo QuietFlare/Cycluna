@@ -60,6 +60,69 @@ you a medical device** (FDA SaMD, EU MDR Rule 11, UK MHRA). Get a regulatory rev
 - ➖ **AI** — none in v1 (no cloud LLM; keeps health data on-device). If added later, keep it
       educational, on-device, and never diagnostic.
 
+## Google Play review (Android)
+
+**Draft answers, for you to confirm in Play Console — not legal advice.** Every "no" below is
+a consequence of the architecture, not a claim of convenience: the app ships with **no
+`INTERNET` permission**, so it is structurally incapable of transmitting anything. If that
+permission is ever added, every answer in this section has to be revisited.
+
+### Data safety form
+Play defines "collected" as **transmitted off the device**. Data that stays on the phone is
+not collected, so the whole form collapses to a short set of answers.
+
+| Question | Answer | Why |
+|---|---|---|
+| Does your app collect or share any of the required user data types? | **No** | No `INTERNET` permission; no analytics, ads, or crash-reporting SDKs of any kind |
+| Is all user data encrypted in transit? | **N/A** | Nothing is ever in transit |
+| Do you provide a way to request data deletion? | **Yes** — in-app | Me › "Delete all my data" erases the store and cancels reminders |
+| Data types collected | **None** | — |
+| Data types shared | **None** | Export is user-initiated and goes to a destination the user picks |
+
+- ⬜ **Data safety form** — submit as above.
+- ⬜ **Privacy policy URL** — `https://quietflare.net/cycluna/privacy` (must be live at review).
+- ✅ **In-app deletion + export** — both present, on-device.
+- ✅ **No ads, no analytics, no third-party SDKs** — dependency list is AndroidX + Compose only.
+- ✅ **Backup opt-out** — `allowBackup=false` + `data_extraction_rules.xml` refuse both cloud
+      backup and device-to-device transfer, so cycle data cannot reach Google's servers that way.
+- ✅ **Permissions in the MERGED release manifest** — verified, not assumed (libraries can inject
+      permissions the source manifest never asks for):
+      `POST_NOTIFICATIONS`, `RECEIVE_BOOT_COMPLETED`, `USE_BIOMETRIC`,
+      plus two that arrive via manifest merger and are worth recognising before Play does:
+      `USE_FINGERPRINT` (androidx.biometric, for the pre-API-28 fingerprint path) and
+      `DYNAMIC_RECEIVER_NOT_EXPORTED_PERMISSION` (a signature-level self-permission AndroidX
+      adds for safe `registerReceiver` on 33+; it grants nothing to anyone else).
+      **No `INTERNET`.** Re-check with:
+      `grep uses-permission androidApp/build/intermediates/merged_manifest/release/*/AndroidManifest.xml`
+
+### Health / sensitive data
+Menstrual data is **sensitive personal data** under Play's User Data policy. The policy's
+prominent-disclosure and consent requirements attach to *transmission*, which does not occur.
+- ➖ **Health Connect** — not used, not requested. No `android.permission.health.*`.
+- ✅ **No sensitive data leaves the device** — see above.
+- ⬜ **Health apps declaration** (App content → Health) — declare a wellness/tracking app that
+      makes no diagnostic claims. The in-app Health Disclaimer is the supporting evidence.
+- ✅ **No medical claims** — predictions are described as estimates from user-entered dates;
+      the fertile window is explicitly not contraception.
+
+### Other App content declarations
+- ⬜ **Content rating (IARC questionnaire)** — answer honestly; the app discusses menstruation,
+      fertility and sex in a health context. Expect a low rating, but do not guess — the
+      questionnaire is binding.
+- ⬜ **Target audience** — 18+ / not designed for children. The policy states the app is not
+      directed to under-13s; keep the two consistent.
+- ➖ **Ads** — none. ➖ **News app** — no. ➖ **Financial features** — none.
+- ⬜ **Store listing copy + screenshots** — deliberately not drafted here; user-visible product
+      copy is the author's call, not something to be generated.
+
+### Release mechanics
+- ✅ **R8 + resource shrinking** enabled; kotlinx.serialization keep rules verified by round-
+      tripping a real store file through a release build (a stripped serializer fails silently).
+- ⬜ **Upload key** — generate with `keytool`; store `keystore.properties` outside git (already
+      in `.gitignore`, and this repo is PUBLIC). Play App Signing re-signs for delivery, so the
+      upload key is recoverable if lost; a self-managed signing key is not.
+- ⬜ **Upload an `.aab`** (`:androidApp:bundleRelease`), not an APK.
+
 ## Deferred to the sync milestone (when a backend is added)
 Only relevant once data leaves the device. Full plan: `../cycluna-backend/docs/native-migration-plan.md`.
 - Accounts + Sign in with Apple, `DELETE /account`, `GET /account/export`

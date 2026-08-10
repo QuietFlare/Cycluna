@@ -15,3 +15,4 @@ dependencyResolutionManagement {
 
 rootProject.name = "cycluna"
 include(":shared")
+include(":androidApp")

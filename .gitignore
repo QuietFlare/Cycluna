@@ -15,3 +15,14 @@ DerivedData/
 .env
 .env.*
 !.env.example
+
+# IDE
+.idea/
+*.iml
+
+# Android release signing — NEVER commit these (public repo).
+# Bare name so it is ignored wherever it is put, not just the one expected path.
+keystore.properties
+androidApp/keystore/
+*.jks
+*.keystore

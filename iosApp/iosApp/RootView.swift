@@ -5,6 +5,8 @@ struct RootView: View {
     @Environment(\.scenePhase) private var scenePhase
     @AppStorage("appLockEnabled") private var lockEnabled = false
     @State private var lock = AppLock()
+    @State private var tab: RootTab = .today
+    private var router = NotificationRouter.shared
 
     private var locked: Bool { lockEnabled && !lock.isUnlocked }
 
@@ -46,6 +48,14 @@ struct RootView: View {
         // Logging a period moves the anchor, which moves every predicted date. Without this
         // the stale follow-up ("Did your period start?") would still fire tomorrow.
         .onChange(of: store.periodStarts.count) { _, _ in refreshReminders() }
+        // A tapped notification picks the tab. `initial: true` covers the cold start, where
+        // the tap is delivered before this view first renders.
+        .onChange(of: router.pendingTab, initial: true) { _, pending in
+            if let pending {
+                tab = pending
+                router.pendingTab = nil
+            }
+        }
     }
 
     /// Keep the local reminders aligned with the latest predictions.
@@ -63,15 +73,19 @@ struct RootView: View {
     }
 
     private var mainTabs: some View {
-        TabView {
+        TabView(selection: $tab) {
             HomeView()
                 .tabItem { Label("Today", systemImage: "moon.stars.fill") }
+                .tag(RootTab.today)
             PhasesView()
                 .tabItem { Label("Phases", systemImage: "chart.xyaxis.line") }
+                .tag(RootTab.phases)
             JournalView()
                 .tabItem { Label("Journal", systemImage: "book.closed.fill") }
+                .tag(RootTab.journal)
             MeView()
                 .tabItem { Label("Me", systemImage: "person.crop.circle.fill") }
+                .tag(RootTab.me)
         }
         .tint(Theme.primary)
     }

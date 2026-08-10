@@ -1,0 +1,5 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Only the tokens the platform needs before Compose starts. The palette lives in Theme.kt. -->
+<resources>
+    <color name="background">#FAF3EC</color>
+</resources>

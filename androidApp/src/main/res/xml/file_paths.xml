@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  Only the exports directory is shareable. The live cycle-store.json is deliberately absent:
+  nothing should be able to ask for it by URI.
+-->
+<paths>
+    <cache-path name="exports" path="exports/" />
+</paths>
