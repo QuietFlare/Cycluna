@@ -5,7 +5,7 @@ import SwiftUI
 /// current cycle/period length. "Reset all" returns to onboarding.
 struct CyclesCard: View {
     @Environment(CycleStore.self) private var store
-    @State private var confirmReset = false
+    @AppStorage(ReminderSettings.Key.fertility) private var fertilityInsights = true
     private let cal = Calendar.current
 
     private struct PastRow: Identifiable { let id = UUID(); let date: Date; let label: String }
@@ -51,12 +51,9 @@ struct CyclesCard: View {
         let predRows = predicted
 
         VStack(alignment: .leading, spacing: 12) {
-            HStack {
-                Text("Your cycles").font(.cyclunaSerif(22)).foregroundStyle(Theme.ink)
-                Spacer()
-                Button("Reset all") { confirmReset = true }
-                    .font(.subheadline).tint(Theme.inkSoft)
-            }
+            // No "Reset all" here: a destructive everything-eraser on the home screen was
+            // one mis-tap from disaster, and Me → "Delete all my data" already owns that job.
+            Text("Cycle overview").font(.cyclunaSerif(22)).foregroundStyle(Theme.ink)
 
             if !pastRows.isEmpty {
                 sectionLabel("PAST CYCLES")
@@ -78,7 +75,11 @@ struct CyclesCard: View {
                     .fixedSize(horizontal: false, vertical: true)
             } else {
                 ForEach(Array(predRows.enumerated()), id: \.element.id) { i, row in
-                    cycleRow(date: row.date, subtitle: "Fertile window \(row.fertile)", drop: true)
+                    // The fertile-window subtitle is a fertility prediction — gated with
+                    // the same switch as every other one.
+                    cycleRow(date: row.date,
+                             subtitle: fertilityInsights ? "Fertile window \(row.fertile)" : "",
+                             drop: true)
                     if i < predRows.count - 1 { rowDivider }
                 }
             }
@@ -90,18 +91,15 @@ struct CyclesCard: View {
             .padding(.top, 6)
         }
         .cyclunaCard(padding: 18)
-        .confirmationDialog("Reset all cycle data? This erases everything and returns to setup.",
-                            isPresented: $confirmReset, titleVisibility: .visible) {
-            Button("Reset everything", role: .destructive) { store.deleteAllData() }
-            Button("Cancel", role: .cancel) {}
-        }
     }
 
     private func cycleRow(date: Date, subtitle: String, drop: Bool) -> some View {
         HStack {
             VStack(alignment: .leading, spacing: 2) {
                 Text(fmt(date, "MMM d, yyyy")).font(.headline).foregroundStyle(Theme.ink)
-                Text(subtitle).font(.subheadline).foregroundStyle(Theme.inkSoft)
+                if !subtitle.isEmpty {
+                    Text(subtitle).font(.subheadline).foregroundStyle(Theme.inkSoft)
+                }
             }
             Spacer()
             if drop { Image(systemName: "drop").foregroundStyle(Theme.phaseMenstrual) }

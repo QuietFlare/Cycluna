@@ -213,7 +213,7 @@ private fun TrustStep(onNext: () -> Unit) {
             FeatureRow(
                 { Icon(Icons.Filled.DateRange, null, tint = Theme.accentText) },
                 "Gentle predictions",
-                "Fertile window and next period, refined as you log — never alarmist.",
+                "Fertile window and next period, refined as you log, never alarmist.",
             )
         }
 
@@ -322,7 +322,7 @@ private fun LastPeriodStep(
                 // buttons to the end, which left these four reading as a ragged right edge.
                 Column {
                     Text(
-                        "We'll set an approximate date — you can fine-tune it anytime in Me.",
+                        "We'll set an approximate date. You can fine-tune it anytime in Me.",
                         fontSize = 14.sp,
                         color = Theme.inkSoft,
                     )
@@ -378,7 +378,7 @@ private fun RhythmStep(
             modifier = Modifier.padding(top = 6.dp),
         )
         Text(
-            "Two quick details — change them\nanytime in Me.",
+            "Two quick details. Change them\nanytime in Me.",
             fontSize = 15.sp,
             color = Theme.inkSoft,
             textAlign = TextAlign.Center,
@@ -394,7 +394,7 @@ private fun RhythmStep(
         ProgressDots(current = 3)
         PrimaryButton("Start my journey", onFinish, Modifier.padding(top = 16.dp))
         Text(
-            "Wellness & education — not medical advice",
+            "Wellness & education, not medical advice",
             fontSize = 13.sp,
             color = Theme.inkSoft,
             modifier = Modifier.padding(top = 12.dp),

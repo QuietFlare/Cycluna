@@ -335,17 +335,10 @@ fun MoonMoodAxis(page: CycleStore.MoodPage, modifier: Modifier = Modifier) {
                     waxing = store.moonBucketIsWaxing(band.bucketKey),
                     modifier = Modifier.size(14.dp),
                 )
-                Text(
-                    MoonNames.short(band.bucketKey),
-                    fontSize = 7.5.sp,
-                    lineHeight = 9.sp,
-                    color = Theme.inkSoft,
-                    maxLines = 1,
-                    textAlign = TextAlign.Center,
-                )
-                // Real calendar dates under the principal phases, like the cycle axis —
-                // this is what places the lunation in the month, so the page needs no
-                // separate caption. All eight would collide.
+                // Dates only, under the principal phases — the discs already picture the
+                // stages, so naming them was noise, and the dates are what place the
+                // lunation in the month (so the page needs no caption). TalkBack still
+                // names every bucket in full.
                 if (index % 2 == 0) {
                     Text(
                         start?.plusDays((index * page.spanDays / 8).toLong())?.format(DAY_MONTH) ?: "",
@@ -374,14 +367,4 @@ object MoonNames {
         else -> "Waning crescent"
     }
 
-    fun short(key: String): String = when (key) {
-        "new" -> "New"
-        "waxing-crescent" -> "Wax\ncres"
-        "first-quarter" -> "First\nqtr"
-        "waxing-gibbous" -> "Wax\ngib"
-        "full" -> "Full"
-        "waning-gibbous" -> "Wan\ngib"
-        "last-quarter" -> "Last\nqtr"
-        else -> "Wan\ncres"
-    }
 }

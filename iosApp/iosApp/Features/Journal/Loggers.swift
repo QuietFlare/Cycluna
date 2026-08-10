@@ -212,7 +212,7 @@ struct HeadacheInsightCard: View {
             Image(systemName: "bolt.heart.fill").foregroundStyle(Theme.secondary)
             VStack(alignment: .leading, spacing: 4) {
                 Text("Headaches & your cycle").font(.cyclunaSerif(19)).foregroundStyle(Theme.ink)
-                Text("Your headaches tend to cluster in your \(phaseWord(insight.phase)) — a common hormonal pattern (\(Int(insight.count)) of \(Int(insight.total)) so far).")
+                Text("Your headaches tend to cluster in your \(phaseWord(insight.phase)), a common hormonal pattern (\(Int(insight.count)) of \(Int(insight.total)) so far).")
                     .font(.footnote).foregroundStyle(Theme.inkSoft)
                     .fixedSize(horizontal: false, vertical: true)
             }

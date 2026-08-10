@@ -173,13 +173,8 @@ struct CalendarCard: View {
                     }
                 }
             }
-            HStack(spacing: 14) {
-                HStack(spacing: 4) {
-                    Text("14").font(.system(size: 9)).foregroundStyle(Theme.inkSoft)
-                    Text("Cycle day").font(.caption2).foregroundStyle(Theme.inkSoft)
-                }
-                legendDot(Theme.primary, "Logged")
-            }
+            // No key for the cycle-day numbers or the logged dot — "14 Cycle day" read as a
+            // puzzle, and tapping a day already explains itself in the panel below.
         }
         .padding(.top, 2)
     }
@@ -222,10 +217,10 @@ struct CalendarCard: View {
                         loggedChip(text: "\(MoodScale.emoji(Int(mood.mood))) \(MoodScale.label(Int(mood.mood)))")
                     }
                     if headacheCount > 0 {
-                        loggedChip(text: "🤕 \(headacheCount) headache\(headacheCount == 1 ? "" : "s")")
+                        loggedChip(text: "\(headacheCount) headache\(headacheCount == 1 ? "" : "s")")
                     }
                     if noteCount > 0 {
-                        loggedChip(text: "📝 \(noteCount) note\(noteCount == 1 ? "" : "s")")
+                        loggedChip(text: "\(noteCount) note\(noteCount == 1 ? "" : "s")")
                     }
                 }
                 .padding(.top, 2)

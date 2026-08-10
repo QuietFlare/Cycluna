@@ -114,7 +114,7 @@ fun JournalScreen(selectedDay: Long, onSelectDay: (Long) -> Unit) {
         // moon view is on screen.
         if (store.moodLens == CycleStore.MoodLens.MOON) {
             Text(
-                "Research hasn't found a strong moon–mood link — your own pattern is yours " +
+                "Research hasn't found a strong moon-mood link. Your own pattern is yours " +
                     "to discover. Educational only.",
                 fontSize = 11.sp,
                 fontStyle = FontStyle.Italic,
@@ -221,7 +221,7 @@ private fun TimelineCard(
 
         if (empty) {
             Text(
-                if (isToday) "Nothing logged today — tap a tile above to start."
+                if (isToday) "Nothing logged today. Tap a tile above to start."
                 else "Nothing logged on this day.",
                 Modifier.fillMaxWidth().padding(vertical = 10.dp),
                 fontSize = 15.sp,
@@ -230,31 +230,38 @@ private fun TimelineCard(
                 textAlign = TextAlign.Center,
             )
         } else {
+            // Row icons reuse the logging tiles' own vocabulary (heart, pencil); only the
+            // mood row keeps an emoji, because that face IS the logged value.
             mood?.let {
                 EntryRow(
-                    emoji = MoodScale.emoji(it.mood),
                     title = "Mood · ${MoodScale.label(it.mood)}",
                     note = it.note,
                     onClick = onEditMood,
-                )
+                ) { Text(MoodScale.emoji(it.mood), fontSize = 20.sp) }
             }
             headaches.forEach { h ->
                 EntryRow(
-                    emoji = "🤕",
                     title = headacheTitle(h),
                     note = headacheDetail(h),
                     onClick = { onEditHeadache(h) },
-                )
+                ) { HeartGlyph(Theme.accentText, 20.dp) }
             }
             notes.forEach { n ->
-                EntryRow(emoji = "📝", title = "Note", note = n.text, onClick = { onEditNote(n) })
+                EntryRow(title = "Note", note = n.text, onClick = { onEditNote(n) }) {
+                    Icon(Icons.Filled.Edit, null, tint = Theme.primary, modifier = Modifier.size(20.dp))
+                }
             }
         }
     }
 }
 
 @Composable
-private fun EntryRow(emoji: String, title: String, note: String, onClick: () -> Unit) {
+private fun EntryRow(
+    title: String,
+    note: String,
+    onClick: () -> Unit,
+    icon: @Composable () -> Unit,
+) {
     Row(
         Modifier
             .fillMaxWidth()
@@ -263,7 +270,7 @@ private fun EntryRow(emoji: String, title: String, note: String, onClick: () -> 
         horizontalArrangement = Arrangement.spacedBy(12.dp),
         verticalAlignment = Alignment.Top,
     ) {
-        Text(emoji, fontSize = 22.sp)
+        Box(Modifier.size(24.dp), contentAlignment = Alignment.Center) { icon() }
         Column(verticalArrangement = Arrangement.spacedBy(2.dp)) {
             Text(title, fontSize = 14.sp, fontWeight = FontWeight.Medium, color = Theme.ink)
             if (note.isNotEmpty()) {

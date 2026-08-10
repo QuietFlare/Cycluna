@@ -7,22 +7,20 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Text
-import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import app.cycluna.android.LocalCycleStore
+import app.cycluna.android.LocalSettingsStore
+import app.cycluna.android.core.AppSettings
 import app.cycluna.android.core.TrackingState
 import app.cycluna.android.designsystem.DropGlyph
 import app.cycluna.android.designsystem.Theme
@@ -50,7 +48,7 @@ private const val ROWS_PER_SECTION = 3
 @Composable
 fun CyclesCard() {
     val store = LocalCycleStore.current
-    var confirmReset by remember { mutableStateOf(false) }
+    val settings by LocalSettingsStore.current.settings.collectAsStateWithLifecycle(AppSettings())
 
     val starts = store.periodStarts.sortedDescending()
     // Map first, THEN truncate: each row's length is measured against the start that
@@ -79,12 +77,9 @@ fun CyclesCard() {
         Modifier.cyclunaCard(padding = 18.dp),
         verticalArrangement = Arrangement.spacedBy(12.dp),
     ) {
-        Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
-            Text("Your cycles", Modifier.weight(1f), style = serif(22).copy(color = Theme.ink))
-            TextButton(onClick = { confirmReset = true }) {
-                Text("Reset all", fontSize = 14.sp, color = Theme.inkSoft)
-            }
-        }
+        // No "Reset all" here: a destructive everything-eraser on the home screen was one
+        // mis-tap from disaster, and Me → "Delete all my data" already owns that job.
+        Text("Cycle overview", style = serif(22).copy(color = Theme.ink))
 
         if (past.isNotEmpty()) {
             SectionLabel("PAST CYCLES")
@@ -109,7 +104,9 @@ fun CyclesCard() {
             )
         } else {
             predicted.forEachIndexed { i, (date, fertile) ->
-                CycleRow(date, "Fertile window $fertile", drop = true)
+                // The fertile-window subtitle is a fertility prediction — gated with the
+                // same switch as every other one.
+                CycleRow(date, if (settings.fertility) "Fertile window $fertile" else "", drop = true)
                 if (i < predicted.size - 1) RowDivider()
             }
         }
@@ -123,31 +120,6 @@ fun CyclesCard() {
         }
     }
 
-    if (confirmReset) {
-        AlertDialog(
-            onDismissRequest = { confirmReset = false },
-            containerColor = Theme.surface,
-            title = { Text("Reset all cycle data?", style = serif(20).copy(color = Theme.ink)) },
-            text = {
-                Text(
-                    "This erases everything and returns to setup.",
-                    fontSize = 14.sp,
-                    color = Theme.inkSoft,
-                )
-            },
-            confirmButton = {
-                TextButton(onClick = {
-                    confirmReset = false
-                    store.deleteAllData()
-                }) { Text("Reset everything", color = Theme.phaseMenstrual) }
-            },
-            dismissButton = {
-                TextButton(onClick = { confirmReset = false }) {
-                    Text("Cancel", color = Theme.inkSoft)
-                }
-            },
-        )
-    }
 }
 
 @Composable
@@ -163,7 +135,9 @@ private fun CycleRow(date: LocalDate, subtitle: String, drop: Boolean) {
                 fontWeight = FontWeight.SemiBold,
                 color = Theme.ink,
             )
-            Text(subtitle, fontSize = 14.sp, color = Theme.inkSoft)
+            if (subtitle.isNotEmpty()) {
+                Text(subtitle, fontSize = 14.sp, color = Theme.inkSoft)
+            }
         }
         if (drop) DropGlyph(Theme.phaseMenstrual, 16.dp, filled = false)
     }

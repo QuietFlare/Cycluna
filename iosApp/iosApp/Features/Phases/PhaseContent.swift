@@ -6,7 +6,6 @@ import SwiftUI
 struct PhaseContent: Identifiable {
     let id = UUID()
     let key: String        // matches the core's phase label: "Menstrual", "Follicular", …
-    let emoji: String
     /// SF Symbol mirroring the emoji — for spots where an emoji would be too loud.
     let icon: String
     let eyebrow: String
@@ -14,10 +13,10 @@ struct PhaseContent: Identifiable {
     let color: Color
 
     static let all: [PhaseContent] = [
-        .init(key: "Menstrual",  emoji: "🔴", icon: "drop.fill",    eyebrow: "Rest & restore",  blurb: "Hormones at their lowest — rest, restore, reflect.",     color: Theme.phaseMenstrual),
-        .init(key: "Follicular", emoji: "🌱", icon: "leaf.fill",    eyebrow: "Rising energy",   blurb: "Oestrogen rising — you're entering your power week.",     color: Theme.phaseFollicular),
-        .init(key: "Ovulatory",  emoji: "✨", icon: "sun.max.fill", eyebrow: "Peak & magnetic", blurb: "Peak oestrogen, LH surging — you're magnetic right now.", color: Theme.phaseOvulatory),
-        .init(key: "Luteal",     emoji: "🌙", icon: "moon.fill",    eyebrow: "Slow & tend",     blurb: "Progesterone leading — slow down and tend to yourself.",   color: Theme.phaseLuteal),
+        .init(key: "Menstrual",  icon: "drop.fill",    eyebrow: "Rest & restore",  blurb: "Hormones at their lowest. Rest, restore, reflect.",     color: Theme.phaseMenstrual),
+        .init(key: "Follicular", icon: "leaf.fill",    eyebrow: "Rising energy",   blurb: "Oestrogen rising. You're entering your power week.",     color: Theme.phaseFollicular),
+        .init(key: "Ovulatory",  icon: "sun.max.fill", eyebrow: "Peak & magnetic", blurb: "Peak oestrogen, LH surging. You're magnetic right now.", color: Theme.phaseOvulatory),
+        .init(key: "Luteal",     icon: "moon.fill",    eyebrow: "Slow & tend",     blurb: "Progesterone leading. Slow down and tend to yourself.",   color: Theme.phaseLuteal),
     ]
 
     static func content(for phase: String) -> PhaseContent? {
@@ -38,11 +37,6 @@ struct PhaseContent: Identifiable {
         case "Ovulatory":  return (folEnd + 1)...ovEnd
         default:           return (ovEnd + 1)...cycleLength   // Luteal
         }
-    }
-
-    func rangeText(cycleLength: Int, periodLength: Int) -> String {
-        let r = dayRange(cycleLength: cycleLength, periodLength: periodLength)
-        return r.lowerBound == r.upperBound ? "D\(r.lowerBound)" : "D\(r.lowerBound)–\(r.upperBound)"
     }
 
     /// The phase's real calendar dates for the current cycle (compact: "Aug 25–28",

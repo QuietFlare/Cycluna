@@ -52,7 +52,11 @@ struct PhasesView: View {
         let isNow = p.key == store.phaseLabel
         return VStack(alignment: .leading, spacing: 10) {
             HStack(alignment: .top, spacing: 10) {
-                Text(p.emoji).font(.system(size: 30))
+                // The phase's own symbol in its own colour — the emoji here read as
+                // decoration, and drop/leaf/sun/moon are already the app's vocabulary.
+                Image(systemName: p.icon)
+                    .font(.system(size: 26))
+                    .foregroundStyle(p.color)
                 Text(p.eyebrow.uppercased())
                     .font(.caption2).tracking(1.2)
                     .foregroundStyle(p.color)
@@ -64,15 +68,12 @@ struct PhasesView: View {
                         .background(p.color, in: Capsule())
                 }
                 Spacer()
-                VStack(alignment: .trailing, spacing: 2) {
-                    Text(p.dateRangeText(cycleLength: store.cycleLength, periodLength: store.periodLength,
-                                         cycleStart: cycleStart(for: p)))
-                        .font(.subheadline.weight(.semibold))
-                        .foregroundStyle(Theme.ink)
-                    Text(p.rangeText(cycleLength: store.cycleLength, periodLength: store.periodLength))
-                        .font(.caption2).monospacedDigit()
-                        .foregroundStyle(Theme.inkSoft)
-                }
+                // Real dates only — the "D17–28" cycle-day shorthand under them read as
+                // jargon, and the hormone chart above already maps days to phases.
+                Text(p.dateRangeText(cycleLength: store.cycleLength, periodLength: store.periodLength,
+                                     cycleStart: cycleStart(for: p)))
+                    .font(.subheadline.weight(.semibold))
+                    .foregroundStyle(Theme.ink)
             }
             Text(p.key)
                 .font(.cyclunaSerif(30))

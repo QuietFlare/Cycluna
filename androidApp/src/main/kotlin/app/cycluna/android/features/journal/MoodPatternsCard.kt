@@ -1,6 +1,7 @@
 package app.cycluna.android.features.journal
 
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -19,6 +20,8 @@ import androidx.compose.material3.SingleChoiceSegmentedButtonRow
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.key
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.snapshotFlow
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -34,6 +37,7 @@ import app.cycluna.android.designsystem.Theme
 import app.cycluna.android.designsystem.cyclunaCard
 import app.cycluna.android.designsystem.serif
 import app.cycluna.core.MoodInsight
+import kotlinx.coroutines.launch
 
 /** A pager needs one fixed height, so all three lenses share it. */
 private val CHART_HEIGHT = 150.dp
@@ -93,6 +97,9 @@ fun MoodPatternsCard() {
                         activeContentColor = Theme.primary,
                         inactiveContentColor = Theme.inkSoft,
                     ),
+                    // No checkmark on the active segment — the fill already says "selected",
+                    // and iOS's segmented control shows none either.
+                    icon = {},
                 ) {
                     Text(lens.name.lowercase().replaceFirstChar { it.uppercase() })
                 }
@@ -108,13 +115,17 @@ fun MoodPatternsCard() {
                 textAlign = TextAlign.Center,
             )
         } else {
+            // key(): each lens gets a FRESH pager state. A shared one carried its page index
+            // across lens switches, so Phase could open claiming "previous pages exist" with
+            // an index inherited from Daily's twelve pages while it had only a few of its own.
+            key(store.moodLens) {
             val pagerState = rememberPagerState(
                 initialPage = store.moodPageIndex.coerceIn(0, pages.lastIndex),
                 pageCount = { pages.size },
             )
 
-            // The store decides which page is "the present" whenever the data or the lens
-            // changes; the pager follows it rather than holding a stale index.
+            // The store decides which page is "the present" whenever the data changes; the
+            // pager follows it rather than holding a stale index.
             LaunchedEffect(pages) {
                 pagerState.scrollToPage(store.moodPageIndex.coerceIn(0, pages.lastIndex))
             }
@@ -122,9 +133,8 @@ fun MoodPatternsCard() {
                 snapshotFlow { pagerState.currentPage }.collect { store.moodPageIndex = it }
             }
 
-            // The paging affordance lives ON the chart — a row of its own was just a gap.
-            // The chevrons sit in the plot's own edge padding, level with the chart's
-            // midline.
+            // The paging affordance lives ON the chart, in the plot's own edge padding,
+            // level with the chart's midline. A row of its own was just a gap.
             Box {
                 HorizontalPager(
                     state = pagerState,
@@ -146,12 +156,21 @@ fun MoodPatternsCard() {
                         }
                     }
                 }
-                if (pagerState.currentPage > 0) {
-                    PagingChevron("‹", Modifier.align(Alignment.CenterStart))
+                // Real buttons, not decoration: a chevron that ignored taps read as broken,
+                // even though swiping also pages.
+                val scope = rememberCoroutineScope()
+                val current = pagerState.currentPage.coerceIn(0, pages.lastIndex)
+                if (current > 0) {
+                    PagingChevron("‹", Modifier.align(Alignment.CenterStart)) {
+                        scope.launch { pagerState.animateScrollToPage(current - 1) }
+                    }
                 }
-                if (pagerState.currentPage < pages.lastIndex) {
-                    PagingChevron("›", Modifier.align(Alignment.CenterEnd))
+                if (current < pages.lastIndex) {
+                    PagingChevron("›", Modifier.align(Alignment.CenterEnd)) {
+                        scope.launch { pagerState.animateScrollToPage(current + 1) }
+                    }
                 }
+            }
             }
         }
 
@@ -189,7 +208,7 @@ private fun Narrative(page: CycleStore.MoodPage?) {
 }
 
 @Composable
-private fun PagingChevron(glyph: String, modifier: Modifier) {
+private fun PagingChevron(glyph: String, modifier: Modifier, onClick: () -> Unit) {
     Text(
         glyph,
         // Centred on the chart, not on chart + axis: the axis sits below the plot, so the
@@ -199,7 +218,8 @@ private fun PagingChevron(glyph: String, modifier: Modifier) {
             .padding(horizontal = 2.dp)
             .offset(y = (-14).dp)
             .background(Theme.surface.copy(alpha = 0.92f), CircleShape)
-            .padding(horizontal = 8.dp, vertical = 1.dp),
+            .clickable(onClick = onClick)
+            .padding(horizontal = 10.dp, vertical = 3.dp),
         fontSize = 16.sp,
         color = Theme.inkSoft,
     )

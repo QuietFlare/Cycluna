@@ -23,26 +23,25 @@ import java.util.Locale
  */
 enum class PhaseContent(
     val key: String,        // matches the core's phase label: "Menstrual", "Follicular", …
-    val emoji: String,
     val eyebrow: String,
     val blurb: String,
     val color: Color,
 ) {
     MENSTRUAL(
-        "Menstrual", "🔴", "Rest & restore",
-        "Hormones at their lowest — rest, restore, reflect.", Theme.phaseMenstrual,
+        "Menstrual", "Rest & restore",
+        "Hormones at their lowest. Rest, restore, reflect.", Theme.phaseMenstrual,
     ),
     FOLLICULAR(
-        "Follicular", "🌱", "Rising energy",
-        "Oestrogen rising — you're entering your power week.", Theme.phaseFollicular,
+        "Follicular", "Rising energy",
+        "Oestrogen rising. You're entering your power week.", Theme.phaseFollicular,
     ),
     OVULATORY(
-        "Ovulatory", "✨", "Peak & magnetic",
-        "Peak oestrogen, LH surging — you're magnetic right now.", Theme.phaseOvulatory,
+        "Ovulatory", "Peak & magnetic",
+        "Peak oestrogen, LH surging. You're magnetic right now.", Theme.phaseOvulatory,
     ),
     LUTEAL(
-        "Luteal", "🌙", "Slow & tend",
-        "Progesterone leading — slow down and tend to yourself.", Theme.phaseLuteal,
+        "Luteal", "Slow & tend",
+        "Progesterone leading. Slow down and tend to yourself.", Theme.phaseLuteal,
     );
 
     /** 1-based day range for this phase, given the user's own cycle + period length. */
@@ -55,11 +54,6 @@ enum class PhaseContent(
             OVULATORY -> (folEnd + 1)..ovEnd
             LUTEAL -> (ovEnd + 1)..cycleLength
         }
-    }
-
-    fun rangeText(cycleLength: Int, periodLength: Int): String {
-        val r = dayRange(cycleLength, periodLength)
-        return if (r.first == r.last) "D${r.first}" else "D${r.first}–${r.last}"
     }
 
     /**

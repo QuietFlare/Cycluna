@@ -276,13 +276,8 @@ private fun Legend(fertility: Boolean) {
                 }
             }
         }
-        Row(horizontalArrangement = Arrangement.spacedBy(14.dp), verticalAlignment = Alignment.CenterVertically) {
-            Row(horizontalArrangement = Arrangement.spacedBy(4.dp), verticalAlignment = Alignment.CenterVertically) {
-                Text("14", fontSize = 9.sp, color = Theme.inkSoft)
-                Text("Cycle day", fontSize = 11.sp, color = Theme.inkSoft)
-            }
-            LegendDot(Theme.primary, "Logged")
-        }
+        // No key for the cycle-day numbers or the logged dot — "14 Cycle day" read as a
+        // puzzle, and tapping a day already explains itself in the panel below.
     }
 }
 
@@ -331,10 +326,10 @@ private fun SelectedPanel(selected: LocalDate, fertility: Boolean) {
             ) {
                 mood?.let { LoggedChip("${MoodScale.emoji(it.mood)} ${MoodScale.label(it.mood)}") }
                 if (headacheCount > 0) {
-                    LoggedChip("🤕 $headacheCount headache${if (headacheCount == 1) "" else "s"}")
+                    LoggedChip("$headacheCount headache${if (headacheCount == 1) "" else "s"}")
                 }
                 if (noteCount > 0) {
-                    LoggedChip("📝 $noteCount note${if (noteCount == 1) "" else "s"}")
+                    LoggedChip("$noteCount note${if (noteCount == 1) "" else "s"}")
                 }
             }
         }

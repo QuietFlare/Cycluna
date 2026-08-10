@@ -149,7 +149,7 @@ struct OnboardingView: View {
                            "See your cycle and the lunar phase side by side, day by day.")
                 Divider().overlay(Theme.inkSoft.opacity(0.18))
                 featureRow("calendar.badge.clock", "Gentle predictions",
-                           "Fertile window and next period, refined as you log — never alarmist.")
+                           "Fertile window and next period, refined as you log, never alarmist.")
             }
             .padding(.top, 22)
 
@@ -222,7 +222,7 @@ struct OnboardingView: View {
                 Button("Over a month ago") { estimate(daysAgo: 42) }
                 Button("Cancel", role: .cancel) {}
             } message: {
-                Text("We'll set an approximate date — you can fine-tune it anytime in Me.")
+                Text("We'll set an approximate date. You can fine-tune it anytime in Me.")
             }
         }
     }
@@ -240,7 +240,7 @@ struct OnboardingView: View {
                 .multilineTextAlignment(.center)
                 .foregroundStyle(Theme.ink)
                 .padding(.top, 6)
-            Text("Two quick details — change them\nanytime in Me.")
+            Text("Two quick details. Change them\nanytime in Me.")
                 .font(.subheadline)
                 .multilineTextAlignment(.center)
                 .foregroundStyle(Theme.inkSoft)
@@ -255,7 +255,7 @@ struct OnboardingView: View {
             ProgressDots(current: 3)
             OnboardingButton("Start my journey") { finish() }
                 .padding(.top, 16)
-            Text("Wellness & education — not medical advice")
+            Text("Wellness & education, not medical advice")
                 .font(.footnote)
                 .foregroundStyle(Theme.inkSoft)
                 .padding(.top, 12)

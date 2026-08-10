@@ -92,24 +92,32 @@ struct MoodPatternsCard: View {
         // The paging affordance lives ON the chart — a row of its own was just a gap. The
         // chevrons sit in the plot's own edge padding, level with the chart's midline.
         .overlay(alignment: .leading) {
-            if store.moodPageIndex > 0 { pagingChevron("chevron.left") }
+            if store.moodPageIndex > 0 { pagingChevron("chevron.left", step: -1) }
         }
         .overlay(alignment: .trailing) {
-            if !store.isOnCurrentMoodPage { pagingChevron("chevron.right") }
+            if !store.isOnCurrentMoodPage { pagingChevron("chevron.right", step: 1) }
         }
     }
 
-    private func pagingChevron(_ symbol: String) -> some View {
-        Image(systemName: symbol)
-            .font(.footnote.weight(.semibold))
-            .foregroundStyle(Theme.inkSoft)
-            // A small surface chip: the daily line's first dot lands exactly here, and a
-            // bare glyph vanished into the data.
-            .padding(6)
-            .background(Theme.surface.opacity(0.92), in: Circle())
-            .padding(.horizontal, 2)
-            // Centre on the chart, not on chart + axis.
-            .offset(y: -axisHeight / 2)
+    /// A real button, not decoration — a chevron that ignored taps read as broken, even
+    /// though swiping also pages.
+    private func pagingChevron(_ symbol: String, step: Int) -> some View {
+        Button {
+            withAnimation {
+                store.moodPageIndex = max(0, min(store.moodPages.count - 1, store.moodPageIndex + step))
+            }
+        } label: {
+            Image(systemName: symbol)
+                .font(.footnote.weight(.semibold))
+                .foregroundStyle(Theme.inkSoft)
+                // A small surface chip: the daily line's first dot lands exactly here, and
+                // a bare glyph vanished into the data.
+                .padding(6)
+                .background(Theme.surface.opacity(0.92), in: Circle())
+        }
+        .padding(.horizontal, 2)
+        // Centre on the chart, not on chart + axis.
+        .offset(y: -axisHeight / 2)
     }
 
     private var currentPage: CycleStore.MoodPage? {

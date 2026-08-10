@@ -42,7 +42,7 @@ struct JournalView: View {
                     // reading the evidence doesn't support. A quiet hint under the card,
                     // shown exactly while the moon view is on screen.
                     if store.moodLens == .moon {
-                        Text("Research hasn't found a strong moon–mood link — your own pattern is yours to discover. Educational only.")
+                        Text("Research hasn't found a strong moon-mood link. Your own pattern is yours to discover. Educational only.")
                             .font(.caption2).italic()
                             .foregroundStyle(Theme.inkSoft)
                             .frame(maxWidth: .infinity, alignment: .leading)
@@ -110,7 +110,7 @@ struct JournalView: View {
             }
 
             if empty {
-                Text(isToday ? "Nothing logged today — tap a tile above to start."
+                Text(isToday ? "Nothing logged today. Tap a tile above to start."
                              : "Nothing logged on this day.")
                     .font(.callout).italic().foregroundStyle(Theme.inkSoft)
                     .frame(maxWidth: .infinity).padding(.vertical, 10)

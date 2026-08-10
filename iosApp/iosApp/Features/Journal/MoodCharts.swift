@@ -280,13 +280,10 @@ struct MoonMoodAxis: View {
                              waxing: store.moonBucketIsWaxing(band.bucketKey),
                              glow: false)
                         .frame(width: 14, height: 14)
-                    Text(MoonNames.short(band.bucketKey))
-                        .font(.system(size: 7.5))
-                        .foregroundStyle(Theme.inkSoft)
-                        .lineLimit(1).minimumScaleFactor(0.6)
-                    // Real calendar dates under the principal phases, like the cycle axis —
-                    // this is what places the lunation in the month, so the page needs no
-                    // separate caption. All eight would collide.
+                    // Dates only, under the principal phases — the discs already picture
+                    // the stages, so naming them was noise, and the dates are what place
+                    // the lunation in the month (so the page needs no caption). VoiceOver
+                    // still names every bucket in full.
                     if let date = bucketDate(index) {
                         Text(date)
                             .font(.system(size: 8))
@@ -337,16 +334,4 @@ enum MoonNames {
         }
     }
 
-    static func short(_ key: String) -> String {
-        switch key {
-        case "new":             return "New"
-        case "waxing-crescent": return "Wax\ncres"
-        case "first-quarter":   return "First\nqtr"
-        case "waxing-gibbous":  return "Wax\ngib"
-        case "full":            return "Full"
-        case "waning-gibbous":  return "Wan\ngib"
-        case "last-quarter":    return "Last\nqtr"
-        default:                return "Wan\ncres"
-        }
-    }
 }

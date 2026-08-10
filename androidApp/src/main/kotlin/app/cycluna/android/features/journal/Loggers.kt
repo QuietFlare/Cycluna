@@ -448,7 +448,7 @@ fun HeadacheInsightCard(phaseLabel: String, count: Int, total: Int) {
         Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
             Text("Headaches & your cycle", style = serif(19).copy(color = Theme.ink))
             Text(
-                "Your headaches tend to cluster in your ${phaseWord(phaseLabel)} — " +
+                "Your headaches tend to cluster in your ${phaseWord(phaseLabel)}, " +
                     "a common hormonal pattern ($count of $total so far).",
                 fontSize = 13.sp,
                 color = Theme.inkSoft,

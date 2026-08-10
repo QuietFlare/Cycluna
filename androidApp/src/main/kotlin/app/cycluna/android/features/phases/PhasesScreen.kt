@@ -71,7 +71,9 @@ private fun PhaseCard(phase: PhaseContent) {
         verticalArrangement = Arrangement.spacedBy(10.dp),
     ) {
         Row(verticalAlignment = Alignment.Top) {
-            Text(phase.emoji, fontSize = 30.sp)
+            // The phase's own drawn glyph in its own colour — the emoji here read as
+            // decoration, and the drop/leaf/sun/crescent are already the app's vocabulary.
+            PhaseIcon(phase, 28.dp)
             Text(
                 phase.eyebrow.uppercase(),
                 Modifier.padding(start = 10.dp, top = 4.dp),
@@ -91,24 +93,16 @@ private fun PhaseCard(phase: PhaseContent) {
                     color = Color.White,
                 )
             }
-            Column(
+            // Real dates only — the "D17–28" cycle-day shorthand under them read as
+            // jargon, and the hormone chart above already maps days to phases.
+            Text(
+                phase.dateRangeText(store.cycleLength, store.periodLength, cycleStartFor(phase)),
                 Modifier.weight(1f),
-                horizontalAlignment = Alignment.End,
-                verticalArrangement = Arrangement.spacedBy(2.dp),
-            ) {
-                Text(
-                    phase.dateRangeText(store.cycleLength, store.periodLength, cycleStartFor(phase)),
-                    fontSize = 14.sp,
-                    fontWeight = FontWeight.SemiBold,
-                    color = Theme.ink,
-                    textAlign = TextAlign.End,
-                )
-                Text(
-                    phase.rangeText(store.cycleLength, store.periodLength),
-                    fontSize = 11.sp,
-                    color = Theme.inkSoft,
-                )
-            }
+                fontSize = 14.sp,
+                fontWeight = FontWeight.SemiBold,
+                color = Theme.ink,
+                textAlign = TextAlign.End,
+            )
         }
         Text(phase.key, style = serif(30).copy(color = phase.color))
         Text(phase.blurb, fontSize = 15.sp, color = Theme.ink.copy(alpha = 0.85f))
