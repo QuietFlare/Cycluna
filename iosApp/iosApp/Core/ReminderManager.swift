@@ -17,6 +17,9 @@ struct ReminderSettings {
     var headacheCheckIn: Bool
     var checkInMinute: Int
 
+    /// Swap every reminder's visible text for a neutral message (see `ReminderManager`).
+    var discreet: Bool
+
     var anyCycleReminder: Bool { periodOn || ovulationOn }
     var anyCheckIn: Bool { moodCheckIn || headacheCheckIn }
 
@@ -29,6 +32,7 @@ struct ReminderSettings {
         static let moodCheckIn = "moodCheckInReminder"
         static let headacheCheckIn = "headacheCheckInReminder"
         static let checkInMinute = "checkInReminderMinute"
+        static let discreet = "discreetReminders"
     }
 
     /// Defaults: period a day ahead so there's time to prepare, ovulation on the day it
@@ -52,7 +56,8 @@ struct ReminderSettings {
             cycleMinute: int(Key.cycleMinute, defaultCycleMinute),
             moodCheckIn: d.bool(forKey: Key.moodCheckIn),
             headacheCheckIn: d.bool(forKey: Key.headacheCheckIn),
-            checkInMinute: int(Key.checkInMinute, defaultCheckInMinute)
+            checkInMinute: int(Key.checkInMinute, defaultCheckInMinute),
+            discreet: d.bool(forKey: Key.discreet)
         )
     }
 }
@@ -73,6 +78,15 @@ enum ReminderManager {
 
     /// Days after the predicted start to ask whether the period arrived.
     static let followUpDelayDays = 1
+
+    /// Where a tapped notification lands: the daily check-in opens Journal, where mood and
+    /// headaches are logged; the cycle reminders stay on Today, where the predictions live.
+    static func opensJournal(id: String) -> Bool { id == checkInID }
+
+    /// What every reminder says in discreet mode: the schedule and tap routing are unchanged,
+    /// but nothing about cycles, moods or headaches is visible on the lock screen.
+    static let discreetTitle = "Cycluna"
+    static let discreetBody = "A gentle check-in when you have a moment."
 
     /// Ask for permission (call when the user enables a reminder). Returns whether granted.
     @discardableResult
@@ -103,7 +117,7 @@ enum ReminderManager {
             if let fire = calendar.date(byAdding: .day, value: -settings.periodLeadDays, to: period) {
                 out.append(Planned(id: periodID,
                                    title: periodTitle(leadDays: settings.periodLeadDays),
-                                   body: "A gentle heads-up so you can prepare.",
+                                   body: "A little notice so you can be ready and gentle with yourself.",
                                    date: fire, minuteOfDay: settings.cycleMinute, repeats: false))
             }
             // If the predicted date passes with nothing logged, ask once rather than going quiet
@@ -111,8 +125,8 @@ enum ReminderManager {
             // reschedule replaces this with one a cycle later — it never becomes a daily nag.
             if let fire = calendar.date(byAdding: .day, value: followUpDelayDays, to: period) {
                 out.append(Planned(id: followUpID,
-                                   title: "Did your period start? 🌙",
-                                   body: "Log it to keep your predictions accurate.",
+                                   title: "Did your period start?",
+                                   body: "If it has, log it and Cycluna will stay in tune with you.",
                                    date: fire, minuteOfDay: settings.cycleMinute, repeats: false))
             }
         }
@@ -121,7 +135,7 @@ enum ReminderManager {
            let fire = calendar.date(byAdding: .day, value: -settings.ovulationLeadDays, to: fertile) {
             out.append(Planned(id: ovulationID,
                                title: ovulationTitle(leadDays: settings.ovulationLeadDays),
-                               body: "Your most fertile days are around now.",
+                               body: "Your body is moving into its most fertile days.",
                                date: fire, minuteOfDay: settings.cycleMinute, repeats: false))
         }
 
@@ -132,6 +146,12 @@ enum ReminderManager {
                                date: nil, minuteOfDay: settings.checkInMinute, repeats: true))
         }
 
+        if settings.discreet {
+            return out.map {
+                Planned(id: $0.id, title: discreetTitle, body: discreetBody,
+                        date: $0.date, minuteOfDay: $0.minuteOfDay, repeats: $0.repeats)
+            }
+        }
         return out
     }
 
@@ -154,33 +174,33 @@ enum ReminderManager {
 
     static func periodTitle(leadDays: Int) -> String {
         switch leadDays {
-        case 0: return "Your period may start today 🌙"
-        case 1: return "Your period may start tomorrow 🌙"
-        default: return "Your period may start in \(leadDays) days 🌙"
+        case 0: return "Your period may start today"
+        case 1: return "Your period may start tomorrow"
+        default: return "Your period may start in \(leadDays) days"
         }
     }
 
     static func ovulationTitle(leadDays: Int) -> String {
         switch leadDays {
-        case 0: return "Your fertile window opens today ✨"
-        case 1: return "Your fertile window opens tomorrow ✨"
-        default: return "Your fertile window opens in \(leadDays) days ✨"
+        case 0: return "Your fertile window opens today"
+        case 1: return "Your fertile window opens tomorrow"
+        default: return "Your fertile window opens in \(leadDays) days"
         }
     }
 
     /// One notification covers both check-ins when both are on — two separate pings at the
     /// same time of day would just read as a duplicate.
     static func checkInTitle(mood: Bool, headache: Bool) -> String {
-        if mood && headache { return "How was today? 🌙" }
-        if headache { return "Any headaches today? 🌙" }
-        return "How are you feeling today? 🌙"
+        if mood && headache { return "How was today?" }
+        if headache { return "Any headaches today?" }
+        return "How are you feeling today?"
     }
 
     static func checkInBody(mood: Bool, headache: Bool) -> String {
         switch (mood, headache) {
-        case (true, true): return "Log your mood and any headaches in Journal."
-        case (false, true): return "Log any headaches in Journal."
-        default: return "Log your mood in Journal."
+        case (true, true): return "Take a moment for yourself and note how today felt, head and heart."
+        case (false, true): return "Take a moment to note how your head has been today."
+        default: return "Take a moment for yourself and note how today felt."
         }
     }
 

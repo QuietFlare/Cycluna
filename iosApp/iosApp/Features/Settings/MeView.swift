@@ -26,6 +26,7 @@ struct MeView: View {
     @AppStorage(ReminderSettings.Key.moodCheckIn) private var moodCheckIn = false
     @AppStorage(ReminderSettings.Key.headacheCheckIn) private var headacheCheckIn = false
     @AppStorage(ReminderSettings.Key.checkInMinute) private var checkInMinute = ReminderSettings.defaultCheckInMinute
+    @AppStorage(ReminderSettings.Key.discreet) private var discreetReminders = false
     @State private var confirmDelete = false
     @State private var aboutOpen = false
     @State private var exportItem: ExportItem?
@@ -108,8 +109,12 @@ struct MeView: View {
                 // legal documents sit together in one place rather than being half here.
                 Section {
                     Toggle("Require Face ID to open", isOn: $lockEnabled)
+                    Toggle("Discreet reminders", isOn: $discreetReminders)
+                        .onChange(of: discreetReminders) { _, _ in remindersChanged() }
                 } header: {
                     Text("Privacy")
+                } footer: {
+                    Text("Reminders keep their schedule but show a neutral message instead of cycle details.")
                 }
 
                 // Required by App Store Guideline 5.1.1(v) + GDPR/CCPA. All on-device.

@@ -1,5 +1,7 @@
 package app.cycluna.android
 
+import android.content.Context
+import android.content.Intent
 import android.graphics.Color
 import android.os.Bundle
 import androidx.fragment.app.FragmentActivity
@@ -8,6 +10,16 @@ import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import androidx.compose.runtime.CompositionLocalProvider
 import app.cycluna.android.designsystem.CyclunaTheme
+import kotlinx.coroutines.flow.MutableStateFlow
+
+/**
+ * The reminder id from a just-tapped notification, waiting for the tab UI to consume it.
+ * A flow rather than an intent read in composition: the tap can arrive through `onCreate`
+ * (cold start) or `onNewIntent` (already running), and both funnel here.
+ */
+object PendingReminderTap {
+    val id = MutableStateFlow<String?>(null)
+}
 
 /**
  * Scrim for API levels that cannot draw dark icons on the navigation bar (below 27). Matches
@@ -20,6 +32,14 @@ private val DARK_SCRIM = Color.argb(0x80, 0x1b, 0x1b, 0x1b)
  * through a fragment and will not accept anything less.
  */
 class MainActivity : FragmentActivity() {
+
+    companion object {
+        private const val EXTRA_REMINDER_ID = "reminderId"
+
+        /** The content intent for a reminder notification, carrying which reminder it was. */
+        fun tapIntent(context: Context, reminderId: String): Intent =
+            Intent(context, MainActivity::class.java).putExtra(EXTRA_REMINDER_ID, reminderId)
+    }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         // Both bars are pinned to the LIGHT style — dark icons on our cream background.
@@ -45,5 +65,18 @@ class MainActivity : FragmentActivity() {
                 }
             }
         }
+
+        // Restores re-deliver the launch intent, so only a fresh launch routes; a tap while
+        // running arrives via onNewIntent (the activity is singleTop).
+        if (savedInstanceState == null) consumeReminderTap(intent)
+    }
+
+    override fun onNewIntent(intent: Intent) {
+        super.onNewIntent(intent)
+        consumeReminderTap(intent)
+    }
+
+    private fun consumeReminderTap(intent: Intent) {
+        intent.getStringExtra(EXTRA_REMINDER_ID)?.let { PendingReminderTap.id.value = it }
     }
 }

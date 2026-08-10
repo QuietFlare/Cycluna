@@ -4,6 +4,7 @@ import app.cycluna.android.core.AppSettings
 import app.cycluna.android.core.Planned
 import app.cycluna.android.core.ReminderPlan
 import org.junit.Assert.assertEquals
+import org.junit.Assert.assertFalse
 import org.junit.Assert.assertNull
 import org.junit.Assert.assertTrue
 import org.junit.Test
@@ -58,7 +59,7 @@ class ReminderPlanTest {
         val plan = ReminderPlan.plan(period, fertile, settings(periodOn = true))
         val followUp = plan.byId(ReminderPlan.FOLLOW_UP_ID)
         assertEquals(LocalDate.of(2026, 8, 21), followUp?.date)
-        assertEquals("Did your period start? 🌙", followUp?.title)
+        assertEquals("Did your period start?", followUp?.title)
     }
 
     @Test
@@ -89,8 +90,8 @@ class ReminderPlanTest {
         )
         assertEquals(1, plan.size)
         val checkIn = plan.byId(ReminderPlan.CHECK_IN_ID)
-        assertEquals("How was today? 🌙", checkIn?.title)
-        assertEquals("Log your mood and any headaches in Journal.", checkIn?.body)
+        assertEquals("How was today?", checkIn?.title)
+        assertEquals("Take a moment for yourself and note how today felt, head and heart.", checkIn?.body)
         assertTrue(checkIn?.repeats == true)
         // A repeat has no date; the time of day is the whole schedule.
         assertNull(checkIn?.date)
@@ -98,20 +99,20 @@ class ReminderPlanTest {
 
     @Test
     fun theCheckInWordingFollowsWhichOnesAreOn() {
-        assertEquals("Any headaches today? 🌙", ReminderPlan.checkInTitle(mood = false, headache = true))
-        assertEquals("Log any headaches in Journal.", ReminderPlan.checkInBody(mood = false, headache = true))
-        assertEquals("How are you feeling today? 🌙", ReminderPlan.checkInTitle(mood = true, headache = false))
-        assertEquals("Log your mood in Journal.", ReminderPlan.checkInBody(mood = true, headache = false))
+        assertEquals("Any headaches today?", ReminderPlan.checkInTitle(mood = false, headache = true))
+        assertEquals("Take a moment to note how your head has been today.", ReminderPlan.checkInBody(mood = false, headache = true))
+        assertEquals("How are you feeling today?", ReminderPlan.checkInTitle(mood = true, headache = false))
+        assertEquals("Take a moment for yourself and note how today felt.", ReminderPlan.checkInBody(mood = true, headache = false))
     }
 
     @Test
     fun titlesUseSingularFormsRatherThanInOneDays() {
-        assertEquals("Your period may start today 🌙", ReminderPlan.periodTitle(0))
-        assertEquals("Your period may start tomorrow 🌙", ReminderPlan.periodTitle(1))
-        assertEquals("Your period may start in 2 days 🌙", ReminderPlan.periodTitle(2))
-        assertEquals("Your fertile window opens today ✨", ReminderPlan.ovulationTitle(0))
-        assertEquals("Your fertile window opens tomorrow ✨", ReminderPlan.ovulationTitle(1))
-        assertEquals("Your fertile window opens in 3 days ✨", ReminderPlan.ovulationTitle(3))
+        assertEquals("Your period may start today", ReminderPlan.periodTitle(0))
+        assertEquals("Your period may start tomorrow", ReminderPlan.periodTitle(1))
+        assertEquals("Your period may start in 2 days", ReminderPlan.periodTitle(2))
+        assertEquals("Your fertile window opens today", ReminderPlan.ovulationTitle(0))
+        assertEquals("Your fertile window opens tomorrow", ReminderPlan.ovulationTitle(1))
+        assertEquals("Your fertile window opens in 3 days", ReminderPlan.ovulationTitle(3))
     }
 
     @Test
@@ -129,5 +130,33 @@ class ReminderPlanTest {
         assertEquals(450, plan.byId(ReminderPlan.PERIOD_ID)?.minuteOfDay)
         assertEquals(450, plan.byId(ReminderPlan.OVULATION_ID)?.minuteOfDay)
         assertEquals(1260, plan.byId(ReminderPlan.CHECK_IN_ID)?.minuteOfDay)
+    }
+
+    @Test
+    fun discreetModeSwapsTheWordingButKeepsScheduleAndIds() {
+        val loud = settings(periodOn = true, ovulationOn = true, moodCheckIn = true)
+        val plain = ReminderPlan.plan(period, fertile, loud)
+        val discreet = ReminderPlan.plan(period, fertile, loud.copy(discreet = true))
+
+        assertEquals(plain.map { it.id }, discreet.map { it.id })
+        assertEquals(plain.map { it.date }, discreet.map { it.date })
+        assertEquals(plain.map { it.minuteOfDay }, discreet.map { it.minuteOfDay })
+        assertEquals(plain.map { it.repeats }, discreet.map { it.repeats })
+        discreet.forEach { planned ->
+            assertEquals(ReminderPlan.DISCREET_TITLE, planned.title)
+            assertEquals(ReminderPlan.DISCREET_BODY, planned.body)
+            val visible = "${planned.title} ${planned.body}".lowercase()
+            for (word in listOf("period", "fertile", "ovulat", "mood", "headache", "cycle")) {
+                assertFalse("\"$word\" leaks in discreet copy", visible.contains(word))
+            }
+        }
+    }
+
+    @Test
+    fun tappingTheCheckInOpensJournalAndCycleRemindersStayOnToday() {
+        assertTrue(ReminderPlan.opensJournal(ReminderPlan.CHECK_IN_ID))
+        assertFalse(ReminderPlan.opensJournal(ReminderPlan.PERIOD_ID))
+        assertFalse(ReminderPlan.opensJournal(ReminderPlan.FOLLOW_UP_ID))
+        assertFalse(ReminderPlan.opensJournal(ReminderPlan.OVULATION_ID))
     }
 }

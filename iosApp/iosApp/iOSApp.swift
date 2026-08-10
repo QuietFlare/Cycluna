@@ -1,9 +1,16 @@
 import SwiftUI
+import UserNotifications
 
 @main
 struct iOSApp: App {
     @State private var store = CycleStore()
     @Environment(\.scenePhase) private var scenePhase
+
+    init() {
+        // Installed here, before launch finishes, so tapping a reminder while the app is
+        // closed still routes to the right tab once the UI is up.
+        UNUserNotificationCenter.current().delegate = NotificationRouter.shared
+    }
 
     var body: some Scene {
         WindowGroup {

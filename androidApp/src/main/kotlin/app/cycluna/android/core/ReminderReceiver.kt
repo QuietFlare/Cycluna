@@ -35,10 +35,13 @@ class ReminderReceiver : BroadcastReceiver() {
         ) == PackageManager.PERMISSION_GRANTED
 
         if (granted) {
+            // A distinct request code per reminder: with a shared code the four content
+            // intents compare equal, and two notifications in the shade would both carry
+            // whichever tap target was created last.
             val open = PendingIntent.getActivity(
                 context,
-                0,
-                Intent(context, MainActivity::class.java),
+                planned.id.hashCode(),
+                MainActivity.tapIntent(context, planned.id),
                 PendingIntent.FLAG_IMMUTABLE or PendingIntent.FLAG_UPDATE_CURRENT,
             )
             val notification = NotificationCompat.Builder(context, ReminderScheduler.CHANNEL_ID)

@@ -45,6 +45,7 @@ import androidx.lifecycle.compose.LocalLifecycleOwner
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import app.cycluna.android.core.AppLock
 import app.cycluna.android.core.AppSettings
+import app.cycluna.android.core.ReminderPlan
 import app.cycluna.android.core.ReminderScheduler
 import app.cycluna.android.designsystem.Crescent
 import app.cycluna.android.designsystem.Theme
@@ -154,6 +155,18 @@ private fun MainTabs(settings: AppSettings) {
     // font-scale change) rather than snapping back to Today.
     var selected by rememberSaveable { mutableStateOf(Tab.TODAY) }
     var aboutPage by rememberSaveable { mutableStateOf<AboutPage?>(null) }
+
+    // A tapped notification picks the tab: the daily check-in lands in Journal (that's where
+    // mood and headaches are logged), the cycle reminders on Today, where the predictions live.
+    LaunchedEffect(Unit) {
+        PendingReminderTap.id.collect { reminderId ->
+            if (reminderId != null) {
+                selected = if (ReminderPlan.opensJournal(reminderId)) Tab.JOURNAL else Tab.TODAY
+                aboutPage = null
+                PendingReminderTap.id.value = null
+            }
+        }
+    }
 
     // Predictive back walks the About stack before it leaves the app.
     BackHandler(enabled = aboutPage != null) {

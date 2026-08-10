@@ -204,6 +204,14 @@ fun MeScreen(settings: AppSettings, onAbout: () -> Unit) {
             SwitchRow("Require unlock to open", settings.appLockEnabled) {
                 scope.launch { settingsStore.put(SettingsKeys.APP_LOCK_ENABLED, it) }
             }
+            SwitchRow("Discreet reminders", settings.discreet) {
+                put(SettingsKeys.DISCREET_REMINDERS, it, settings.copy(discreet = it))
+            }
+            Text(
+                "Reminders keep their schedule but show a neutral message instead of cycle details.",
+                fontSize = 12.sp,
+                color = Theme.inkSoft,
+            )
         }
 
         // Required by Play's data-safety rules and by GDPR/CCPA. Both are on-device.

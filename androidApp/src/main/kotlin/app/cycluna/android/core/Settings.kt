@@ -28,6 +28,7 @@ object SettingsKeys {
     val MOOD_CHECK_IN = booleanPreferencesKey("moodCheckInReminder")
     val HEADACHE_CHECK_IN = booleanPreferencesKey("headacheCheckInReminder")
     val CHECK_IN_MINUTE = intPreferencesKey("checkInReminderMinute")
+    val DISCREET_REMINDERS = booleanPreferencesKey("discreetReminders")
 }
 
 /**
@@ -44,6 +45,7 @@ data class AppSettings(
     val moodCheckIn: Boolean = false,
     val headacheCheckIn: Boolean = false,
     val checkInMinute: Int = 20 * 60,
+    val discreet: Boolean = false,
 ) {
     val anyCycleReminder: Boolean get() = periodOn || ovulationOn
     val anyCheckIn: Boolean get() = moodCheckIn || headacheCheckIn
@@ -59,6 +61,7 @@ data class AppSettings(
             moodCheckIn = prefs[SettingsKeys.MOOD_CHECK_IN] ?: false,
             headacheCheckIn = prefs[SettingsKeys.HEADACHE_CHECK_IN] ?: false,
             checkInMinute = prefs[SettingsKeys.CHECK_IN_MINUTE] ?: (20 * 60),
+            discreet = prefs[SettingsKeys.DISCREET_REMINDERS] ?: false,
         )
     }
 }

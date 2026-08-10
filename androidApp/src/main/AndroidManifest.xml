@@ -19,9 +19,12 @@
         android:dataExtractionRules="@xml/data_extraction_rules"
         android:fullBackupContent="false">
 
+        <!-- singleTop so a notification tap while the app is running lands in onNewIntent
+             instead of stacking a second copy of the activity. -->
         <activity
             android:name=".MainActivity"
             android:exported="true"
+            android:launchMode="singleTop"
             android:label="@string/app_name"
             android:theme="@style/Theme.Cycluna"
             android:configChanges="orientation|screenSize|screenLayout|keyboardHidden|uiMode|density|fontScale"

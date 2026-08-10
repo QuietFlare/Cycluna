@@ -18,13 +18,15 @@ final class ReminderPlanTests: XCTestCase {
     private func settings(
         periodOn: Bool = false, ovulationOn: Bool = false,
         periodLead: Int = 1, ovulationLead: Int = 0, cycleMinute: Int = 9 * 60,
-        mood: Bool = false, headache: Bool = false, checkInMinute: Int = 20 * 60
+        mood: Bool = false, headache: Bool = false, checkInMinute: Int = 20 * 60,
+        discreet: Bool = false
     ) -> ReminderSettings {
         ReminderSettings(
             periodOn: periodOn, ovulationOn: ovulationOn,
             periodLeadDays: periodLead, ovulationLeadDays: ovulationLead,
             cycleMinute: cycleMinute,
-            moodCheckIn: mood, headacheCheckIn: headache, checkInMinute: checkInMinute)
+            moodCheckIn: mood, headacheCheckIn: headache, checkInMinute: checkInMinute,
+            discreet: discreet)
     }
 
     private func plan(_ s: ReminderSettings) -> [ReminderManager.Planned] {
@@ -53,14 +55,14 @@ final class ReminderPlanTests: XCTestCase {
     }
 
     func testPeriodCopyMatchesTheChosenLead() {
-        XCTAssertEqual(ReminderManager.periodTitle(leadDays: 0), "Your period may start today 🌙")
-        XCTAssertEqual(ReminderManager.periodTitle(leadDays: 1), "Your period may start tomorrow 🌙")
-        XCTAssertEqual(ReminderManager.periodTitle(leadDays: 2), "Your period may start in 2 days 🌙")
+        XCTAssertEqual(ReminderManager.periodTitle(leadDays: 0), "Your period may start today")
+        XCTAssertEqual(ReminderManager.periodTitle(leadDays: 1), "Your period may start tomorrow")
+        XCTAssertEqual(ReminderManager.periodTitle(leadDays: 2), "Your period may start in 2 days")
     }
 
     func testOvulationCopyMatchesTheChosenLead() {
-        XCTAssertEqual(ReminderManager.ovulationTitle(leadDays: 0), "Your fertile window opens today ✨")
-        XCTAssertEqual(ReminderManager.ovulationTitle(leadDays: 1), "Your fertile window opens tomorrow ✨")
+        XCTAssertEqual(ReminderManager.ovulationTitle(leadDays: 0), "Your fertile window opens today")
+        XCTAssertEqual(ReminderManager.ovulationTitle(leadDays: 1), "Your fertile window opens tomorrow")
     }
 
     func testOvulationUsesTheFertileStartNotThePeriodDate() {
@@ -90,18 +92,18 @@ final class ReminderPlanTests: XCTestCase {
         let p = plan(settings(mood: true, headache: true))
         let checkIns = p.filter { $0.id == ReminderManager.checkInID }
         XCTAssertEqual(checkIns.count, 1, "two pings at the same minute would read as a duplicate")
-        XCTAssertEqual(checkIns[0].body, "Log your mood and any headaches in Journal.")
+        XCTAssertEqual(checkIns[0].body, "Take a moment for yourself and note how today felt, head and heart.")
         XCTAssertTrue(checkIns[0].repeats)
         XCTAssertNil(checkIns[0].date, "a daily check-in repeats rather than landing on one date")
     }
 
     func testCheckInCopyNamesOnlyWhatIsEnabled() {
         XCTAssertEqual(ReminderManager.checkInBody(mood: true, headache: false),
-                       "Log your mood in Journal.")
+                       "Take a moment for yourself and note how today felt.")
         XCTAssertEqual(ReminderManager.checkInBody(mood: false, headache: true),
-                       "Log any headaches in Journal.")
+                       "Take a moment to note how your head has been today.")
         XCTAssertEqual(ReminderManager.checkInTitle(mood: false, headache: true),
-                       "Any headaches today? 🌙")
+                       "Any headaches today?")
     }
 
     func testCheckInUsesItsOwnTimeNotTheCycleReminderTime() {
@@ -118,5 +120,34 @@ final class ReminderPlanTests: XCTestCase {
                                      calendar: cal)
         // Only the check-in survives — it doesn't depend on the cycle.
         XCTAssertEqual(p.map(\.id), [ReminderManager.checkInID])
+    }
+
+    // MARK: - Discreet mode
+
+    func testDiscreetModeSwapsTheWordingButKeepsScheduleAndIds() {
+        let loud = plan(settings(periodOn: true, ovulationOn: true, mood: true))
+        let discreet = plan(settings(periodOn: true, ovulationOn: true, mood: true, discreet: true))
+
+        XCTAssertEqual(loud.map(\.id), discreet.map(\.id))
+        XCTAssertEqual(loud.map(\.date), discreet.map(\.date))
+        XCTAssertEqual(loud.map(\.minuteOfDay), discreet.map(\.minuteOfDay))
+        XCTAssertEqual(loud.map(\.repeats), discreet.map(\.repeats))
+        for planned in discreet {
+            XCTAssertEqual(planned.title, ReminderManager.discreetTitle)
+            XCTAssertEqual(planned.body, ReminderManager.discreetBody)
+            let visible = "\(planned.title) \(planned.body)".lowercased()
+            for word in ["period", "fertile", "ovulat", "mood", "headache", "cycle"] {
+                XCTAssertFalse(visible.contains(word), "\"\(word)\" leaks in discreet copy")
+            }
+        }
+    }
+
+    // MARK: - Tap routing
+
+    func testTappingTheCheckInOpensJournalAndCycleRemindersStayOnToday() {
+        XCTAssertTrue(ReminderManager.opensJournal(id: ReminderManager.checkInID))
+        XCTAssertFalse(ReminderManager.opensJournal(id: ReminderManager.periodID))
+        XCTAssertFalse(ReminderManager.opensJournal(id: ReminderManager.followUpID))
+        XCTAssertFalse(ReminderManager.opensJournal(id: ReminderManager.ovulationID))
     }
 }
