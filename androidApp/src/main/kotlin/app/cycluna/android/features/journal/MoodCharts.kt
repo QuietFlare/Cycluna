@@ -335,20 +335,17 @@ fun MoonMoodAxis(page: CycleStore.MoodPage, modifier: Modifier = Modifier) {
                     waxing = store.moonBucketIsWaxing(band.bucketKey),
                     modifier = Modifier.size(14.dp),
                 )
-                // Dates only, under the principal phases — the discs already picture the
-                // stages, so naming them was noise, and the dates are what place the
-                // lunation in the month (so the page needs no caption). TalkBack still
-                // names every bucket in full.
-                if (index % 2 == 0) {
-                    Text(
-                        start?.plusDays((index * page.spanDays / 8).toLong())?.format(DAY_MONTH) ?: "",
-                        fontSize = 8.sp,
-                        lineHeight = 9.sp,
-                        color = Theme.inkSoft.copy(alpha = 0.8f),
-                        maxLines = 1,
-                        textAlign = TextAlign.Center,
-                    )
-                }
+                // Dates only — the discs already picture the stages (naming them was
+                // noise), and the dates place the lunation in the month, so the page needs
+                // no caption. TalkBack still names every bucket in full.
+                Text(
+                    start?.plusDays((index * page.spanDays / 8).toLong())?.format(DAY_MONTH) ?: "",
+                    fontSize = 8.sp,
+                    lineHeight = 9.sp,
+                    color = Theme.inkSoft.copy(alpha = 0.8f),
+                    maxLines = 1,
+                    textAlign = TextAlign.Center,
+                )
             }
         }
     }
