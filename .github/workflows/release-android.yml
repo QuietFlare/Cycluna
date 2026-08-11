@@ -1,0 +1,47 @@
+name: Release (Android)
+
+# Ship a signed bundle to Play's CLOSED TESTING (alpha) track via the shared
+# pipeline (github.com/QuietFlare/ci-workflows). ONLY an `android-v*` tag or a
+# manual dispatch triggers this — never a branch push.
+#
+#   git tag android-v1.0-4 && git push --tags
+#
+# Promotion to production is deliberately manual in the Play Console — the
+# shared pipeline refuses the production track outright.
+#
+# The pipeline re-runs the shared core, the Android unit tests, and lint on
+# the exact commit being shipped, then builds and uploads in the same job.
+#
+# GATED on five repo secrets (see play-release.yml's header for the one-time
+# Play Console service-account setup):
+#   PLAY_SERVICE_ACCOUNT_JSON  — service-account JSON key
+#   UPLOAD_KEYSTORE_B64        — the upload keystore, base64 (base64 -i x.jks)
+#   KEYSTORE_STORE_PASSWORD / KEYSTORE_KEY_ALIAS / KEYSTORE_KEY_PASSWORD
+#
+# versionCode: Play rejects a repeat — bump appVersionCode in
+# androidApp/build.gradle.kts before every tag.
+#
+# Pinned to the exact tag that introduced play-release.yml (the canary step in
+# ci-workflows' RELEASING.md). Move to @v1 once a real upload has gone through.
+
+on:
+  push:
+    tags: ['android-v*']
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  release:
+    uses: QuietFlare/ci-workflows/.github/workflows/play-release.yml@v1.2.0
+    with:
+      package-name: net.quietflare.cycluna
+      # The full pre-ship gate on the exact commit being uploaded.
+      tasks: ':shared:jvmTest :androidApp:testDebugUnitTest :androidApp:lintDebug'
+    secrets:
+      play-service-account-json: ${{ secrets.PLAY_SERVICE_ACCOUNT_JSON }}
+      upload-keystore-b64: ${{ secrets.UPLOAD_KEYSTORE_B64 }}
+      keystore-store-password: ${{ secrets.KEYSTORE_STORE_PASSWORD }}
+      keystore-key-alias: ${{ secrets.KEYSTORE_KEY_ALIAS }}
+      keystore-key-password: ${{ secrets.KEYSTORE_KEY_PASSWORD }}
