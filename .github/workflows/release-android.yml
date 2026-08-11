@@ -42,7 +42,7 @@ permissions:
 
 jobs:
   release:
-    uses: QuietFlare/ci-workflows/.github/workflows/play-release.yml@v1.2.0
+    uses: QuietFlare/ci-workflows/.github/workflows/play-release.yml@v1.2.1
     with:
       package-name: net.quietflare.cycluna
       # The full pre-ship gate on the exact commit being uploaded.
