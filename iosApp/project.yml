@@ -48,7 +48,7 @@ targets:
         PRODUCT_BUNDLE_IDENTIFIER: net.quietflare.cycluna
         # Explicit so the About screen and App Store Connect read the same numbers.
         # Bump MARKETING_VERSION per release, CURRENT_PROJECT_VERSION per upload.
-        MARKETING_VERSION: "1.0"
+        MARKETING_VERSION: "1.0.1"
         # Build numbers are consumed permanently: once a MARKETING_VERSION +
         # CURRENT_PROJECT_VERSION pair uploads and processes, App Store Connect
         # will never accept it again, and expiring the build does not free it.
