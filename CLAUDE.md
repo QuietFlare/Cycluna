@@ -26,10 +26,9 @@ exactly wherever it touches persisted data. Key files:
 | `passkey.ts` (WebAuthn) | native passkey APIs (ASAuthorization / Credential Manager) | ⏳ |
 | `push.ts` (web-push/VAPID) | **replaced** by APNs (iOS) + FCM (Android) | ⏳ |
 
-⚠️ **JS `Math.round` is half-up**; Kotlin's `roundToInt` is half-to-even. The port
-uses `floor(x + 0.5)` to match the web app exactly. Preserve this in any numeric port.
-`CycleTest` pins this with values where the two disagree — a silent switch back to
-`roundToInt` fails there and nowhere else.
+⚠️ **JS `Math.round` is half-up**; Kotlin's `roundToInt` is half-to-even. `Moon.kt`
+uses `floor(x + 0.5)` to match the web app exactly — preserve this in any numeric port.
+(`Cycle`'s gap averaging, which also needed it, was removed with cycle-length learning.)
 
 ### Deliberate divergences from the web app — do NOT "restore parity"
 The fidelity rule above is scoped to behavior **touching persisted data**. These are
@@ -37,7 +36,7 @@ derived values, and the web behavior is wrong for a native app that models laten
 
 | Rule | Web (`cycle.ts`) | Cycluna | Why |
 |---|---|---|---|
-| Relearn cycle length | from **1** gap | needs **2** (`Cycle.MIN_GAPS_TO_LEARN`) | A late period makes one long gap that becomes the new baseline, so the *next* late period looks normal. Lateness silently ratchets into the prediction and stops being reported. |
+| Relearn cycle length | from **1** gap | **never** — the configured setting is the contract | Learning absorbed lateness (one long gap became the new baseline, so the next late period looked normal) and silently overrode a number the user chose. History is recorded exactly as logged; predictions always use the setting. |
 | `status()` anchor | rolls forward by whole cycles | never rolls | Rolling reported "Day 1 · Menstrual" on a day no period arrived, and made lateness impossible to express. |
 | `nextPeriodIso` | rolls the anchor first | anchor + one cycle | Rolling skipped an overdue period and pointed a whole cycle ahead. |
 
@@ -216,8 +215,7 @@ These were decided deliberately and are easy to undo by accident:
   `AndroidAcknowledgementsTest` and `MoonEventsParityTest`, which pins the duplicated
   `moon-events.json` byte-for-byte against the iOS copy).
 - ⏳ Next: encrypted Journal (`enc:v1`), Cloudflare backend.
-  Backlog: `Cycle.isIrregular` is dead code (and flags gaps outside 21–35 while
-  `MAX_CYCLE_LENGTH` is 45 — reconcile or delete); Dynamic Type audit; App Store
+  Backlog: Dynamic Type audit; App Store
   screenshots + Health & Fitness category + release signing; Android release signing +
   R8/minify (debug-only so far) and the Play Data safety declaration; instrumented tests for
   the Keystore `KeyVault` actual, which local unit tests cannot reach.

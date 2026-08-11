@@ -1,4 +1,5 @@
 import SwiftUI
+import UniformTypeIdentifiers
 
 /// Identifiable wrapper so a file URL can drive `.sheet(item:)`.
 private struct ExportItem: Identifiable {
@@ -28,6 +29,10 @@ struct MeView: View {
     @AppStorage(ReminderSettings.Key.checkInMinute) private var checkInMinute = ReminderSettings.defaultCheckInMinute
     @AppStorage(ReminderSettings.Key.discreet) private var discreetReminders = false
     @AppStorage(ReminderSettings.Key.fertility) private var fertilityInsights = true
+    @State private var importConfirm = false
+    @State private var importPickerShown = false
+    @State private var importSucceeded = false
+    @State private var importFailed = false
     @State private var confirmDelete = false
     @State private var aboutOpen = false
     @State private var exportItem: ExportItem?
@@ -58,14 +63,7 @@ struct MeView: View {
                 } header: {
                     Text("Cycle")
                 } footer: {
-                    VStack(alignment: .leading, spacing: 4) {
-                        Text("Fertile window, fertile days and ovulation reminders.")
-                        // Shown only when it's surprising: the app is ignoring the stepper
-                        // above. Explaining the normal case every time is just noise.
-                        if store.cycleLength != store.cycleLengthSetting {
-                            Text("Using **\(store.cycleLength) days** from your logged periods.")
-                        }
-                    }
+                    Text("Fertile window, fertile days and ovulation reminders.")
                 }
 
 
@@ -132,6 +130,26 @@ struct MeView: View {
                         pendingExportURL = item?.url
                         exportItem = item
                     }
+                    Button("Import my data") { importConfirm = true }
+                        .confirmationDialog(
+                            "Importing replaces everything on this device with the file's data.",
+                            isPresented: $importConfirm, titleVisibility: .visible
+                        ) {
+                            Button("Choose a Cycluna export", role: .destructive) { importPickerShown = true }
+                            Button("Cancel", role: .cancel) {}
+                        }
+                        .fileImporter(isPresented: $importPickerShown,
+                                      allowedContentTypes: [.json]) { handleImport($0) }
+                        .alert("Import complete", isPresented: $importSucceeded) {
+                            Button("OK") {}
+                        } message: {
+                            Text("Your data has been restored.")
+                        }
+                        .alert("Import failed", isPresented: $importFailed) {
+                            Button("OK") {}
+                        } message: {
+                            Text("That file is not a Cycluna export. Nothing was changed.")
+                        }
                     Button("Delete all my data", role: .destructive) { confirmDelete = true }
                 } header: {
                     Text("Your data")
@@ -174,6 +192,20 @@ struct MeView: View {
     private var displayTitle: String {
         let name = store.displayName.trimmingCharacters(in: .whitespaces)
         return name.isEmpty ? "Me" : name
+    }
+
+    /// Reads the picked file and restores it. The store validates the schema and refuses
+    /// anything that is not a Cycluna export, so a wrong file changes nothing.
+    private func handleImport(_ result: Result<URL, Error>) {
+        guard case .success(let url) = result else { importFailed = true; return }
+        let scoped = url.startAccessingSecurityScopedResource()
+        defer { if scoped { url.stopAccessingSecurityScopedResource() } }
+        guard let text = try? String(contentsOf: url, encoding: .utf8),
+              store.importData(text: text) else {
+            importFailed = true
+            return
+        }
+        importSucceeded = true
     }
 
     /// Marketing version only — the full "1.0 (3)" lives on the About screen.

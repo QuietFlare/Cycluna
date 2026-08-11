@@ -140,13 +140,35 @@ object CyclunaCore {
         Cycle.cycleDayForDate(inputFrom(lastPeriodStartIso, cycleLength, periodLength), LocalDate.parse(dateIso)) ?: 0
 
     /**
-     * Projected cycle day (1..cycleLength) for any date, wrapping in BOTH directions from
-     * the anchor. Floor-mod, matching [dayMarker] — returning 0 for earlier dates left the
-     * calendar's cycle-day numbers blank in every month before the last logged period.
+     * Cycle day for a calendar date, measured against LOGGED history. The anchor is the
+     * latest logged start on or before the date. A past cycle counts plainly from its own
+     * start — day 40 of a long gap is day 40, never wrapped, because the past is history —
+     * while dates from the LATEST start onward project forward by whole cycles, matching
+     * [dayMarker]. Before the first logged start there is no cycle to speak of → 0
+     * (callers hide the number).
      */
-    fun projectedCycleDay(lastPeriodStartIso: String, cycleLength: Int, dateIso: String): Int {
-        val d = LocalDate.parse(lastPeriodStartIso).daysUntil(LocalDate.parse(dateIso))
-        return (((d % cycleLength) + cycleLength) % cycleLength) + 1
+    fun historyCycleDay(periodStartsCsv: String, cycleLength: Int, dateIso: String): Int {
+        val date = LocalDate.parse(dateIso)
+        val starts = parsePeriods(periodStartsCsv).map { it.start }.sorted()
+        val anchor = starts.lastOrNull { it <= date } ?: return 0
+        val daysSince = anchor.daysUntil(date)
+        return if (anchor == starts.last()) (daysSince % cycleLength) + 1 else daysSince + 1
+    }
+
+    /**
+     * Phase label for a calendar date, on [historyCycleDay]'s anchor rules — same
+     * boundaries as `Cycle.status`. "" before the first logged start.
+     */
+    fun historyPhaseLabel(periodStartsCsv: String, cycleLength: Int, periodLength: Int, dateIso: String): String {
+        val cycleDay = historyCycleDay(periodStartsCsv, cycleLength, dateIso)
+        if (cycleDay == 0) return ""
+        val half = cycleLength / 2
+        return when {
+            cycleDay <= periodLength -> Phase.MENSTRUAL
+            cycleDay <= half - 2 -> Phase.FOLLICULAR
+            cycleDay <= half + 2 -> Phase.OVULATORY
+            else -> Phase.LUTEAL
+        }.label
     }
 
     /**
@@ -171,11 +193,12 @@ object CyclunaCore {
         }
         val anchor = starts.lastOrNull() ?: return "none"
         val daysSince = anchor.daysUntil(date)
-        // Project the cycle in BOTH directions from the anchor (floor-mod handles dates
-        // before it), so past months relative to the logged start are marked too — not
-        // just forward. Projected period days that aren't an actual logged start (which
-        // returned "period" above) are shown as "predicted-period".
-        val cycleDay = (((daysSince % cycleLength) + cycleLength) % cycleLength) + 1
+        // The past is history, not prediction: before the latest logged start only the
+        // logged periods themselves mark the calendar (handled above). Projected periods
+        // and fertile days exist from the current anchor FORWARD only — projecting them
+        // backwards drew phantom predictions between real logged periods.
+        if (daysSince < 0) return "none"
+        val cycleDay = (daysSince % cycleLength) + 1
         val half = cycleLength / 2
         if (cycleDay <= periodLength) return "predicted-period"
         return when {

@@ -256,6 +256,20 @@ final class CycleStore {
         apply(.cycle) { $0.logPeriod(iso: self.iso(Calendar.current.startOfDay(for: date))) }
     }
 
+    /// Remove one logged period start — the undo for an accidental log or a backfill
+    /// mistake. Removing the only one returns the app to onboarding.
+    func removePeriodStart(on date: Date) {
+        apply(.cycle) { $0.removePeriod(iso: self.iso(Calendar.current.startOfDay(for: date))) }
+    }
+
+    /// Restores a data-portability export, REPLACING everything on this device. Returns
+    /// false when the file is not a Cycluna export; nothing changes in that case.
+    func importData(text: String) -> Bool {
+        guard let imported = CyclePersistence.shared.importJson(text: text) else { return false }
+        apply(.everything) { _ in imported }
+        return true
+    }
+
     /// One-line what-if for a candidate anchor date — "Day 5 · Menstrual · next period
     /// around Sep 3" — so the date sheet can show what a choice means before it's saved.
     /// Pure preview: nothing is stored.
@@ -326,13 +340,13 @@ final class CycleStore {
 
     // Per-date (calendar)
     func linearCycleDay(_ dateIso: String) -> Int {
-        Int(core.projectedCycleDay(lastPeriodStartIso: startISO, cycleLength: Int32(cycleLength), dateIso: dateIso))
+        Int(core.historyCycleDay(periodStartsCsv: periodsCsv, cycleLength: Int32(cycleLength), dateIso: dateIso))
     }
     func dayMarker(_ dateIso: String) -> String {
         core.dayMarker(periodStartsCsv: periodsCsv, cycleLength: Int32(cycleLength), periodLength: Int32(periodLength), dateIso: dateIso)
     }
     func phaseForDate(_ dateIso: String) -> String {
-        core.phaseLabelForDate(lastPeriodStartIso: startISO, cycleLength: Int32(cycleLength), periodLength: Int32(periodLength), dateIso: dateIso)
+        core.historyPhaseLabel(periodStartsCsv: periodsCsv, cycleLength: Int32(cycleLength), periodLength: Int32(periodLength), dateIso: dateIso)
     }
 
     /// On-device principal moon phase for a date: "", "new", "first-quarter", "full",

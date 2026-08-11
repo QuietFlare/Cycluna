@@ -6,7 +6,17 @@ import SwiftUI
 struct CyclesCard: View {
     @Environment(CycleStore.self) private var store
     @AppStorage(ReminderSettings.Key.fertility) private var fertilityInsights = true
+    @State private var logPastOpen = false
+    @State private var deleteCandidate: Date?
     private let cal = Calendar.current
+
+    private var deleteMessage: String {
+        guard let d = deleteCandidate else { return "" }
+        let base = "Remove the period that started \(fmt(d, "MMM d"))? Its days disappear from the calendar and history."
+        return store.periodStarts.count == 1
+            ? base + " It is your only logged period, so the app returns to setup."
+            : base
+    }
 
     private struct PastRow: Identifiable { let id = UUID(); let date: Date; let label: String }
     private struct PredRow: Identifiable { let id = UUID(); let date: Date; let fertile: String }
@@ -55,10 +65,23 @@ struct CyclesCard: View {
             // one mis-tap from disaster, and Me → "Delete all my data" already owns that job.
             Text("Cycle overview").font(.cyclunaSerif(22)).foregroundStyle(Theme.ink)
 
-            if !pastRows.isEmpty {
+            // The pencil is how history gets backfilled — every other date control edits
+            // the one existing entry. It appends strictly BEFORE the current anchor, so
+            // nothing already logged can move. Always shown: an empty history is exactly
+            // when it's needed most.
+            HStack(spacing: 8) {
                 sectionLabel("PAST CYCLES")
+                Button { logPastOpen = true } label: {
+                    Image(systemName: "square.and.pencil")
+                        .font(.footnote)
+                        .foregroundStyle(Theme.primary)
+                }
+                .accessibilityLabel("Log a past period")
+            }
+            if !pastRows.isEmpty {
                 ForEach(Array(pastRows.enumerated()), id: \.element.id) { i, row in
-                    cycleRow(date: row.date, subtitle: row.label, drop: false)
+                    cycleRow(date: row.date, subtitle: row.label, drop: false,
+                             onDelete: { deleteCandidate = row.date })
                     if i < pastRows.count - 1 { rowDivider }
                 }
             }
@@ -91,9 +114,31 @@ struct CyclesCard: View {
             .padding(.top, 6)
         }
         .cyclunaCard(padding: 18)
+        .confirmationDialog(
+            deleteMessage,
+            isPresented: Binding(get: { deleteCandidate != nil },
+                                 set: { if !$0 { deleteCandidate = nil } }),
+            titleVisibility: .visible
+        ) {
+            Button("Remove this period", role: .destructive) {
+                if let d = deleteCandidate { store.removePeriodStart(on: d) }
+                deleteCandidate = nil
+            }
+            Button("Cancel", role: .cancel) { deleteCandidate = nil }
+        }
+        .sheet(isPresented: $logPastOpen) {
+            // Opens a cycle back from the anchor — the likeliest month for the period
+            // being backfilled.
+            PeriodDateSheet(
+                mode: .logPast,
+                initialDate: cal.date(byAdding: .day, value: -store.cycleLength,
+                                      to: store.lastPeriodStart) ?? store.lastPeriodStart
+            )
+        }
     }
 
-    private func cycleRow(date: Date, subtitle: String, drop: Bool) -> some View {
+    private func cycleRow(date: Date, subtitle: String, drop: Bool,
+                          onDelete: (() -> Void)? = nil) -> some View {
         HStack {
             VStack(alignment: .leading, spacing: 2) {
                 Text(fmt(date, "MMM d, yyyy")).font(.headline).foregroundStyle(Theme.ink)
@@ -103,6 +148,14 @@ struct CyclesCard: View {
             }
             Spacer()
             if drop { Image(systemName: "drop").foregroundStyle(Theme.phaseMenstrual) }
+            if let onDelete {
+                Button(action: onDelete) {
+                    Image(systemName: "trash")
+                        .font(.footnote)
+                        .foregroundStyle(Theme.inkSoft)
+                }
+                .accessibilityLabel("Remove this period")
+            }
         }
         .padding(.vertical, 6)
     }
