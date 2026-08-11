@@ -9,8 +9,19 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Text
+import androidx.compose.foundation.clickable
+import androidx.compose.foundation.layout.size
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Delete
+import androidx.compose.material.icons.filled.Edit
+import androidx.compose.material3.AlertDialog
+import androidx.compose.material3.Icon
+import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
@@ -49,6 +60,8 @@ private const val ROWS_PER_SECTION = 3
 fun CyclesCard() {
     val store = LocalCycleStore.current
     val settings by LocalSettingsStore.current.settings.collectAsStateWithLifecycle(AppSettings())
+    var logPastOpen by remember { mutableStateOf(false) }
+    var deleteCandidate by remember { mutableStateOf<LocalDate?>(null) }
 
     val starts = store.periodStarts.sortedDescending()
     // Map first, THEN truncate: each row's length is measured against the start that
@@ -81,10 +94,25 @@ fun CyclesCard() {
         // mis-tap from disaster, and Me → "Delete all my data" already owns that job.
         Text("Cycle overview", style = serif(22).copy(color = Theme.ink))
 
-        if (past.isNotEmpty()) {
+        // The pencil is how history gets backfilled — every other date control edits the
+        // one existing entry. It appends strictly BEFORE the current anchor, so nothing
+        // already logged can move. Always shown: an empty history is exactly when it's
+        // needed most.
+        Row(
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.spacedBy(8.dp),
+        ) {
             SectionLabel("PAST CYCLES")
+            Icon(
+                Icons.Filled.Edit,
+                contentDescription = "Log a past period",
+                tint = Theme.primary,
+                modifier = Modifier.size(15.dp).clickable { logPastOpen = true },
+            )
+        }
+        if (past.isNotEmpty()) {
             past.forEachIndexed { i, (date, label) ->
-                CycleRow(date, label, drop = false)
+                CycleRow(date, label, drop = false, onDelete = { deleteCandidate = date })
                 if (i < past.size - 1) RowDivider()
             }
         }
@@ -120,10 +148,59 @@ fun CyclesCard() {
         }
     }
 
+    deleteCandidate?.let { candidate ->
+        AlertDialog(
+            onDismissRequest = { deleteCandidate = null },
+            containerColor = Theme.surface,
+            title = { Text("Remove this period?", style = serif(20).copy(color = Theme.ink)) },
+            text = {
+                val base = "The period that started ${candidate.format(MONTH_DAY)} disappears " +
+                    "from the calendar and history."
+                Text(
+                    if (store.periodStarts.size == 1) {
+                        "$base It is your only logged period, so the app returns to setup."
+                    } else {
+                        base
+                    },
+                    fontSize = 14.sp,
+                    color = Theme.inkSoft,
+                )
+            },
+            confirmButton = {
+                TextButton(onClick = {
+                    store.removePeriodStart(on = candidate)
+                    deleteCandidate = null
+                }) { Text("Remove", color = Theme.phaseMenstrual) }
+            },
+            dismissButton = {
+                TextButton(onClick = { deleteCandidate = null }) {
+                    Text("Cancel", color = Theme.inkSoft)
+                }
+            },
+        )
+    }
+
+    if (logPastOpen) {
+        PeriodDateDialog(
+            question = "When did that period start?",
+            // Opens a cycle back from the anchor — the likeliest month for the period
+            // being backfilled.
+            initial = store.lastPeriodStart.minusDays(store.cycleLength.toLong()),
+            preview = { "Adds to your history. Today's cycle stays as it is." },
+            onConfirm = { store.startPeriod(on = it) },
+            onDismiss = { logPastOpen = false },
+            latest = store.lastPeriodStart.minusDays(1),
+        )
+    }
 }
 
 @Composable
-private fun CycleRow(date: LocalDate, subtitle: String, drop: Boolean) {
+private fun CycleRow(
+    date: LocalDate,
+    subtitle: String,
+    drop: Boolean,
+    onDelete: (() -> Unit)? = null,
+) {
     Row(
         Modifier.fillMaxWidth().padding(vertical = 6.dp),
         verticalAlignment = Alignment.CenterVertically,
@@ -140,6 +217,14 @@ private fun CycleRow(date: LocalDate, subtitle: String, drop: Boolean) {
             }
         }
         if (drop) DropGlyph(Theme.phaseMenstrual, 16.dp, filled = false)
+        if (onDelete != null) {
+            Icon(
+                Icons.Filled.Delete,
+                contentDescription = "Remove this period",
+                tint = Theme.inkSoft,
+                modifier = Modifier.size(18.dp).clickable(onClick = onDelete),
+            )
+        }
     }
 }
 

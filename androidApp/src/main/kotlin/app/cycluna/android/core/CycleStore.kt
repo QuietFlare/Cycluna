@@ -304,6 +304,24 @@ class CycleStore(context: Context) {
     }
 
     /**
+     * Remove one logged period start — the undo for an accidental log or a backfill
+     * mistake. Removing the only one returns the app to onboarding.
+     */
+    fun removePeriodStart(on: LocalDate) {
+        apply(Affects.CYCLE) { it.removePeriod(on.toString()) }
+    }
+
+    /**
+     * Restores a data-portability export, REPLACING everything on this device. Returns
+     * false when the file is not a Cycluna export; nothing changes in that case.
+     */
+    fun importData(text: String): Boolean {
+        val imported = CyclePersistence.importJson(text) ?: return false
+        apply(Affects.EVERYTHING) { imported }
+        return true
+    }
+
+    /**
      * One-line what-if for a candidate anchor date — "Day 5 · Menstrual · next period
      * around Sep 3" — so the date sheet can show what a choice means before it's saved.
      * Pure preview: nothing is stored.
@@ -371,13 +389,13 @@ class CycleStore(context: Context) {
         get() = CyclunaCore.daysUntilNextPeriod(startIso, cycleLength, periodLength)
 
     fun linearCycleDay(dateIso: String): Int =
-        CyclunaCore.projectedCycleDay(startIso, cycleLength, dateIso)
+        CyclunaCore.historyCycleDay(periodsCsv, cycleLength, dateIso)
 
     fun dayMarker(dateIso: String): String =
         CyclunaCore.dayMarker(periodsCsv, cycleLength, periodLength, dateIso)
 
     fun phaseForDate(dateIso: String): String =
-        CyclunaCore.phaseLabelForDate(startIso, cycleLength, periodLength, dateIso)
+        CyclunaCore.historyPhaseLabel(periodsCsv, cycleLength, periodLength, dateIso)
 
     /**
      * On-device principal moon phase for a date: "", "new", "first-quarter", "full",

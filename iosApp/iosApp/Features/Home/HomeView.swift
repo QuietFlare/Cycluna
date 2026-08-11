@@ -132,7 +132,7 @@ struct HomeView: View {
         }
         .cyclunaCard(padding: 24)
         .sheet(isPresented: $adjustOpen) {
-            PeriodDateSheet(initialDate: store.lastPeriodStart)
+            PeriodDateSheet(mode: .adjustLast, initialDate: store.lastPeriodStart)
         }
     }
 

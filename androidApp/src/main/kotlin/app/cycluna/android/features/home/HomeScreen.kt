@@ -261,20 +261,22 @@ private const val MILLIS_PER_DAY = 24L * 60 * 60 * 1000
  */
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-private fun PeriodDateDialog(
+internal fun PeriodDateDialog(
     question: String,
     initial: LocalDate,
     preview: (LocalDate) -> String,
     onConfirm: (LocalDate) -> Unit,
     onDismiss: () -> Unit,
+    // The newest selectable day. Defaults to today; the log-past flow passes the day
+    // before the current anchor, so a backfilled entry can only ever be history.
+    latest: LocalDate = LocalDate.now(),
 ) {
-    val today = remember { LocalDate.now() }
-    val todayMillis = today.toEpochDay() * MILLIS_PER_DAY
+    val latestMillis = latest.toEpochDay() * MILLIS_PER_DAY
     val state = rememberDatePickerState(
         initialSelectedDateMillis = initial.toEpochDay() * MILLIS_PER_DAY,
         selectableDates = object : SelectableDates {
-            override fun isSelectableDate(utcTimeMillis: Long) = utcTimeMillis <= todayMillis
-            override fun isSelectableYear(year: Int) = year <= today.year
+            override fun isSelectableDate(utcTimeMillis: Long) = utcTimeMillis <= latestMillis
+            override fun isSelectableYear(year: Int) = year <= latest.year
         },
     )
     val selected = state.selectedDateMillis?.let {
@@ -303,6 +305,10 @@ private fun PeriodDateDialog(
                         modifier = Modifier.padding(start = 24.dp, end = 24.dp, top = 16.dp),
                     )
                 },
+                // No headline: Material's default echoes the current selection in large
+                // type ("Jul 4, 2026"), which read as a meaningful date rather than just
+                // the pre-selected guess. iOS shows none either — the grid is the truth.
+                headline = null,
                 showModeToggle = false,
             )
             Text(

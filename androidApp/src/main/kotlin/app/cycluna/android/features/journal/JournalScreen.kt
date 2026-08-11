@@ -156,7 +156,9 @@ fun JournalScreen(selectedDay: Long, onSelectDay: (Long) -> Unit) {
                 }) { Text("Done", color = Theme.primary) }
             },
         ) {
-            DatePicker(state = state, title = null, showModeToggle = false)
+            // No title or headline: the dialog is nothing but the grid — Material's
+            // default headline echoed the selection in large type and read as noise.
+            DatePicker(state = state, title = null, headline = null, showModeToggle = false)
         }
     }
 }

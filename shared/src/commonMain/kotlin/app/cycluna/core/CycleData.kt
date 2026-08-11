@@ -64,6 +64,11 @@ data class CycleData(
         if (periodStarts.contains(iso)) this
         else copy(periodStarts = (periodStarts + iso).sorted())
 
+    /** Remove one logged period start — the undo for an accidental log or a backfill
+     *  mistake. Unknown dates are a no-op; every other entry stays untouched. */
+    fun removePeriod(iso: String): CycleData =
+        copy(periodStarts = periodStarts.filterNot { it == iso })
+
     /** Edit the most recent period start in place. Dedups like [logPeriod] — editing the
      *  last start onto a date already in history must not create a zero-length cycle. */
     fun withLastPeriodStart(iso: String): CycleData {
@@ -151,6 +156,31 @@ object CyclePersistence {
         )
         return json.encodeToString(ExportEnvelope.serializer(), envelope)
     }
+
+    /**
+     * Parse a data-portability export back into persisted state — the other half of
+     * [exportJson], for restoring a backup or moving between devices. Returns null when
+     * the text is not a Cycluna export (not JSON, wrong shape, or wrong schema — a future
+     * schema is refused rather than guessed at). Period starts get the same validation as
+     * [decode]; the export metadata (schema, exportedAt) is dropped.
+     */
+    fun importJson(text: String): CycleData? =
+        try {
+            val env = json.decodeFromString(ExportEnvelope.serializer(), text)
+            if (env.schema != EXPORT_SCHEMA) {
+                null
+            } else {
+                CycleData(
+                    periodStarts = env.periodStarts.filter { isIsoDate(it) }.sorted(),
+                    cycleLengthSetting = env.cycleLengthSetting,
+                    periodLength = env.periodLength,
+                    displayName = env.displayName,
+                    moods = env.moods,
+                    headaches = env.headaches,
+                    journal = env.journal,
+                )
+            }
+        } catch (_: Exception) { null }
 
     @Serializable
     private data class ExportEnvelope(

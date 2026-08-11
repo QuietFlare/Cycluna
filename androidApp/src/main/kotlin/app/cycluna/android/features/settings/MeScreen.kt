@@ -93,6 +93,19 @@ fun MeScreen(settings: AppSettings, onAbout: () -> Unit) {
     var editingCycleTime by remember { mutableStateOf(false) }
     var editingCheckInTime by remember { mutableStateOf(false) }
 
+    var importConfirm by remember { mutableStateOf(false) }
+    var importResult by remember { mutableStateOf<Boolean?>(null) }
+    val importPicker = rememberLauncherForActivityResult(
+        ActivityResultContracts.OpenDocument(),
+    ) { uri ->
+        if (uri != null) {
+            val text = runCatching {
+                context.contentResolver.openInputStream(uri)?.bufferedReader()?.use { it.readText() }
+            }.getOrNull()
+            importResult = text != null && store.importData(text)
+        }
+    }
+
     // Android 13+ needs the runtime permission before a notification can be posted. Asked at
     // the same moment iOS asks: the first time a reminder is switched on.
     val notificationPermission = rememberLauncherForActivityResult(
@@ -150,15 +163,6 @@ fun MeScreen(settings: AppSettings, onAbout: () -> Unit) {
             Stepper("Period length", store.periodLength, 2..10) {
                 store.periodLength = it
                 reschedule(settings)
-            }
-            // Shown only when it's surprising: the app is ignoring the stepper above.
-            // Explaining the normal case every time is just noise.
-            if (store.cycleLength != store.cycleLengthSetting) {
-                Text(
-                    "Using ${store.cycleLength} days from your logged periods.",
-                    fontSize = 12.sp,
-                    color = Theme.inkSoft,
-                )
             }
             SwitchRow("Fertility insights", settings.fertility) {
                 put(SettingsKeys.FERTILITY_INSIGHTS, it, settings.copy(fertility = it))
@@ -227,6 +231,7 @@ fun MeScreen(settings: AppSettings, onAbout: () -> Unit) {
         // Required by Play's data-safety rules and by GDPR/CCPA. Both are on-device.
         SettingsCard("Your data") {
             SettingRow("Export my data", onClick = { shareExport(context) }) {}
+            SettingRow("Import my data", onClick = { importConfirm = true }) {}
             SettingRow("Delete all my data", onClick = { confirmDelete = true }, danger = true) {}
         }
 
@@ -264,7 +269,9 @@ fun MeScreen(settings: AppSettings, onAbout: () -> Unit) {
                 }) { Text("Done", color = Theme.primary) }
             },
         ) {
-            DatePicker(state = state, title = null, showModeToggle = false)
+            // No title or headline: the dialog is nothing but the grid — Material's
+            // default headline echoed the selection in large type and read as noise.
+            DatePicker(state = state, title = null, headline = null, showModeToggle = false)
         }
     }
 
@@ -277,6 +284,53 @@ fun MeScreen(settings: AppSettings, onAbout: () -> Unit) {
         TimeDialog(settings.checkInMinute, onDismiss = { editingCheckInTime = false }) { minute ->
             put(SettingsKeys.CHECK_IN_MINUTE, minute, settings.copy(checkInMinute = minute))
         }
+    }
+
+    if (importConfirm) {
+        AlertDialog(
+            onDismissRequest = { importConfirm = false },
+            containerColor = Theme.surface,
+            title = { Text("Import data?", style = serif(20).copy(color = Theme.ink)) },
+            text = {
+                Text(
+                    "Importing replaces everything on this device with the file's data.",
+                    fontSize = 14.sp,
+                    color = Theme.inkSoft,
+                )
+            },
+            confirmButton = {
+                TextButton(onClick = {
+                    importConfirm = false
+                    importPicker.launch(arrayOf("application/json", "text/plain", "application/octet-stream"))
+                }) { Text("Choose file", color = Theme.phaseMenstrual) }
+            },
+            dismissButton = {
+                TextButton(onClick = { importConfirm = false }) {
+                    Text("Cancel", color = Theme.inkSoft)
+                }
+            },
+        )
+    }
+
+    importResult?.let { ok ->
+        AlertDialog(
+            onDismissRequest = { importResult = null },
+            containerColor = Theme.surface,
+            title = {
+                Text(if (ok) "Import complete" else "Import failed", style = serif(20).copy(color = Theme.ink))
+            },
+            text = {
+                Text(
+                    if (ok) "Your data has been restored."
+                    else "That file is not a Cycluna export. Nothing was changed.",
+                    fontSize = 14.sp,
+                    color = Theme.inkSoft,
+                )
+            },
+            confirmButton = {
+                TextButton(onClick = { importResult = null }) { Text("OK", color = Theme.primary) }
+            },
+        )
     }
 
     if (confirmDelete) {

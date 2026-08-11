@@ -124,4 +124,59 @@ class CycleDataTest {
         // Sorted chronologically regardless of input order.
         assertTrue(json.indexOf("2026-01-05") < json.indexOf("2026-03-10"))
     }
+
+    @Test
+    fun removePeriodDeletesOnlyThatStart() {
+        val data = CycleData(periodStarts = listOf("2026-04-01", "2026-06-13", "2026-08-11"))
+        assertEquals(
+            listOf("2026-04-01", "2026-08-11"),
+            data.removePeriod("2026-06-13").periodStarts,
+        )
+        // An unknown date is a no-op rather than an error.
+        assertEquals(data, data.removePeriod("2026-05-05"))
+    }
+
+    @Test
+    fun importRoundTripsAnExport() {
+        val data = CycleData(
+            periodStarts = listOf("2026-01-05", "2026-02-02"),
+            cycleLengthSetting = 30,
+            periodLength = 4,
+            displayName = "Sam",
+            moods = listOf(MoodLog("2026-02-03", 4, "good day")),
+            headaches = listOf(HeadacheLog(id = "h1", at = "2026-02-04T09:30", intensity = 2)),
+            journal = listOf(JournalEntry("j1", "2026-02-05", "hello")),
+        )
+        val imported = CyclePersistence.importJson(
+            CyclePersistence.exportJson(data, exportedAtIso = "2026-07-31T18:59:43Z")
+        )
+        assertEquals(data, imported)
+    }
+
+    @Test
+    fun importRefusesWhatIsNotACyclunaExport() {
+        assertNull(CyclePersistence.importJson("not json"))
+        assertNull(CyclePersistence.importJson("{}"))
+        // The on-disk format is not the export envelope.
+        assertNull(
+            CyclePersistence.importJson(
+                CyclePersistence.encode(CycleData(periodStarts = listOf("2026-01-05")))
+            )
+        )
+        // A future schema is refused rather than guessed at.
+        val wrongSchema = CyclePersistence
+            .exportJson(CycleData(), exportedAtIso = "2026-07-31T18:59:43Z")
+            .replace("cycluna.export.v1", "cycluna.export.v9")
+        assertNull(CyclePersistence.importJson(wrongSchema))
+    }
+
+    @Test
+    fun importDropsBadDatesLikeDecodeDoes() {
+        val text = """
+            {"schema":"cycluna.export.v1","exportedAt":"2026-07-31T18:59:43Z",
+             "displayName":"","cycleLengthSetting":28,"periodLength":5,
+             "periodStarts":["2026-01-05","garbage"],"moods":[],"headaches":[],"journal":[]}
+        """.trimIndent()
+        assertEquals(listOf("2026-01-05"), CyclePersistence.importJson(text)?.periodStarts)
+    }
 }

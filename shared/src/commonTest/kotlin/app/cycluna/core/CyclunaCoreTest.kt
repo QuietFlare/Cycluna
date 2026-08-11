@@ -37,15 +37,48 @@ class CyclunaCoreTest {
     }
 
     @Test
-    fun predictedCycleLengthIgnoresUnparseableEntries() {
-        // Three good starts giving two 27-day gaps (the minimum to relearn — see
-        // Cycle.MIN_GAPS_TO_LEARN), plus junk that must not break the average.
-        val csv = "2026-05-31,oops,2026-06-27,,2026-07-24"
-        assertEquals(27, CyclunaCore.predictedCycleLength(csv, 28))
+    fun dayMarkerNeverPredictsIntoThePast() {
+        val csv = "2026-05-17,2026-08-11"
+        // Logged periods still mark their own days.
+        assertEquals("period", CyclunaCore.dayMarker(csv, 28, 5, "2026-05-18"))
+        // But no predicted periods or fertile days before the latest logged start —
+        // the past is history, not prediction.
+        assertEquals("none", CyclunaCore.dayMarker(csv, 28, 5, "2026-06-14"))
+        assertEquals("none", CyclunaCore.dayMarker(csv, 28, 5, "2026-05-31"))
+        // Forward from the anchor, prediction is unchanged.
+        assertEquals("predicted-period", CyclunaCore.dayMarker(csv, 28, 5, "2026-09-08"))
     }
 
     @Test
-    fun predictedCycleLengthFallsBackWhenNothingParses() {
+    fun historyCycleDayCountsPastCyclesFromTheirOwnStart() {
+        val csv = "2026-05-17,2026-08-11"
+        // 5 Jun sits in the May cycle: its own day 20, not a projection from August.
+        assertEquals(20, CyclunaCore.historyCycleDay(csv, 28, "2026-06-05"))
+        // A long gap stays honest: day 40 of that cycle, never wrapped.
+        assertEquals(40, CyclunaCore.historyCycleDay(csv, 28, "2026-06-25"))
+        // From the latest start it projects forward by whole cycles.
+        assertEquals(1, CyclunaCore.historyCycleDay(csv, 28, "2026-09-08"))
+        // Before any logged start there is no cycle day to speak of.
+        assertEquals(0, CyclunaCore.historyCycleDay(csv, 28, "2026-05-01"))
+    }
+
+    @Test
+    fun historyPhaseLabelFollowsTheSameAnchorRules() {
+        val csv = "2026-05-17,2026-08-11"
+        assertEquals("Menstrual", CyclunaCore.historyPhaseLabel(csv, 28, 5, "2026-05-18"))
+        assertEquals("Luteal", CyclunaCore.historyPhaseLabel(csv, 28, 5, "2026-06-25"))
+        assertEquals("", CyclunaCore.historyPhaseLabel(csv, 28, 5, "2026-05-01"))
+    }
+
+    @Test
+    fun predictedCycleLengthIsAlwaysTheConfiguredSetting() {
+        // History never overrides the setting — even a clean run of 27-day gaps.
+        val csv = "2026-05-31,2026-06-27,2026-07-24"
+        assertEquals(28, CyclunaCore.predictedCycleLength(csv, 28))
+    }
+
+    @Test
+    fun predictedCycleLengthClampsAnImplausibleSetting() {
         assertEquals(30, CyclunaCore.predictedCycleLength("junk", 30))
         assertEquals(Cycle.DEFAULT_CYCLE_LENGTH, CyclunaCore.predictedCycleLength("", 99))
     }

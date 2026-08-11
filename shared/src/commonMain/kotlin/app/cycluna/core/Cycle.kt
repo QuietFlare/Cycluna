@@ -8,7 +8,6 @@ import kotlinx.datetime.daysUntil
 import kotlinx.datetime.minus
 import kotlinx.datetime.plus
 import kotlinx.datetime.todayIn
-import kotlin.math.floor
 import kotlin.math.max
 
 /** Menstrual-cycle phases. UI copy/colours live in the native layer, not here. */
@@ -69,12 +68,7 @@ object Cycle {
      */
     const val UNCLEAR_AFTER_LATE_DAYS = 14
 
-    data class Averages(val avgCycle: Int, val avgPeriod: Int)
-
     private fun today(): LocalDate = Clock.System.todayIn(TimeZone.currentSystemDefault())
-
-    // JS Math.round (half-up) — averages are non-negative, so floor(x+0.5) matches.
-    private fun jsRound(x: Double): Int = floor(x + 0.5).toInt()
 
     private fun normalizeCycleLength(raw: Int?, fallback: Int = DEFAULT_CYCLE_LENGTH): Int {
         val value = raw ?: fallback
@@ -82,34 +76,19 @@ object Cycle {
     }
 
     /**
-     * How many recent gaps between period starts must agree before logged history replaces
-     * the user's own cycle-length setting.
+     * The cycle length every prediction uses: the user's own setting, clamped to the
+     * plausible range. NEVER learned from history — a deliberate divergence from the web
+     * app, which relearned the length from logged gaps.
      *
-     * The web app (`cycle.ts`) relearns from a SINGLE gap. That is too eager, and actively
-     * harmful once lateness is modelled: a period that arrives four days late produces one
-     * long gap, which becomes the new baseline, against which the next late period looks
-     * normal. Lateness would quietly ratchet into the prediction and stop being reported.
-     * Two gaps is the same "don't conclude from one data point" bar the mood and moon
-     * insights hold themselves to.
+     * Two reasons. Learning absorbed lateness: a period four days late made one long gap,
+     * the gap became the new baseline, and the next late period looked normal — so
+     * lateness quietly stopped being reported. And learning silently overrode a number the
+     * user explicitly chose, surfacing as a confusing "using N days" note. The setting is
+     * the contract: history is recorded exactly as logged, and if the rhythm changes, the
+     * user changes the number.
      */
-    const val MIN_GAPS_TO_LEARN = 2
-
-    private fun averageRecentCycleLength(periods: List<PeriodEntry>, today: LocalDate): Int? {
-        val windowStart = today.minus(DatePeriod(months = 3))
-        val starts = periods.map { it.start }
-            .filter { it >= windowStart && it <= today }
-            .sorted()
-        if (starts.size < MIN_GAPS_TO_LEARN + 1) return null
-        val cycles = mutableListOf<Int>()
-        for (i in 1 until starts.size) {
-            val gap = starts[i - 1].daysUntil(starts[i])
-            if (gap in MIN_CYCLE_LENGTH..MAX_CYCLE_LENGTH) cycles.add(gap)
-        }
-        return if (cycles.size >= MIN_GAPS_TO_LEARN) jsRound(cycles.average()) else null
-    }
-
     fun predictedCycleLength(input: CycleInput, today: LocalDate = today()): Int =
-        averageRecentCycleLength(input.periods, today) ?: normalizeCycleLength(input.averageCycleLength)
+        normalizeCycleLength(input.averageCycleLength)
 
     /**
      * The most recent projected period start on or before [today], rolling [from] forward
@@ -193,38 +172,15 @@ object Cycle {
         )
     }
 
-    fun recomputeAverages(periods: List<PeriodEntry>, today: LocalDate = today()): Averages {
-        val sorted = periods.sortedBy { it.start }
-        val periodLengths = sorted.filter { it.end != null }
-            .map { it.start.daysUntil(it.end!!) + 1 }
-        val avgPeriod = if (periodLengths.isNotEmpty()) jsRound(periodLengths.average()) else DEFAULT_PERIOD_LENGTH
-        val avgCycle = averageRecentCycleLength(sorted, today) ?: DEFAULT_CYCLE_LENGTH
-        return Averages(avgCycle, avgPeriod)
-    }
-
-    fun isIrregular(periods: List<PeriodEntry>, today: LocalDate = today()): Boolean {
-        val sorted = periods.sortedBy { it.start }
-        if (sorted.size < 3) return false
-        val cutoff = today.minus(DatePeriod(months = 3))
-        val last3 = sorted.filter { it.start >= cutoff }.takeLast(3)
-        if (last3.size < 3) return false
-        val cycles = mutableListOf<Int>()
-        for (i in 1 until last3.size) {
-            cycles.add(last3[i - 1].start.daysUntil(last3[i].start))
-        }
-        return cycles.any { it < MIN_CYCLE_LENGTH || it > 35 }
-    }
-
     fun phaseForDate(input: CycleInput, date: LocalDate): Phase? =
         phaseBucket(input)?.phaseOf(date)
 
     /**
      * The anchor and lengths needed to place any date in a phase, worked out once.
      *
-     * [phaseForDate] recomputes [predictedCycleLength] — which filters, sorts and averages the
-     * whole period history — on every call. Bucketing a year of logs called it thousands of
-     * times and dominated the app's main-thread cost. Callers that classify many dates should
-     * build this once and reuse it.
+     * [phaseForDate] re-derives the anchor and lengths on every call. Bucketing a year of
+     * logs called it thousands of times and dominated the app's main-thread cost. Callers
+     * that classify many dates should build this once and reuse it.
      */
     class PhaseBucket(
         private val anchor: LocalDate,
