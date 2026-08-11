@@ -16,12 +16,12 @@ name: Release (Android)
 # exchanged for short-lived Google credentials scoped to this repo — no
 # service-account key exists anywhere.
 #
-# GATED on two repo VARIABLES (identifiers, not credentials — the attribute
-# condition on the pool means only this repo's workflows can use them):
+# GATED on six repo secrets. The first two are identifiers rather than
+# credentials, but they're stored as secrets anyway so they stay MASKED in
+# this public repo's Actions logs:
 #   PLAY_WIF_PROVIDER — projects/NUM/locations/global/workloadIdentityPools/…
 #   PLAY_SA_EMAIL     — the service account's email
-# and three signing SECRETS:
-#   UPLOAD_KEYSTORE_B64        — the upload keystore, base64 (base64 -i x.jks)
+#   UPLOAD_KEYSTORE_B64 — the upload keystore, base64 (base64 -i x.jks)
 #   KEYSTORE_STORE_PASSWORD / KEYSTORE_KEY_ALIAS / KEYSTORE_KEY_PASSWORD
 #
 # versionCode: Play rejects a repeat — bump appVersionCode in
@@ -45,11 +45,11 @@ jobs:
     uses: QuietFlare/ci-workflows/.github/workflows/play-release.yml@v1.2.0
     with:
       package-name: net.quietflare.cycluna
-      workload-identity-provider: ${{ vars.PLAY_WIF_PROVIDER }}
-      service-account: ${{ vars.PLAY_SA_EMAIL }}
       # The full pre-ship gate on the exact commit being uploaded.
       tasks: ':shared:jvmTest :androidApp:testDebugUnitTest :androidApp:lintDebug'
     secrets:
+      workload-identity-provider: ${{ secrets.PLAY_WIF_PROVIDER }}
+      service-account: ${{ secrets.PLAY_SA_EMAIL }}
       upload-keystore-b64: ${{ secrets.UPLOAD_KEYSTORE_B64 }}
       keystore-store-password: ${{ secrets.KEYSTORE_STORE_PASSWORD }}
       keystore-key-alias: ${{ secrets.KEYSTORE_KEY_ALIAS }}
