@@ -34,6 +34,13 @@ targets:
       path: iosApp/Info.plist
       properties:
         CFBundleDisplayName: Cycluna
+        # Reference the build settings rather than hardcoding numbers: with an
+        # explicit Info.plist, XcodeGen otherwise writes its DEFAULTS (1.0 and
+        # build 1) into the file, and the bundle ships those literals no matter
+        # what MARKETING_VERSION says. Apple rejected two uploads (ASC 90062)
+        # before this surfaced. Xcode expands $(…) in plist values at build.
+        CFBundleShortVersionString: $(MARKETING_VERSION)
+        CFBundleVersion: $(CURRENT_PROJECT_VERSION)
         # A storyboard, not the UILaunchScreen dictionary. That dictionary's UIImageName
         # rendered nothing at all (verified on device: brand background, no mark) and gives
         # no control over the mark's size or position. See LaunchScreen.storyboard.
