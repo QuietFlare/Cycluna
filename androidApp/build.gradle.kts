@@ -35,7 +35,7 @@ val canSignRelease = listOf("storeFile", "storePassword", "keyAlias", "keyPasswo
  * Declared up here so the artifact name can reuse them. `versionCode` must increase for every
  * upload — Play rejects a repeat — while `versionName` is the string users see.
  */
-val appVersionCode = 4
+val appVersionCode = 5
 val appVersionName = "1.0"
 
 /**
