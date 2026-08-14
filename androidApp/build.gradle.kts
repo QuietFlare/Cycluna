@@ -97,11 +97,15 @@ android {
     }
 }
 
+// F-Droid's build server deliberately builds UNSIGNED (they sign with their own key).
+// Their build recipe passes -PallowUnsignedRelease=true; nothing else ever should.
+val allowUnsignedRelease = providers.gradleProperty("allowUnsignedRelease").orNull == "true"
+
 // Fail at the moment the release artifact is requested, naming exactly what is missing.
 // Discovering this from Play's upload dialog instead is a much worse afternoon.
 tasks.matching { it.name in setOf("bundleRelease", "assembleRelease") }.configureEach {
     doFirst {
-        check(canSignRelease) {
+        check(canSignRelease || allowUnsignedRelease) {
             buildString {
                 appendLine("Release signing is not configured.")
                 appendLine("Expected: ${keystoreFile.path}")
@@ -114,6 +118,7 @@ tasks.matching { it.name in setOf("bundleRelease", "assembleRelease") }.configur
                         "Copy androidApp/keystore.properties.example there and fill it in."
                     }
                 )
+                appendLine("(Unsigned builds are only for F-Droid: -PallowUnsignedRelease=true)")
             }
         }
     }

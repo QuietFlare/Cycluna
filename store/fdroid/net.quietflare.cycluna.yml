@@ -1,0 +1,26 @@
+Categories:
+  - Sports & Health
+License: MIT
+AuthorName: QuietFlare
+WebSite: https://quietflare.net/cycluna
+SourceCode: https://github.com/QuietFlare/Cycluna
+IssueTracker: https://github.com/QuietFlare/Cycluna/issues
+
+AutoName: Cycluna
+
+RepoType: git
+Repo: https://github.com/QuietFlare/Cycluna.git
+
+Builds:
+  - versionName: '1.0'
+    versionCode: 5
+    commit: android-v1.0-5
+    subdir: androidApp
+    gradle:
+      - yes
+    prebuild: echo "allowUnsignedRelease=true" >> ../gradle.properties
+
+AutoUpdateMode: Version
+UpdateCheckMode: Tags ^android-v
+CurrentVersion: '1.0'
+CurrentVersionCode: 5

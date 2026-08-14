@@ -1,0 +1,39 @@
+Cycluna is a calm, private place to follow your cycle — and the moon alongside it.
+
+Everything stays on your phone. There is no account to create, no sign-up, and no cloud. Cycluna has no internet permission at all, so your data cannot be sent anywhere — because there is nowhere for it to go.
+
+<b>What you can track</b>
+
+• Period start dates, cycle length and period length
+• Mood, with a note when you want one
+• Headaches — time, intensity, symptoms and possible triggers
+• Journal entries for everything else
+
+<b>What Cycluna shows you</b>
+
+• Where you are in your cycle today, and which phase you are in
+• Your next period and fertile window, as estimates
+• A month calendar of your logged and predicted days
+• The moon's phase for every day, from real lunar maths — offline
+• Hormone reference curves for a typical cycle, to learn from
+• Mood patterns three ways: day by day, across your cycle phases, and through the lunar month
+
+<b>Honest by design</b>
+
+Cycluna names a pattern only when there is enough data to support one. Log too little and it says so, rather than inventing an insight. When a period is overdue it says that plainly instead of quietly sliding the prediction forward. And it never suggests the moon affects your body — research has not established that link, so the moon view describes your own entries and nothing more.
+
+<b>Private by design</b>
+
+• No account, no email, no identifier of any kind
+• No analytics, no trackers, no advertising, no crash reporting
+• No internet permission — the app cannot make network requests
+• Left out of Android cloud backup and device-to-device transfer
+• Optional fingerprint or face unlock
+• Export everything as a readable file, whenever you like
+• Delete everything permanently, from inside the app
+
+Reminders for your period, your fertile window, and a gentle daily check-in are scheduled entirely on your device. No push server is involved.
+
+Cycluna is a wellness and education tool. It is not a medical device, it does not diagnose or treat anything, and the fertile window is an estimate that must not be used as contraception. Every date it shows is calculated from the dates you enter — the app measures nothing about your body. Please talk to a healthcare professional about anything that matters to your health.
+
+Made by QuietFlare.
