@@ -6,7 +6,9 @@ plugins {
 }
 
 kotlin {
-    jvmToolchain(17)
+    // 21 (not 17) because F-Droid's build image ships only JDK 21, and reproducible
+    // builds require our published APK and their rebuild to use the same toolchain.
+    jvmToolchain(21)
 
     // JVM target — used only for fast unit tests of the pure domain logic.
     jvm()

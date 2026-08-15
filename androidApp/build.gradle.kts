@@ -35,7 +35,7 @@ val canSignRelease = listOf("storeFile", "storePassword", "keyAlias", "keyPasswo
  * Declared up here so the artifact name can reuse them. `versionCode` must increase for every
  * upload — Play rejects a repeat — while `versionName` is the string users see.
  */
-val appVersionCode = 5
+val appVersionCode = 6
 val appVersionName = "1.0"
 
 /**
@@ -92,8 +92,8 @@ android {
     }
 
     compileOptions {
-        sourceCompatibility = JavaVersion.VERSION_17
-        targetCompatibility = JavaVersion.VERSION_17
+        sourceCompatibility = JavaVersion.VERSION_21
+        targetCompatibility = JavaVersion.VERSION_21
     }
 }
 
@@ -125,7 +125,8 @@ tasks.matching { it.name in setOf("bundleRelease", "assembleRelease") }.configur
 }
 
 kotlin {
-    jvmToolchain(17)
+    // Must stay in lockstep with shared/build.gradle.kts — see the note there on why 21.
+    jvmToolchain(21)
 }
 
 // Every coordinate here must appear on the Acknowledgements screen (Apache 2.0 §4).
