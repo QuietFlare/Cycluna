@@ -10,7 +10,7 @@ AutoName: Cycluna
 
 RepoType: git
 Repo: https://github.com/QuietFlare/Cycluna.git
-Binaries:
+Binaries: 
   https://github.com/QuietFlare/Cycluna/releases/download/android-v%v-%c/cycluna-%v-%c-release.apk
 
 Builds:
