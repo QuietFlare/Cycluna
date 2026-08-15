@@ -35,7 +35,7 @@ val canSignRelease = listOf("storeFile", "storePassword", "keyAlias", "keyPasswo
  * Declared up here so the artifact name can reuse them. `versionCode` must increase for every
  * upload — Play rejects a repeat — while `versionName` is the string users see.
  */
-val appVersionCode = 6
+val appVersionCode = 7
 val appVersionName = "1.0"
 
 /**
@@ -89,6 +89,15 @@ android {
 
     buildFeatures {
         compose = true
+    }
+
+    dependenciesInfo {
+        // AGP's default embeds a Google-encrypted dependency list in the APK signing
+        // block; F-Droid's scanner rejects the APK outright for it ("extra signing
+        // block 'Dependency metadata'"). The bundle keeps it — Play Console reads it
+        // for security alerts, and Play is the only consumer of the .aab.
+        includeInApk = false
+        includeInBundle = true
     }
 
     compileOptions {
