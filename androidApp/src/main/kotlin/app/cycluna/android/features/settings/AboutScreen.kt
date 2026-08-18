@@ -12,6 +12,7 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Brush
@@ -27,7 +28,7 @@ import app.cycluna.android.designsystem.cyclunaCard
 import app.cycluna.android.designsystem.serif
 
 private const val SUPPORT_URL = "https://quietflare.net/cycluna/support"
-private const val SITE_URL = "https://quietflare.net/cycluna"
+// SITE_URL lives in AppLinks.kt — the share sheet points at the same page.
 
 /** Which page of the About stack is showing. */
 enum class AboutPage { ROOT, PRIVACY, DISCLAIMER, ACKNOWLEDGEMENTS }
@@ -61,6 +62,8 @@ fun AboutScreen(page: AboutPage, onNavigate: (AboutPage) -> Unit) {
 private fun AboutRoot(onNavigate: (AboutPage) -> Unit) {
     val context = LocalContext.current
     val uriHandler = LocalUriHandler.current
+    // The installer cannot change while the app runs, so this is asked once per screen entry.
+    val showRate = remember { canRateOnPlay(context) }
     val version = runCatching {
         val info = context.packageManager.getPackageInfo(context.packageName, 0)
         // Via the compat helper: PackageInfo.longVersionCode is API 28, and minSdk is 26.
@@ -105,8 +108,18 @@ private fun AboutRoot(onNavigate: (AboutPage) -> Unit) {
 
         Column(Modifier.cyclunaCard(padding = 18.dp), verticalArrangement = Arrangement.spacedBy(2.dp)) {
             LinkRow("Support") { uriHandler.openUri(SUPPORT_URL) }
+            // Only on a Play install: an F-Droid or sideloaded copy must not link to a
+            // store it did not come from.
+            if (showRate) {
+                HorizontalDivider(color = Theme.inkSoft.copy(alpha = 0.12f))
+                LinkRow("Rate Cycluna") { rateApp(context) }
+            }
             HorizontalDivider(color = Theme.inkSoft.copy(alpha = 0.12f))
-            LinkRow("quietflare.net/cycluna") { uriHandler.openUri(SITE_URL) }
+            // Sends quietflare.net/cycluna, not a store listing — one link that works
+            // whatever phone the recipient has, and editable without shipping a build.
+            // There is deliberately no row that merely *opens* that page: it exists to
+            // convince people to install the app, which everyone here already has.
+            LinkRow("Share Cycluna") { shareApp(context) }
         }
 
         Text(
