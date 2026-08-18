@@ -15,14 +15,6 @@ Binaries:
 
 Builds:
   - versionName: '1.0'
-    versionCode: 7
-    commit: b50da09cfceba0405dacae2b1ca9ad1dc65197d0
-    subdir: androidApp
-    gradle:
-      - yes
-    prebuild: echo "allowUnsignedRelease=true" >> ../gradle.properties
-
-  - versionName: '1.0'
     versionCode: 8
     commit: 4d5b324c2f295e8db1c652ba954dc11847c2f89f
     subdir: androidApp
