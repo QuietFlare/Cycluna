@@ -41,11 +41,13 @@ val appVersionName = "1.0"
 /**
  * Output artifacts are named for the app, not the Gradle module. Without this they come out
  * as `androidApp-release.aab`, which says nothing about which app or which build it is once a
- * few of them are sitting in a folder together. Includes the version code because that is the
- * number Play actually distinguishes uploads by.
+ * few of them are sitting in a folder together. Version name ONLY — no version code: F-Droid's
+ * Binaries URL is `android-v%v/cycluna-%v-release.apk` (the reviewer asked for `%c` to go), so
+ * the release tag and APK name carry just the versionName, and every tagged release must bump
+ * appVersionName, not only appVersionCode.
  */
 base {
-    archivesName = "cycluna-$appVersionName-$appVersionCode"
+    archivesName = "cycluna-$appVersionName"
 }
 
 android {

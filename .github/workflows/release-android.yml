@@ -4,7 +4,11 @@ name: Release (Android)
 # pipeline (github.com/QuietFlare/ci-workflows). ONLY an `android-v*` tag or a
 # manual dispatch triggers this — never a branch push.
 #
-#   git tag android-v1.0-4 && git push --tags
+#   git tag android-v1.0.1 && git push --tags
+#
+# Tags carry the versionName ONLY (no versionCode): F-Droid's Binaries URL is
+# android-v%v/cycluna-%v-release.apk, so bump appVersionName for every tagged
+# release — two tags for the same versionName cannot both resolve.
 #
 # Promotion to production is deliberately manual in the Play Console — the
 # shared pipeline refuses the production track outright.
