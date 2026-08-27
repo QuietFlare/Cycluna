@@ -21,12 +21,11 @@ Builds:
     gradle:
       - yes
 
-AllowedAPKSigningKeys: 
-  c9daab7b5df1d3ebc9542912862cbff6324340f2747f414f392af44c780e10e0
+AllowedAPKSigningKeys: c9daab7b5df1d3ebc9542912862cbff6324340f2747f414f392af44c780e10e0
 
 AutoUpdateMode: Version
 UpdateCheckMode: Tags ^android-v
-UpdateCheckData: androidApp/build.gradle.kts|appVersionCode = 
-  (\d+)|.|appVersionName = "([^"]+)"
+UpdateCheckData: androidApp/build.gradle.kts|appVersionCode = (\d+)|.|appVersionName
+  = "([^"]+)"
 CurrentVersion: '1.0'
 CurrentVersionCode: 9
