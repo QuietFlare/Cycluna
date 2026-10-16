@@ -65,7 +65,7 @@ struct HomeView: View {
                 VStack(spacing: 12) {
                     MoonWheel(cycleDay: store.cycleDay,
                               cycleLength: store.cycleLength,
-                              periodLength: store.periodLength,
+                              periodLength: store.currentPeriodLength,
                               phaseLabel: store.phaseLabel,
                               size: 260,
                               showsOvulation: fertilityInsights)
@@ -107,11 +107,28 @@ struct HomeView: View {
             // replaces it. The button returns the moment it's needed again, including the
             // late/unclear states, which is exactly when logging matters most.
             if store.isInLoggedPeriod {
-                HStack(spacing: 8) {
-                    Image(systemName: "drop.fill").foregroundStyle(Theme.phaseMenstrual)
-                    Text(store.periodStartedText)
-                        .fontWeight(.medium)
-                        .foregroundStyle(Theme.inkSoft)
+                VStack(spacing: 10) {
+                    HStack(spacing: 8) {
+                        Image(systemName: "drop.fill").foregroundStyle(Theme.phaseMenstrual)
+                        Text(store.periodStartedText)
+                            .fontWeight(.medium)
+                            .foregroundStyle(Theme.inkSoft)
+                    }
+                    // Optional: closes the period on its last day of bleeding. Until tapped,
+                    // the period is assumed to last the usual length from Me.
+                    if store.canEndPeriodToday {
+                        Button {
+                            store.endPeriod()
+                        } label: {
+                            Text("Period ended today")
+                                .font(.subheadline.weight(.semibold))
+                                .foregroundStyle(Theme.primary)
+                                .padding(.vertical, 10)
+                                .padding(.horizontal, 20)
+                                .overlay(Capsule().stroke(Theme.primary, lineWidth: 1))
+                        }
+                        .accessibilityHint("Records today as the last day of this period")
+                    }
                 }
                 .padding(.vertical, 14)
             } else {
@@ -132,7 +149,7 @@ struct HomeView: View {
         }
         .cyclunaCard(padding: 24)
         .sheet(isPresented: $adjustOpen) {
-            PeriodDateSheet(mode: .adjustLast, initialDate: store.lastPeriodStart)
+            PeriodDateSheet(mode: .adjustLast, initialDate: store.lastPeriodStart, initialEnd: store.lastPeriodEnd)
         }
     }
 

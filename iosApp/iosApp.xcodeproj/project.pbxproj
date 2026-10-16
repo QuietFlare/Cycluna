@@ -18,6 +18,7 @@
 		23B855962E09299AC614D544 /* CycleCopy.swift in Sources */ = {isa = PBXBuildFile; fileRef = 64B27654E170F63FB561A4DE /* CycleCopy.swift */; };
 		2D0F4AA7CD25E418D74F8D13 /* JournalView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 23ACD5EEE0D92FA3A2582592 /* JournalView.swift */; };
 		307C2654CD5972A25FB7FD87 /* iOSApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = 668CECA83ACC03A83C85A623 /* iOSApp.swift */; };
+		32C7FD9E18B83BDE0D335562 /* PeriodRangeCalendar.swift in Sources */ = {isa = PBXBuildFile; fileRef = FB241EDF324C4F8CA681DDA2 /* PeriodRangeCalendar.swift */; };
 		35FDF75CACF8123E41350D44 /* moon-events.json in Resources */ = {isa = PBXBuildFile; fileRef = 7C3F7C14F19337B551DEEACD /* moon-events.json */; };
 		3CC7B86A9A87D4BD10AAF15C /* MoonWheel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 35C9BD4A028EF537A38FFF0D /* MoonWheel.swift */; };
 		3D105B6469EFC7FE8F3B8187 /* OnboardingView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0BB085D77DF580BE731F47E6 /* OnboardingView.swift */; };
@@ -105,6 +106,7 @@
 		F22F9861F28F8FF1A34E49CA /* MoodCharts.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MoodCharts.swift; sourceTree = "<group>"; };
 		F543015C899423D4B01CEB2E /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
 		F8CB42801875358EE3DE8630 /* MoonEventCatalog.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MoonEventCatalog.swift; sourceTree = "<group>"; };
+		FB241EDF324C4F8CA681DDA2 /* PeriodRangeCalendar.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PeriodRangeCalendar.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXGroup section */
@@ -258,6 +260,7 @@
 				C3A6342845F3A129A536C657 /* MoonSection.swift */,
 				35C9BD4A028EF537A38FFF0D /* MoonWheel.swift */,
 				310C1D6A76E69700426F2D3E /* PeriodDateSheet.swift */,
+				FB241EDF324C4F8CA681DDA2 /* PeriodRangeCalendar.swift */,
 			);
 			path = Home;
 			sourceTree = "<group>";
@@ -407,6 +410,7 @@
 				B11508CD3EB80271125D3AA3 /* NotificationRouter.swift in Sources */,
 				3D105B6469EFC7FE8F3B8187 /* OnboardingView.swift in Sources */,
 				C08419C7CE26D34E7A11FC7D /* PeriodDateSheet.swift in Sources */,
+				32C7FD9E18B83BDE0D335562 /* PeriodRangeCalendar.swift in Sources */,
 				0BBE51BE44A7F51FBB5C3DAC /* PhaseContent.swift in Sources */,
 				DDFDC474602B4FE4C55995CD /* PhasesView.swift in Sources */,
 				771B757953061958DA272057 /* PrivacyPolicyView.swift in Sources */,
@@ -606,7 +610,7 @@
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				CODE_SIGN_IDENTITY = "iPhone Developer";
-				CURRENT_PROJECT_VERSION = 3;
+				CURRENT_PROJECT_VERSION = 4;
 				FRAMEWORK_SEARCH_PATHS = (
 					"$(inherited)",
 					"$(SRCROOT)/../shared/build/xcode-frameworks/$(CONFIGURATION)/$(SDK_NAME)",
@@ -616,7 +620,7 @@
 					"$(inherited)",
 					"@executable_path/Frameworks",
 				);
-				MARKETING_VERSION = 1.0.1;
+				MARKETING_VERSION = 1.1.0;
 				OTHER_LDFLAGS = (
 					"$(inherited)",
 					"-framework",
@@ -634,7 +638,7 @@
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				CODE_SIGN_IDENTITY = "iPhone Developer";
-				CURRENT_PROJECT_VERSION = 3;
+				CURRENT_PROJECT_VERSION = 4;
 				FRAMEWORK_SEARCH_PATHS = (
 					"$(inherited)",
 					"$(SRCROOT)/../shared/build/xcode-frameworks/$(CONFIGURATION)/$(SDK_NAME)",
@@ -644,7 +648,7 @@
 					"$(inherited)",
 					"@executable_path/Frameworks",
 				);
-				MARKETING_VERSION = 1.0.1;
+				MARKETING_VERSION = 1.1.0;
 				OTHER_LDFLAGS = (
 					"$(inherited)",
 					"-framework",

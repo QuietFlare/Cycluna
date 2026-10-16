@@ -160,7 +160,7 @@ fun MeScreen(settings: AppSettings, onAbout: () -> Unit) {
                 store.cycleLengthSetting = it
                 reschedule(settings)
             }
-            Stepper("Period length", store.periodLength, 2..10) {
+            Stepper("Usual period length", store.periodLength, 2..10) {
                 store.periodLength = it
                 reschedule(settings)
             }

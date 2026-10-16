@@ -5,6 +5,10 @@ import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertNull
 
+/**
+ * Exercises the JVM in-memory actual only, hence jvmTest. The Keychain actual is covered by
+ * iosAppTests and the Keystore actual needs an instrumented test; neither runs here.
+ */
 class KeyVaultTest {
     private val vault = defaultKeyVault()
 

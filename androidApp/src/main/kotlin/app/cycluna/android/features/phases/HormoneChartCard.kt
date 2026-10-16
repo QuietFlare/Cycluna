@@ -83,8 +83,8 @@ fun HormoneChartCard() {
         }
     }
 
-    val bands = remember(cycleLength, store.periodLength) {
-        val pl = store.periodLength
+    val bands = remember(cycleLength, store.currentPeriodLength) {
+        val pl = store.currentPeriodLength
         val folEnd = cycleLength / 2 - 2
         val ovEnd = cycleLength / 2 + 2
         fun band(s: Int, e: Int, c: Color) =

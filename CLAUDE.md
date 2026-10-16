@@ -68,7 +68,8 @@ derived values, and the web behavior is wrong for a native app that models laten
 shared/src/commonMain/kotlin/app/cycluna/core/
     Moon.kt              synodic moon-phase math
     Cycle.kt             cycle-day / phase prediction + late/unclear model (pure, explicit `today`)
-    CycleData.kt         persisted state + format (decode drops non-ISO period starts)
+    CycleData.kt         persisted state + format (decode drops non-ISO period starts and
+                         ends that belong to no start or precede it)
     CyclunaCore.kt       Swift-friendly facade (String/Int returns; hides kotlinx-datetime)
     MoodInsights.kt      mood aggregation, insight window, range lookups for paging
     MoonMoodInsights.kt  mood grouped by moon phase; lunation paging
@@ -109,6 +110,11 @@ export JAVA_HOME=/Library/Java/JavaVirtualMachines/temurin-17.jdk/Contents/Home
 
 # Run the shared-core unit tests (fast, no simulator)
 ./gradlew :shared:jvmTest
+
+# Everything Gradle can check before a commit: shared tests on the JVM and both iOS
+# simulator targets, the Android unit tests, and lint. A few minutes. `./gradlew test`
+# is NOT this — it runs only the Android-flavoured unit tests.
+./gradlew check
 
 # Link the iOS simulator framework
 ./gradlew :shared:linkDebugFrameworkIosSimulatorArm64
@@ -202,7 +208,17 @@ These were decided deliberately and are easy to undo by accident:
 
 ## Current state
 - ✅ Shared core: `Moon`, `Cycle` (incl. late/unclear model), `CycleData`, `CyclunaCore`,
-  `MoodInsights`, `MoonMoodInsights`, `HeadacheInsights`, `KeyVault`. **102 tests**.
+  `MoodInsights`, `MoonMoodInsights`, `HeadacheInsights`, `KeyVault`. **118 tests**.
+- ✅ **Optional end date per logged period** (`periodEnds`, keyed by start ISO, additive to the
+  file format). A period's own end sets its menstrual days everywhere: `Cycle.status`, the
+  phase bucket the mood and headache insights use, `dayMarker`, `historyPhaseLabel`, the wheel,
+  the Phases tab and the hormone chart. Open periods use the "Usual period length" setting.
+  The end never moves ovulation, the fertile window or the luteal phase — bleeding length says
+  nothing about ovulation timing. "Period ended today" on the hero from day 2; Adjust dates
+  picks start and end on one calendar (Material range picker / hand-built `PeriodRangeCalendar`)
+  and absorbs any other logged period the new span overlaps. Editing only the start reopens
+  the period. The phase bucket now counts past cycles from their own logged starts (the
+  calendar's rule) instead of wrapping modulo the cycle length from the latest start.
 - ✅ iOS app, 4 tabs. Real navigation bars on every tab (hiding them was what made the
   app feel like a web page). Home: greeting · hero (`MoonWheel`, fertile/next-period,
   "Start period today") · hormone highlight · 7-day mood strip · month calendar · cycles
@@ -212,10 +228,10 @@ These were decided deliberately and are easy to undo by accident:
 - ✅ Reminders: period/ovulation with configurable lead, daily mood/headache check-in,
   and a single follow-up when a predicted period doesn't arrive. All local.
 - ✅ About: version from the bundle, privacy policy, health disclaimer, support links.
-- ✅ **32 iOS tests** — reminder planning, cycle copy, the Keychain actual, and the
+- ✅ **37 iOS tests** — reminder planning, cycle copy, the Keychain actual, and the
   Swift↔Kotlin bridge (a wrong argument there is invisible to `jvmTest`).
 - ✅ **Android app, 4 tabs, feature-equivalent with iOS.** Same `CycleData` file format, same
-  reminder ids and settings keys, same guardrails and copy. **27 Android unit tests**
+  reminder ids and settings keys, same guardrails and copy. **32 Android unit tests**
   (`ReminderPlanTest`, `CycleCopyTest` — both ported case-for-case from the iOS suites — plus
   `AndroidAcknowledgementsTest` and `MoonEventsParityTest`, which pins the duplicated
   `moon-events.json` byte-for-byte against the iOS copy).
@@ -223,7 +239,8 @@ These were decided deliberately and are easy to undo by accident:
   Backlog: Dynamic Type audit; App Store
   screenshots + Health & Fitness category + release signing; Android release signing +
   R8/minify (debug-only so far) and the Play Data safety declaration; instrumented tests for
-  the Keystore `KeyVault` actual, which local unit tests cannot reach.
+  the Keystore `KeyVault` actual, which local unit tests cannot reach; learning ovulation
+  timing from logged ovulation tests, opt-in, parked until someone asks (issue #6).
 
 ## Android specifics worth knowing
 - **minSdk 26 / target-compile 36.** Lint checks every API call against 26 — it has already

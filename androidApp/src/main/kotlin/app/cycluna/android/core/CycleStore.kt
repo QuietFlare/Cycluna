@@ -195,6 +195,7 @@ class CycleStore(context: Context) {
         val endIso: String,          // exclusive
         val title: String,
         val spanDays: Int,
+        val periodLength: Int = 0,
         val daily: List<DailyMood> = emptyList(),
         val cycle: List<MoodPoint> = emptyList(),
         val moon: List<MoonMoodPoint> = emptyList(),
@@ -233,6 +234,7 @@ class CycleStore(context: Context) {
                     endIso = cycle.endIso,
                     title = "Cycle of ${pretty(cycle.startIso)}",
                     spanDays = cycle.length,
+                    periodLength = cycle.periodLength,
                     cycle = cycle.points,
                     summary = cycle.summary,
                     insight = cycle.insight,
@@ -278,9 +280,31 @@ class CycleStore(context: Context) {
         get() = data.cycleLengthSetting
         set(value) = apply(Affects.CYCLE) { it.withCycleLength(value) }
 
+    /** The usual period length — what an open period is assumed to last. */
     var periodLength: Int
         get() = data.periodLength
         set(value) = apply(Affects.CYCLE) { it.withPeriodLength(value) }
+
+    /** Logged end of the current period (last day of bleeding), or null while it is open. */
+    val lastPeriodEnd: LocalDate? get() = data.lastPeriodEndIso?.let { parseIso(it) }
+
+    val isPeriodOpen: Boolean get() = hasLoggedPeriod && data.lastPeriodEndIso == null
+
+    /** Offer "Period ended today" from day 2: on day 1 it would sit where "Start period
+     *  today" was a moment ago, and a habitual second tap would log a one-day period. */
+    val canEndPeriodToday: Boolean get() = isInLoggedPeriod && isPeriodOpen && cycleDay >= 2
+
+    /** Close the current period on its last day of bleeding, today by default. */
+    fun endPeriod(on: LocalDate = LocalDate.now()) {
+        val start = data.lastPeriodStartIso ?: return
+        apply(Affects.CYCLE) { it.withPeriodEnd(start, on.toString()) }
+    }
+
+    /** Edit the current period's dates together; a null [end] leaves it open. Other logged
+     *  periods the new span overlaps are absorbed — see the core rule. */
+    fun adjustCurrentPeriod(start: LocalDate, end: LocalDate?) {
+        apply(Affects.CYCLE) { it.adjustingCurrentPeriod(start.toString(), end?.toString()) }
+    }
 
     var displayName: String
         get() = data.displayName
@@ -329,7 +353,7 @@ class CycleStore(context: Context) {
     fun previewLine(anchor: LocalDate): String {
         val a = anchor.toString()
         val day = CyclunaCore.cycleDay(a, cycleLength, periodLength)
-        val phase = CyclunaCore.cyclePhaseLabel(a, cycleLength, periodLength)
+        val phase = CyclunaCore.cyclePhaseLabel(a, "", cycleLength, periodLength)
         val next = LocalDate.parse(CyclunaCore.nextPeriodIso(a, cycleLength))
         return "Day $day · $phase · next period around ${next.format(MONTH_DAY)}"
     }
@@ -353,7 +377,9 @@ class CycleStore(context: Context) {
     // ---------------------------------------------------------------------------------
 
     private val startIso: String get() = data.lastPeriodStartIso ?: LocalDate.now().toString()
+    private val endIso: String get() = data.lastPeriodEndIso ?: ""
     private val periodsCsv: String get() = data.periodStartsCsv
+    private val periodEndsCsv: String get() = data.periodEndsCsv
 
     private fun parseIso(s: String): LocalDate =
         runCatching { LocalDate.parse(s) }.getOrDefault(LocalDate.now())
@@ -382,8 +408,11 @@ class CycleStore(context: Context) {
     // Derived cycle values
     // ---------------------------------------------------------------------------------
 
-    val phaseLabel: String get() = CyclunaCore.cyclePhaseLabel(startIso, cycleLength, periodLength)
-    val phaseEmoji: String get() = CyclunaCore.cyclePhaseEmoji(startIso, cycleLength, periodLength)
+    val phaseLabel: String get() = CyclunaCore.cyclePhaseLabel(startIso, endIso, cycleLength, periodLength)
+    val phaseEmoji: String get() = CyclunaCore.cyclePhaseEmoji(startIso, endIso, cycleLength, periodLength)
+
+    /** How long the current period is taken to be: its logged end if closed, else the usual. */
+    val currentPeriodLength: Int get() = CyclunaCore.currentPeriodLength(startIso, endIso, periodLength)
     val cycleDay: Int get() = CyclunaCore.cycleDay(startIso, cycleLength, periodLength)
     val daysUntilNextPeriod: Int
         get() = CyclunaCore.daysUntilNextPeriod(startIso, cycleLength, periodLength)
@@ -392,10 +421,10 @@ class CycleStore(context: Context) {
         CyclunaCore.historyCycleDay(periodsCsv, cycleLength, dateIso)
 
     fun dayMarker(dateIso: String): String =
-        CyclunaCore.dayMarker(periodsCsv, cycleLength, periodLength, dateIso)
+        CyclunaCore.dayMarker(periodsCsv, periodEndsCsv, cycleLength, periodLength, dateIso)
 
     fun phaseForDate(dateIso: String): String =
-        CyclunaCore.historyPhaseLabel(periodsCsv, cycleLength, periodLength, dateIso)
+        CyclunaCore.historyPhaseLabel(periodsCsv, periodEndsCsv, cycleLength, periodLength, dateIso)
 
     /**
      * On-device principal moon phase for a date: "", "new", "first-quarter", "full",
@@ -461,10 +490,15 @@ class CycleStore(context: Context) {
     val showsFertileWindow: Boolean get() = tracking == TrackingState.NORMAL
 
     /** Today falls inside the logged period — the cycle is normal and still in its first days. */
-    val isInLoggedPeriod: Boolean get() = tracking == TrackingState.NORMAL && cycleDay <= periodLength
+    val isInLoggedPeriod: Boolean get() = tracking == TrackingState.NORMAL && cycleDay <= currentPeriodLength
 
-    /** "Period started 10 Aug" — shown in place of the start button while the period is on. */
-    val periodStartedText: String get() = "Period started ${lastPeriodStart.format(DAY_MONTH)}"
+    /** "Period started 10 Aug" while open, "Period 10 Aug – 14 Aug" once closed — shown in
+     *  place of the start button while the period is on. */
+    val periodStartedText: String
+        get() {
+            val end = lastPeriodEnd ?: return "Period started ${lastPeriodStart.format(DAY_MONTH)}"
+            return "Period ${lastPeriodStart.format(DAY_MONTH)} – ${end.format(DAY_MONTH)}"
+        }
 
     val fertileContext: String
         get() = CycleCopy.fertileContext(tracking, daysLate)
@@ -490,7 +524,7 @@ class CycleStore(context: Context) {
         get() = parseIso(CyclunaCore.nextFullMoonIso(LocalDate.now().toString()))
     val phaseAtNextFullMoon: String
         get() = CyclunaCore.phaseLabelForDate(
-            startIso, cycleLength, periodLength,
+            startIso, endIso, cycleLength, periodLength,
             CyclunaCore.nextFullMoonIso(LocalDate.now().toString()),
         )
 

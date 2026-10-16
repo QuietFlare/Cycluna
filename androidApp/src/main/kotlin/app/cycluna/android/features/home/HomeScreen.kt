@@ -2,8 +2,11 @@ package app.cycluna.android.features.home
 
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.tween
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.interaction.collectIsPressedAsState
 import androidx.compose.foundation.layout.Arrangement
@@ -11,25 +14,27 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material3.Button
+import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.DatePicker
 import androidx.compose.material3.DatePickerDefaults
 import androidx.compose.material3.DatePickerDialog
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.DateRangePicker
 import androidx.compose.material3.Icon
 import androidx.compose.material3.SelectableDates
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.material3.rememberDatePickerState
+import androidx.compose.material3.rememberDateRangePickerState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -61,6 +66,8 @@ import app.cycluna.android.features.phases.PhaseIcon
 import java.time.Instant
 import java.time.LocalDate
 import java.time.ZoneOffset
+import java.time.format.DateTimeFormatter
+import java.util.Locale
 
 @Composable
 fun HomeScreen() {
@@ -144,7 +151,7 @@ private fun HeroCard() {
             MoonWheel(
                 cycleDay = store.cycleDay,
                 cycleLength = store.cycleLength,
-                periodLength = store.periodLength,
+                periodLength = store.currentPeriodLength,
                 phaseLabel = store.phaseLabel,
                 dayProgress = dayProgress,
                 showOvulation = settings.fertility,
@@ -206,18 +213,39 @@ private fun HeroCard() {
         // replaces it. The button returns the moment it's needed again, including the
         // late/unclear states, which is exactly when logging matters most.
         if (store.isInLoggedPeriod) {
-            Row(
-                horizontalArrangement = Arrangement.spacedBy(8.dp),
-                verticalAlignment = Alignment.CenterVertically,
-                modifier = Modifier.padding(vertical = 14.dp),
-            ) {
-                DropGlyph(Theme.phaseMenstrual, 16.dp)
-                Text(
-                    store.periodStartedText,
-                    fontWeight = FontWeight.Medium,
-                    fontSize = 15.sp,
-                    color = Theme.inkSoft,
-                )
+            Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                Row(
+                    horizontalArrangement = Arrangement.spacedBy(8.dp),
+                    verticalAlignment = Alignment.CenterVertically,
+                    modifier = Modifier.padding(top = 14.dp, bottom = if (store.canEndPeriodToday) 6.dp else 14.dp),
+                ) {
+                    DropGlyph(Theme.phaseMenstrual, 16.dp)
+                    Text(
+                        store.periodStartedText,
+                        fontWeight = FontWeight.Medium,
+                        fontSize = 15.sp,
+                        color = Theme.inkSoft,
+                    )
+                }
+                // Optional: closes the period on its last day of bleeding. Until tapped, the
+                // period is assumed to last the usual length from Me.
+                if (store.canEndPeriodToday) {
+                    OutlinedButton(
+                        onClick = { store.endPeriod() },
+                        shape = CircleShape,
+                        border = BorderStroke(1.dp, Theme.primary),
+                        colors = ButtonDefaults.outlinedButtonColors(contentColor = Theme.primary),
+                        contentPadding = androidx.compose.foundation.layout.PaddingValues(
+                            horizontal = 20.dp,
+                            vertical = 10.dp,
+                        ),
+                        modifier = Modifier.padding(bottom = 8.dp).semantics {
+                            onClick(label = "Records today as the last day of this period", action = null)
+                        },
+                    ) {
+                        Text("Period ended today", fontWeight = FontWeight.SemiBold)
+                    }
+                }
             }
         } else {
             Button(
@@ -242,17 +270,93 @@ private fun HeroCard() {
     }
 
     if (adjustOpen) {
-        PeriodDateDialog(
-            question = "When did your last period start?",
-            initial = store.lastPeriodStart,
+        AdjustPeriodDialog(
+            initialStart = store.lastPeriodStart,
+            initialEnd = store.lastPeriodEnd,
             preview = store::previewLine,
-            onConfirm = { store.lastPeriodStart = it },
+            onConfirm = store::adjustCurrentPeriod,
             onDismiss = { adjustOpen = false },
         )
     }
 }
 
+/**
+ * Both dates of the current period in one calendar: tap the first day, then the last, and
+ * the range shades. The end is optional on purpose — most people never set it and the
+ * usual length applies — so a lone start saves as open, and the line above the grid says
+ * which state the selection is in. No separate "still going" control: tapping any day
+ * once a range is set starts over with that day alone.
+ */
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+private fun AdjustPeriodDialog(
+    initialStart: LocalDate,
+    initialEnd: LocalDate?,
+    preview: (LocalDate) -> String,
+    onConfirm: (LocalDate, LocalDate?) -> Unit,
+    onDismiss: () -> Unit,
+) {
+    val today = LocalDate.now()
+    val todayMillis = today.toEpochDay() * MILLIS_PER_DAY
+    val state = rememberDateRangePickerState(
+        initialSelectedStartDateMillis = initialStart.toEpochDay() * MILLIS_PER_DAY,
+        initialSelectedEndDateMillis = initialEnd?.let { it.toEpochDay() * MILLIS_PER_DAY },
+        selectableDates = object : SelectableDates {
+            override fun isSelectableDate(utcTimeMillis: Long) = utcTimeMillis <= todayMillis
+            override fun isSelectableYear(year: Int) = year <= today.year
+        },
+    )
+    val start = state.selectedStartDateMillis?.let { LocalDate.ofEpochDay(it / MILLIS_PER_DAY) } ?: initialStart
+    val end = state.selectedEndDateMillis?.let { LocalDate.ofEpochDay(it / MILLIS_PER_DAY) }
+    val summary = if (end == null) "Started ${start.format(DAY_MONTH)} · still going"
+                  else "${start.format(DAY_MONTH)} – ${end.format(DAY_MONTH)} · ${start.until(end).days + 1} days"
+
+    DatePickerDialog(
+        onDismissRequest = onDismiss,
+        colors = DatePickerDefaults.colors(containerColor = Theme.surface),
+        confirmButton = {
+            TextButton(onClick = { onConfirm(start, end); onDismiss() }) {
+                Text("Save", color = Theme.primary)
+            }
+        },
+        dismissButton = {
+            TextButton(onClick = onDismiss) { Text("Cancel", color = Theme.inkSoft) }
+        },
+    ) {
+        Column(horizontalAlignment = Alignment.CenterHorizontally) {
+            Text(
+                "Adjust your period",
+                style = serif(18).copy(color = Theme.ink),
+                modifier = Modifier.padding(start = 24.dp, end = 24.dp, top = 16.dp),
+            )
+            Text(
+                summary,
+                fontSize = 13.sp,
+                color = Theme.inkSoft,
+                modifier = Modifier.padding(top = 4.dp, bottom = 4.dp),
+            )
+            // Weight, not a fixed height: the range grid scrolls through months and would
+            // otherwise take the whole dialog, pushing the buttons off screen.
+            DateRangePicker(
+                state = state,
+                title = null,
+                headline = null,
+                showModeToggle = false,
+                modifier = Modifier.weight(1f, fill = false).heightIn(max = 400.dp),
+            )
+            Text(
+                preview(start),
+                fontSize = 12.sp,
+                color = Theme.inkSoft,
+                textAlign = TextAlign.Center,
+                modifier = Modifier.padding(start = 16.dp, end = 16.dp, top = 4.dp, bottom = 8.dp),
+            )
+        }
+    }
+}
+
 private const val MILLIS_PER_DAY = 24L * 60 * 60 * 1000
+private val DAY_MONTH = DateTimeFormatter.ofPattern("d MMM", Locale.ENGLISH)
 
 /**
  * The shared period-date dialog behind both Home entry points. Past-only, like every period

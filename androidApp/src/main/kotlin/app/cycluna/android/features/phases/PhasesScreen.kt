@@ -96,7 +96,7 @@ private fun PhaseCard(phase: PhaseContent) {
             // Real dates only — the "D17–28" cycle-day shorthand under them read as
             // jargon, and the hormone chart above already maps days to phases.
             Text(
-                phase.dateRangeText(store.cycleLength, store.periodLength, cycleStartFor(phase)),
+                phase.dateRangeText(store.cycleLength, store.currentPeriodLength, cycleStartFor(phase)),
                 Modifier.weight(1f),
                 fontSize = 14.sp,
                 fontWeight = FontWeight.SemiBold,

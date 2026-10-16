@@ -70,7 +70,7 @@ struct PhasesView: View {
                 Spacer()
                 // Real dates only — the "D17–28" cycle-day shorthand under them read as
                 // jargon, and the hormone chart above already maps days to phases.
-                Text(p.dateRangeText(cycleLength: store.cycleLength, periodLength: store.periodLength,
+                Text(p.dateRangeText(cycleLength: store.cycleLength, periodLength: store.currentPeriodLength,
                                      cycleStart: cycleStart(for: p)))
                     .font(.subheadline.weight(.semibold))
                     .foregroundStyle(Theme.ink)

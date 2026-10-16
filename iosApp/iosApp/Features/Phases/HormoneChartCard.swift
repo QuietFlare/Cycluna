@@ -33,7 +33,7 @@ struct HormoneChartCard: View {
     }
 
     private var phases: [Phase] {
-        let pl = store.periodLength
+        let pl = store.currentPeriodLength
         let folEnd = cycleLength / 2 - 2
         let ovEnd = cycleLength / 2 + 2
         func band(_ label: String, _ s: Int, _ e: Int, _ c: Color) -> Phase {

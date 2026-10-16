@@ -57,7 +57,7 @@ struct MeView: View {
                     DatePicker("Last period start", selection: $store.lastPeriodStart,
                                in: ...Date.now, displayedComponents: .date)
                     Stepper("Cycle length: \(store.cycleLengthSetting) days", value: $store.cycleLengthSetting, in: 21...45)
-                    Stepper("Period length: \(store.periodLength) days", value: $store.periodLength, in: 2...10)
+                    Stepper("Usual period length: \(store.periodLength) days", value: $store.periodLength, in: 2...10)
                     Toggle("Fertility insights", isOn: $fertilityInsights)
                         .onChange(of: fertilityInsights) { _, _ in remindersChanged() }
                 } header: {

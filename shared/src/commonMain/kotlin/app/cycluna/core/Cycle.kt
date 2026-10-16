@@ -18,13 +18,26 @@ enum class Phase(val label: String, val emoji: String) {
     LUTEAL("Luteal", "🌙"),
 }
 
-/** A logged period; [end] is null while it is still open/ongoing. */
-data class PeriodEntry(val start: LocalDate, val end: LocalDate? = null)
+/** A logged period; [end] is the last day of bleeding, inclusive, or null while open. */
+data class PeriodEntry(val start: LocalDate, val end: LocalDate? = null) {
+    /** This period's own length when it was closed, else the usual [fallback]. */
+    fun lengthOr(fallback: Int): Int =
+        end?.let { (start.daysUntil(it) + 1).coerceAtLeast(1) } ?: fallback
+}
+
+/** The logged periods as dates, unreadable entries skipped. Kotlin-side only. */
+internal fun CycleData.periodEntries(): List<PeriodEntry> =
+    periodStarts.mapNotNull { s ->
+        val start = runCatching { LocalDate.parse(s) }.getOrNull() ?: return@mapNotNull null
+        val end = periodEnds[s]?.let { runCatching { LocalDate.parse(it) }.getOrNull() }
+        PeriodEntry(start, end?.takeIf { it >= start })
+    }.sortedBy { it.start }
 
 /** Lean cycle inputs — the emerging domain model, replacing the old VaultData. */
 data class CycleInput(
     val periods: List<PeriodEntry> = emptyList(),
     val averageCycleLength: Int? = null,
+    /** The usual period length — what a period without a logged end is assumed to last. */
     val averagePeriodLength: Int? = null,
 )
 
@@ -43,6 +56,7 @@ data class CycleStatus(
     val phase: Phase,
     val daysUntilNextPeriod: Int,
     val cycleLength: Int,
+    /** The current period's length: its logged end when closed, else the usual length. */
     val periodLength: Int,
     val lastPeriodStart: LocalDate?,
     /** Days past the predicted start with nothing logged; 0 when not overdue. */
@@ -134,11 +148,12 @@ object Cycle {
         val sorted = input.periods.sortedBy { it.start }
         val last = sorted.lastOrNull()
         val cycleLength = predictedCycleLength(input, today)
-        val periodLength = input.averagePeriodLength ?: DEFAULT_PERIOD_LENGTH
+        val usual = input.averagePeriodLength ?: DEFAULT_PERIOD_LENGTH
 
         if (last == null) {
-            return CycleStatus(1, Phase.FOLLICULAR, cycleLength, cycleLength, periodLength, null)
+            return CycleStatus(1, Phase.FOLLICULAR, cycleLength, cycleLength, usual, null)
         }
+        val periodLength = last.lengthOr(usual)
 
         // The anchor is the period the user actually logged — deliberately NOT rolled forward.
         // Rolling (see [mostRecentStart]) would advance into a fabricated new cycle the moment
@@ -150,13 +165,8 @@ object Cycle {
         if (cycleDay < 1) cycleDay = 1
 
         // Past the predicted length the person is still (predicted) luteal — the `else` branch
-        // catches that, so a late cycle never wraps around into MENSTRUAL on its own.
-        val phase = when {
-            cycleDay <= periodLength -> Phase.MENSTRUAL
-            cycleDay <= cycleLength / 2 - 2 -> Phase.FOLLICULAR
-            cycleDay <= cycleLength / 2 + 2 -> Phase.OVULATORY
-            else -> Phase.LUTEAL
-        }
+        // in [phaseOfDay] catches that, so a late cycle never wraps into MENSTRUAL on its own.
+        val phase = phaseOfDay(cycleDay, cycleLength, periodLength)
 
         val daysLate = max(0, cycleDay - 1 - cycleLength)
         val tracking = when {
@@ -176,33 +186,61 @@ object Cycle {
         phaseBucket(input)?.phaseOf(date)
 
     /**
-     * The anchor and lengths needed to place any date in a phase, worked out once.
+     * The one home for the day → phase boundaries. Only the first boundary depends on the
+     * period: bleeding length does not move ovulation, which sits on the cycle length.
+     */
+    fun phaseOfDay(day: Int, cycleLength: Int, periodLength: Int): Phase = when {
+        day <= periodLength -> Phase.MENSTRUAL
+        day <= cycleLength / 2 - 2 -> Phase.FOLLICULAR
+        day <= cycleLength / 2 + 2 -> Phase.OVULATORY
+        else -> Phase.LUTEAL
+    }
+
+    /**
+     * Everything needed to place any date in a phase, worked out once.
      *
-     * [phaseForDate] re-derives the anchor and lengths on every call. Bucketing a year of
-     * logs called it thousands of times and dominated the app's main-thread cost. Callers
-     * that classify many dates should build this once and reuse it.
+     * [phaseForDate] re-derives it on every call. Bucketing a year of logs called it
+     * thousands of times and dominated the app's main-thread cost. Callers that classify
+     * many dates should build this once and reuse it.
+     *
+     * Dates are placed against LOGGED history, the same rules as `CyclunaCore.historyCycleDay`:
+     * a past cycle counts from its own start and is never wrapped (day 40 of a long gap is
+     * luteal, not a fresh period), while dates from the latest start onward project forward
+     * by whole cycles. Each logged period keeps its own length; the usual length covers open
+     * periods, projected ones, and anything before the first logged start, which is projected
+     * backwards from it.
      */
     class PhaseBucket(
-        private val anchor: LocalDate,
+        periods: List<PeriodEntry>,
         val cycleLength: Int,
-        private val periodLength: Int,
+        private val usualPeriodLength: Int,
     ) {
+        private val periods = periods.sortedBy { it.start }
+        private val starts = this.periods.map { it.start }
+
         fun phaseOf(date: LocalDate): Phase {
-            val diff = anchor.daysUntil(date)
-            val day = ((diff % cycleLength) + cycleLength) % cycleLength + 1
-            return when {
-                day <= periodLength -> Phase.MENSTRUAL
-                day <= cycleLength / 2 - 2 -> Phase.FOLLICULAR
-                day <= cycleLength / 2 + 2 -> Phase.OVULATORY
-                else -> Phase.LUTEAL
+            val index = starts.indexOfLast { it <= date }
+            if (index < 0) {
+                val diff = starts.first().daysUntil(date)
+                val day = ((diff % cycleLength) + cycleLength) % cycleLength + 1
+                return phaseOfDay(day, cycleLength, usualPeriodLength)
+            }
+            val period = periods[index]
+            val daysSince = period.start.daysUntil(date)
+            return if (index == periods.lastIndex) {
+                val firstCycle = daysSince < cycleLength
+                phaseOfDay(daysSince % cycleLength + 1, cycleLength,
+                           if (firstCycle) period.lengthOr(usualPeriodLength) else usualPeriodLength)
+            } else {
+                phaseOfDay(daysSince + 1, cycleLength, period.lengthOr(usualPeriodLength))
             }
         }
     }
 
     /** null when nothing is logged — there is no cycle to place dates against. */
     fun phaseBucket(input: CycleInput, today: LocalDate = today()): PhaseBucket? {
-        val anchor = input.periods.maxByOrNull { it.start }?.start ?: return null
-        return PhaseBucket(anchor, predictedCycleLength(input, today),
+        if (input.periods.isEmpty()) return null
+        return PhaseBucket(input.periods, predictedCycleLength(input, today),
                            input.averagePeriodLength ?: DEFAULT_PERIOD_LENGTH)
     }
 

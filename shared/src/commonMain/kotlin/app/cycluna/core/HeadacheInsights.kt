@@ -24,7 +24,7 @@ object HeadacheInsights {
     private fun today(): LocalDate = Clock.System.todayIn(TimeZone.currentSystemDefault())
 
     private fun inputOf(data: CycleData) = CycleInput(
-        periods = data.periodStarts.map { PeriodEntry(LocalDate.parse(it)) },
+        periods = data.periodEntries(),
         averageCycleLength = data.cycleLengthSetting,
         averagePeriodLength = data.periodLength,
     )

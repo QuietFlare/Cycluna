@@ -134,6 +134,8 @@ final class CycleStore {
         let endIso: String          // exclusive
         let title: String
         let spanDays: Int
+        /// This cycle's own period length (phase lens only), for the menstrual band.
+        var periodLength: Int = 0
         var daily: [DailyMood] = []
         var cycle: [MoodPoint] = []
         var moon: [MoonMoodPoint] = []
@@ -172,6 +174,7 @@ final class CycleStore {
                                     endIso: cycle.endIso,
                                     title: "Cycle of \(pretty(cycle.startIso))",
                                     spanDays: Int(cycle.length))
+                page.periodLength = Int(cycle.periodLength)
                 page.cycle = cycle.points
                 page.summary = cycle.summary
                 page.insight = cycle.insight
@@ -231,9 +234,34 @@ final class CycleStore {
         get { Int(data.cycleLengthSetting) }
         set { apply(.cycle) { $0.withCycleLength(days: Int32(newValue)) } }
     }
+    /// The usual period length — what an open period is assumed to last.
     var periodLength: Int {
         get { Int(data.periodLength) }
         set { apply(.cycle) { $0.withPeriodLength(days: Int32(newValue)) } }
+    }
+
+    /// Logged end of the current period (last day of bleeding), or nil while it is open.
+    var lastPeriodEnd: Date? { data.lastPeriodEndIso.map { parseISO($0) } }
+
+    var isPeriodOpen: Bool { data.hasLoggedPeriod && data.lastPeriodEndIso == nil }
+
+    /// Offer "Period ended today" from day 2: on day 1 it would sit where "Start period
+    /// today" was a moment ago, and a habitual second tap would log a one-day period.
+    var canEndPeriodToday: Bool { isInLoggedPeriod && isPeriodOpen && cycleDay >= 2 }
+
+    /// Close the current period on its last day of bleeding, today by default.
+    func endPeriod(on date: Date = .now) {
+        guard let start = data.lastPeriodStartIso else { return }
+        apply(.cycle) { $0.withPeriodEnd(startIso: start, endIso: self.iso(Calendar.current.startOfDay(for: date))) }
+    }
+
+    /// Edit the current period's dates together; a nil `end` leaves it open. Other logged
+    /// periods the new span overlaps are absorbed — see the core rule.
+    func adjustCurrentPeriod(start: Date, end: Date?) {
+        let cal = Calendar.current
+        let s = iso(cal.startOfDay(for: start))
+        let e = end.map { self.iso(cal.startOfDay(for: $0)) }
+        apply(.cycle) { $0.adjustingCurrentPeriod(startIso: s, endIso: e) }
     }
     var displayName: String {
         get { data.displayName }
@@ -276,7 +304,7 @@ final class CycleStore {
     func previewLine(anchor: Date) -> String {
         let a = iso(Calendar.current.startOfDay(for: anchor))
         let day = Int(core.cycleDay(lastPeriodStartIso: a, cycleLength: Int32(cycleLength), periodLength: Int32(periodLength)))
-        let phase = core.cyclePhaseLabel(lastPeriodStartIso: a, cycleLength: Int32(cycleLength), periodLength: Int32(periodLength))
+        let phase = core.cyclePhaseLabel(lastPeriodStartIso: a, lastPeriodEndIso: "", cycleLength: Int32(cycleLength), periodLength: Int32(periodLength))
         let next = parseISO(core.nextPeriodIso(lastPeriodStartIso: a, cycleLength: Int32(cycleLength)))
         return "Day \(day) · \(phase) · next period around \(fmt(next, "MMM d"))"
     }
@@ -297,7 +325,9 @@ final class CycleStore {
 
     private func iso(_ d: Date) -> String { fmt(d, "yyyy-MM-dd") }
     private var startISO: String { data.lastPeriodStartIso ?? iso(.now) }
+    private var endISO: String { data.lastPeriodEndIso ?? "" }
     private var periodsCsv: String { data.periodStartsCsv }
+    private var periodEndsCsv: String { data.periodEndsCsv }
 
     private func parseISO(_ s: String) -> Date {
         let f = DateFormatter(); f.dateFormat = "yyyy-MM-dd"; f.timeZone = .current
@@ -333,8 +363,13 @@ final class CycleStore {
 
     // MARK: - Derived cycle values
 
-    var phaseLabel: String { core.cyclePhaseLabel(lastPeriodStartIso: startISO, cycleLength: Int32(cycleLength), periodLength: Int32(periodLength)) }
-    var phaseEmoji: String { core.cyclePhaseEmoji(lastPeriodStartIso: startISO, cycleLength: Int32(cycleLength), periodLength: Int32(periodLength)) }
+    var phaseLabel: String { core.cyclePhaseLabel(lastPeriodStartIso: startISO, lastPeriodEndIso: endISO, cycleLength: Int32(cycleLength), periodLength: Int32(periodLength)) }
+    var phaseEmoji: String { core.cyclePhaseEmoji(lastPeriodStartIso: startISO, lastPeriodEndIso: endISO, cycleLength: Int32(cycleLength), periodLength: Int32(periodLength)) }
+
+    /// How long the current period is taken to be: its logged end if closed, else the usual.
+    var currentPeriodLength: Int {
+        Int(core.currentPeriodLength(lastPeriodStartIso: startISO, lastPeriodEndIso: endISO, periodLength: Int32(periodLength)))
+    }
     var cycleDay: Int { Int(core.cycleDay(lastPeriodStartIso: startISO, cycleLength: Int32(cycleLength), periodLength: Int32(periodLength))) }
     var daysUntilNextPeriod: Int { Int(core.daysUntilNextPeriod(lastPeriodStartIso: startISO, cycleLength: Int32(cycleLength), periodLength: Int32(periodLength))) }
 
@@ -343,10 +378,10 @@ final class CycleStore {
         Int(core.historyCycleDay(periodStartsCsv: periodsCsv, cycleLength: Int32(cycleLength), dateIso: dateIso))
     }
     func dayMarker(_ dateIso: String) -> String {
-        core.dayMarker(periodStartsCsv: periodsCsv, cycleLength: Int32(cycleLength), periodLength: Int32(periodLength), dateIso: dateIso)
+        core.dayMarker(periodStartsCsv: periodsCsv, periodEndsCsv: periodEndsCsv, cycleLength: Int32(cycleLength), periodLength: Int32(periodLength), dateIso: dateIso)
     }
     func phaseForDate(_ dateIso: String) -> String {
-        core.historyPhaseLabel(periodStartsCsv: periodsCsv, cycleLength: Int32(cycleLength), periodLength: Int32(periodLength), dateIso: dateIso)
+        core.historyPhaseLabel(periodStartsCsv: periodsCsv, periodEndsCsv: periodEndsCsv, cycleLength: Int32(cycleLength), periodLength: Int32(periodLength), dateIso: dateIso)
     }
 
     /// On-device principal moon phase for a date: "", "new", "first-quarter", "full",
@@ -404,10 +439,14 @@ final class CycleStore {
     var showsFertileWindow: Bool { tracking == .normal }
 
     /// Today falls inside the logged period — the cycle is normal and still in its first days.
-    var isInLoggedPeriod: Bool { tracking == .normal && cycleDay <= periodLength }
+    var isInLoggedPeriod: Bool { tracking == .normal && cycleDay <= currentPeriodLength }
 
-    /// "Period started 10 Aug" — shown in place of the start button while the period is on.
-    var periodStartedText: String { "Period started \(fmt(lastPeriodStart, "d MMM"))" }
+    /// "Period started 10 Aug" while open, "Period 10 Aug – 14 Aug" once closed — shown in
+    /// place of the start button while the period is on.
+    var periodStartedText: String {
+        guard let end = lastPeriodEnd else { return "Period started \(fmt(lastPeriodStart, "d MMM"))" }
+        return "Period \(fmt(lastPeriodStart, "d MMM")) – \(fmt(end, "d MMM"))"
+    }
 
     var fertileContext: String {
         CycleCopy.fertileContext(tracking: tracking, daysLate: daysLate)
@@ -432,7 +471,7 @@ final class CycleStore {
     var daysUntilNextFullMoon: Int { Int(core.daysUntilNextFullMoon(fromIso: iso(.now))) }
     var nextFullMoonDate: Date { parseISO(core.nextFullMoonIso(fromIso: iso(.now))) }
     var phaseAtNextFullMoon: String {
-        core.phaseLabelForDate(lastPeriodStartIso: startISO, cycleLength: Int32(cycleLength),
+        core.phaseLabelForDate(lastPeriodStartIso: startISO, lastPeriodEndIso: endISO, cycleLength: Int32(cycleLength),
                                periodLength: Int32(periodLength), dateIso: core.nextFullMoonIso(fromIso: iso(.now)))
     }
 

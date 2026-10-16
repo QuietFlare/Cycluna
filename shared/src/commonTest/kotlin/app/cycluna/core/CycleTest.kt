@@ -220,14 +220,14 @@ class CycleTest {
         val anchor = "2026-07-22"
         // Forward projection is unchanged: one cycle on lands on a predicted period day.
         assertEquals("predicted-period",
-            CyclunaCore.dayMarker(anchor, cycleLength = 28, periodLength = 5, dateIso = "2026-08-19"))
+            CyclunaCore.dayMarker(anchor, "", cycleLength = 28, periodLength = 5, dateIso = "2026-08-19"))
         // Before the anchor there are no projections — the past is history, not
         // prediction, and phantom "predicted" days collided with backfilled real periods.
         assertEquals("none",
-            CyclunaCore.dayMarker(anchor, cycleLength = 28, periodLength = 5, dateIso = "2026-06-24"))
+            CyclunaCore.dayMarker(anchor, "", cycleLength = 28, periodLength = 5, dateIso = "2026-06-24"))
         // A luteal day in the current cycle is not a period/fertile marker.
         assertEquals("none",
-            CyclunaCore.dayMarker(anchor, cycleLength = 28, periodLength = 5, dateIso = "2026-08-10"))
+            CyclunaCore.dayMarker(anchor, "", cycleLength = 28, periodLength = 5, dateIso = "2026-08-10"))
     }
 
     @Test
@@ -239,5 +239,74 @@ class CycleTest {
     @Test
     fun cycleDayNullWithoutPeriods() {
         assertNull(Cycle.cycleDayForDate(CycleInput(), LocalDate(2024, 1, 1)))
+    }
+
+    // --- Per-period end dates ---------------------------------------------------
+    // Only the menstrual/follicular boundary moves. Bleeding length says nothing about
+    // when ovulation happens, so the ovulatory and luteal days stay on the cycle length.
+
+    @Test
+    fun aLoggedEndSetsThisPeriodsMenstrualDays() {
+        val closed = CycleInput(
+            periods = listOf(PeriodEntry(LocalDate(2024, 1, 1), end = LocalDate(2024, 1, 7))),
+            averagePeriodLength = 5,
+        )
+        assertEquals(Phase.MENSTRUAL, Cycle.status(closed, today = LocalDate(2024, 1, 7)).phase)
+        assertEquals(7, Cycle.status(closed, today = LocalDate(2024, 1, 7)).periodLength)
+        assertEquals(Phase.FOLLICULAR, Cycle.status(closed, today = LocalDate(2024, 1, 8)).phase)
+        // Ovulation does not move.
+        assertEquals(Phase.OVULATORY, Cycle.status(closed, today = LocalDate(2024, 1, 14)).phase)
+    }
+
+    @Test
+    fun aShortLoggedEndCutsThePeriodBeforeTheUsualLength() {
+        val short = CycleInput(
+            periods = listOf(PeriodEntry(LocalDate(2024, 1, 1), end = LocalDate(2024, 1, 3))),
+            averagePeriodLength = 5,
+        )
+        assertEquals(Phase.FOLLICULAR, Cycle.status(short, today = LocalDate(2024, 1, 4)).phase)
+    }
+
+    @Test
+    fun anOpenPeriodIsAssumedToLastTheUsualLength() {
+        val open = CycleInput(periods = listOf(PeriodEntry(LocalDate(2024, 1, 1))), averagePeriodLength = 6)
+        assertEquals(Phase.MENSTRUAL, Cycle.status(open, today = LocalDate(2024, 1, 6)).phase)
+        assertEquals(6, Cycle.status(open, today = LocalDate(2024, 1, 6)).periodLength)
+    }
+
+    @Test
+    fun phaseBucketGivesEachLoggedPeriodItsOwnLength() {
+        val input = CycleInput(
+            periods = listOf(
+                PeriodEntry(LocalDate(2024, 1, 1), end = LocalDate(2024, 1, 3)),   // 3 days
+                PeriodEntry(LocalDate(2024, 1, 29)),                                // open → usual 5
+            ),
+            averageCycleLength = 28, averagePeriodLength = 5,
+        )
+        val bucket = Cycle.phaseBucket(input, today = LocalDate(2024, 2, 1))!!
+        assertEquals(Phase.MENSTRUAL, bucket.phaseOf(LocalDate(2024, 1, 3)))
+        assertEquals(Phase.FOLLICULAR, bucket.phaseOf(LocalDate(2024, 1, 4)))
+        assertEquals(Phase.MENSTRUAL, bucket.phaseOf(LocalDate(2024, 2, 2)))   // day 5 of the open one
+        // Projected future periods use the usual length, not the last logged one.
+        assertEquals(Phase.MENSTRUAL, bucket.phaseOf(LocalDate(2024, 3, 1)))   // day 5 of the next projected cycle
+        assertEquals(Phase.FOLLICULAR, bucket.phaseOf(LocalDate(2024, 3, 2)))
+    }
+
+    @Test
+    fun phaseBucketCountsPastCyclesFromTheirOwnStart() {
+        // The mood lens used to wrap every past date modulo the cycle length from the LATEST
+        // start, so with irregular cycles a logged day landed in a phase the calendar never
+        // showed. Past cycles now count from their own start, never wrapped — the rule the
+        // calendar already followed.
+        val input = CycleInput(
+            periods = listOf(PeriodEntry(LocalDate(2026, 5, 17)), PeriodEntry(LocalDate(2026, 8, 11))),
+            averageCycleLength = 28, averagePeriodLength = 5,
+        )
+        val bucket = Cycle.phaseBucket(input, today = LocalDate(2026, 8, 12))!!
+        assertEquals(Phase.MENSTRUAL, bucket.phaseOf(LocalDate(2026, 5, 18)))   // day 2 of May
+        assertEquals(Phase.LUTEAL, bucket.phaseOf(LocalDate(2026, 6, 25)))      // day 40 of a long gap
+        assertEquals(Phase.LUTEAL, bucket.phaseOf(LocalDate(2026, 7, 15)))      // day 60, still not wrapped
+        // Before the first logged start: projected back from it with the usual length.
+        assertEquals(Phase.MENSTRUAL, bucket.phaseOf(LocalDate(2026, 4, 20)))   // 27 days before → day 2
     }
 }

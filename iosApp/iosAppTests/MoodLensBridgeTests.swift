@@ -23,7 +23,8 @@ final class MoodLensBridgeTests: XCTestCase {
                 MoodLog(date: "2026-08-02", mood: 4, note: ""),
             ],
             headaches: [],
-            journal: []
+            journal: [],
+            periodEnds: [:]
         )
     }
 
@@ -45,7 +46,10 @@ final class MoodLensBridgeTests: XCTestCase {
 
     func testMoonLensGetsAllFourPoints() {
         let data = makeData()
-        let span = MoonMoodInsights.shared.lunationSpans(data: data, count: 12).last!
+        // The lunation holding the logged days, not the current one: the current lunation
+        // moves on every month, and this test silently emptied once the calendar did.
+        let span = MoonMoodInsights.shared.lunationSpans(data: data, count: 24)
+            .first { $0.startIso <= "2026-07-30" && $0.endIso > "2026-07-30" }!
         let pts = MoonMoodInsights.shared.moonPointsInRange(data: data,
                                                            fromIso: span.startIso,
                                                            toIso: span.endIso)

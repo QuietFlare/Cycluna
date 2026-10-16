@@ -26,27 +26,27 @@ class CyclunaCoreTest {
         // A hand-edited or partially corrupted cycle-store.json can carry non-ISO entries:
         // `decode` does not validate them, so the facade must not throw on one.
         val csv = "2026-07-22,not-a-date,,2026-06-24"
-        val marker = CyclunaCore.dayMarker(csv, 28, 5, "2026-07-23")
+        val marker = CyclunaCore.dayMarker(csv, "", 28, 5, "2026-07-23")
         assertEquals("period", marker)
     }
 
     @Test
     fun dayMarkerWithNothingUsableReportsNoMarkerRatherThanThrowing() {
-        assertEquals("none", CyclunaCore.dayMarker("nonsense,also-nonsense", 28, 5, "2026-07-23"))
-        assertEquals("none", CyclunaCore.dayMarker("", 28, 5, "2026-07-23"))
+        assertEquals("none", CyclunaCore.dayMarker("nonsense,also-nonsense", "", 28, 5, "2026-07-23"))
+        assertEquals("none", CyclunaCore.dayMarker("", "", 28, 5, "2026-07-23"))
     }
 
     @Test
     fun dayMarkerNeverPredictsIntoThePast() {
         val csv = "2026-05-17,2026-08-11"
         // Logged periods still mark their own days.
-        assertEquals("period", CyclunaCore.dayMarker(csv, 28, 5, "2026-05-18"))
+        assertEquals("period", CyclunaCore.dayMarker(csv, "", 28, 5, "2026-05-18"))
         // But no predicted periods or fertile days before the latest logged start —
         // the past is history, not prediction.
-        assertEquals("none", CyclunaCore.dayMarker(csv, 28, 5, "2026-06-14"))
-        assertEquals("none", CyclunaCore.dayMarker(csv, 28, 5, "2026-05-31"))
+        assertEquals("none", CyclunaCore.dayMarker(csv, "", 28, 5, "2026-06-14"))
+        assertEquals("none", CyclunaCore.dayMarker(csv, "", 28, 5, "2026-05-31"))
         // Forward from the anchor, prediction is unchanged.
-        assertEquals("predicted-period", CyclunaCore.dayMarker(csv, 28, 5, "2026-09-08"))
+        assertEquals("predicted-period", CyclunaCore.dayMarker(csv, "", 28, 5, "2026-09-08"))
     }
 
     @Test
@@ -65,9 +65,9 @@ class CyclunaCoreTest {
     @Test
     fun historyPhaseLabelFollowsTheSameAnchorRules() {
         val csv = "2026-05-17,2026-08-11"
-        assertEquals("Menstrual", CyclunaCore.historyPhaseLabel(csv, 28, 5, "2026-05-18"))
-        assertEquals("Luteal", CyclunaCore.historyPhaseLabel(csv, 28, 5, "2026-06-25"))
-        assertEquals("", CyclunaCore.historyPhaseLabel(csv, 28, 5, "2026-05-01"))
+        assertEquals("Menstrual", CyclunaCore.historyPhaseLabel(csv, "", 28, 5, "2026-05-18"))
+        assertEquals("Luteal", CyclunaCore.historyPhaseLabel(csv, "", 28, 5, "2026-06-25"))
+        assertEquals("", CyclunaCore.historyPhaseLabel(csv, "", 28, 5, "2026-05-01"))
     }
 
     @Test
@@ -137,7 +137,7 @@ class CyclunaCoreTest {
         var sawSomething = false
         // A full synodic month must contain at least one principal phase.
         for (d in 1..30) {
-            val iso = "2026-08-%02d".format(d)
+            val iso = "2026-08-" + d.toString().padStart(2, '0')
             val m = CyclunaCore.moonPhaseMarker(iso)
             assertTrue(m in allowed, "unexpected marker '$m' on $iso")
             if (m.isNotEmpty()) sawSomething = true
@@ -152,5 +152,58 @@ class CyclunaCoreTest {
         assertNotNull(next)
         assertTrue(next > from, "next full moon $next should be after $from")
         assertTrue(CyclunaCore.daysUntilNextFullMoon(from) in 0..31)
+    }
+
+    // --- Per-period end dates ---------------------------------------------------
+
+    @Test
+    fun dayMarkerHonoursEachPeriodsLoggedEnd() {
+        val csv = "2026-05-17,2026-08-11"
+        val ends = "2026-05-17=2026-05-23,2026-08-11=2026-08-13"
+        // The May period ran 7 days; the August one stopped after 3.
+        assertEquals("period", CyclunaCore.dayMarker(csv, ends, 28, 5, "2026-05-23"))
+        assertEquals("none", CyclunaCore.dayMarker(csv, ends, 28, 5, "2026-05-24"))
+        assertEquals("period", CyclunaCore.dayMarker(csv, ends, 28, 5, "2026-08-13"))
+        // Days 4–5 of a period closed early are neither logged nor predicted.
+        assertEquals("none", CyclunaCore.dayMarker(csv, ends, 28, 5, "2026-08-14"))
+        assertEquals("none", CyclunaCore.dayMarker(csv, ends, 28, 5, "2026-08-15"))
+        // The next period is still predicted at the usual length.
+        assertEquals("predicted-period", CyclunaCore.dayMarker(csv, ends, 28, 5, "2026-09-12"))
+    }
+
+    @Test
+    fun dayMarkerSurvivesGarbledEnds() {
+        for (ends in listOf("junk", "2026-08-11=junk", "=", "2026-08-11=2026-08-01", ",,", "a=b=c")) {
+            assertEquals("period", CyclunaCore.dayMarker("2026-08-11", ends, 28, 5, "2026-08-15"), ends)
+        }
+    }
+
+    @Test
+    fun historyPhaseLabelUsesTheLoggedEnd() {
+        val csv = "2026-05-17,2026-08-11"
+        val ends = "2026-05-17=2026-05-23"
+        assertEquals("Menstrual", CyclunaCore.historyPhaseLabel(csv, ends, 28, 5, "2026-05-23"))
+        assertEquals("Follicular", CyclunaCore.historyPhaseLabel(csv, ends, 28, 5, "2026-05-24"))
+        assertEquals("Menstrual", CyclunaCore.historyPhaseLabel(csv, "", 28, 5, "2026-05-21"))
+        assertEquals("Follicular", CyclunaCore.historyPhaseLabel(csv, "", 28, 5, "2026-05-22"))
+    }
+
+    @Test
+    fun currentPeriodLengthIsTheLoggedEndOrTheUsual() {
+        assertEquals(5, CyclunaCore.currentPeriodLength("2026-08-11", "", 5))
+        assertEquals(3, CyclunaCore.currentPeriodLength("2026-08-11", "2026-08-13", 5))
+        assertEquals(1, CyclunaCore.currentPeriodLength("2026-08-11", "2026-08-11", 5))
+        // An end before the start, or garbage, is ignored — never a zero-day period.
+        assertEquals(5, CyclunaCore.currentPeriodLength("2026-08-11", "2026-08-01", 5))
+        assertEquals(5, CyclunaCore.currentPeriodLength("2026-08-11", "junk", 5))
+    }
+
+    @Test
+    fun cyclePhaseLabelFollowsTheLoggedEnd() {
+        // Day 7 of a period that started six days ago.
+        val start = todayMinusDays(6)
+        assertEquals("Follicular", CyclunaCore.cyclePhaseLabel(start, todayMinusDays(1), 28, 5))
+        assertEquals("Menstrual", CyclunaCore.cyclePhaseLabel(start, "", 28, 8))
+        assertEquals("Menstrual", CyclunaCore.cyclePhaseLabel(start, todayMinusDays(0), 28, 5))
     }
 }

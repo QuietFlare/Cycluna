@@ -145,13 +145,13 @@ fun MoodPatternsCard() {
                         val chartModifier = Modifier.fillMaxWidth().height(CHART_HEIGHT)
                         when (store.moodLens) {
                             CycleStore.MoodLens.DAILY -> DailyMoodChart(page, chartModifier)
-                            CycleStore.MoodLens.PHASE -> PhaseMoodChart(page, store.periodLength, chartModifier)
+                            CycleStore.MoodLens.PHASE -> PhaseMoodChart(page, page.periodLength, chartModifier)
                             CycleStore.MoodLens.MOON -> MoonMoodChart(page, chartModifier)
                         }
                         val axisModifier = Modifier.fillMaxWidth().height(axisHeight(store.moodLens))
                         when (store.moodLens) {
                             CycleStore.MoodLens.DAILY -> DailyMoodAxis(page, axisModifier)
-                            CycleStore.MoodLens.PHASE -> PhaseMoodAxis(page, store.periodLength, axisModifier)
+                            CycleStore.MoodLens.PHASE -> PhaseMoodAxis(page, page.periodLength, axisModifier)
                             CycleStore.MoodLens.MOON -> MoonMoodAxis(page, axisModifier)
                         }
                     }

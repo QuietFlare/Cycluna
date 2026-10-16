@@ -131,7 +131,7 @@ struct MoodPatternsCard: View {
     private func chart(for page: CycleStore.MoodPage) -> some View {
         switch store.moodLens {
         case .daily: DailyMoodChart(page: page)
-        case .phase: PhaseMoodChart(page: page, periodLength: store.periodLength)
+        case .phase: PhaseMoodChart(page: page, periodLength: page.periodLength)
         case .moon:  MoonMoodChart(page: page)
         }
     }
@@ -140,7 +140,7 @@ struct MoodPatternsCard: View {
     private func axis(for page: CycleStore.MoodPage) -> some View {
         switch store.moodLens {
         case .daily: DailyMoodAxis(page: page)
-        case .phase: PhaseMoodAxis(page: page, periodLength: store.periodLength)
+        case .phase: PhaseMoodAxis(page: page, periodLength: page.periodLength)
         case .moon:  MoonMoodAxis(page: page, store: store)
         }
     }

@@ -26,11 +26,14 @@ data class MoodSummary(val count: Int, val average: Double)
 /** One cycle as a pageable span. [endIso] is exclusive. */
 data class CycleSpan(val startIso: String, val endIso: String, val length: Int)
 
-/** One cycle's page, built in a single pass over the logs. [endIso] is exclusive. */
+/** One cycle's page, built in a single pass over the logs. [endIso] is exclusive;
+ *  [periodLength] is this cycle's own (its logged end, else the usual length), so the
+ *  chart's menstrual band matches the days the calendar marks. */
 data class CyclePage(
     val startIso: String,
     val endIso: String,
     val length: Int,
+    val periodLength: Int,
     val points: List<MoodPoint>,
     val summary: MoodSummary,
     val insight: MoodInsight?,
@@ -73,7 +76,7 @@ object MoodInsights {
     private fun today(): LocalDate = Clock.System.todayIn(TimeZone.currentSystemDefault())
 
     private fun inputOf(data: CycleData) = CycleInput(
-        periods = data.periodStarts.map { PeriodEntry(LocalDate.parse(it)) },
+        periods = data.periodEntries(),
         averageCycleLength = data.cycleLengthSetting,
         averagePeriodLength = data.periodLength,
     )
@@ -143,13 +146,13 @@ object MoodInsights {
     fun cycleSpans(data: CycleData): List<CycleSpan> = cycleSpans(data, today())
 
     internal fun cycleSpans(data: CycleData, today: LocalDate): List<CycleSpan> {
-        val starts = sortedStarts(data).filter { it <= today }
-        if (starts.isEmpty()) return emptyList()
+        val periods = data.periodEntries().filter { it.start <= today }
+        if (periods.isEmpty()) return emptyList()
         val predicted = Cycle.predictedCycleLength(inputOf(data), today)
-        return starts.mapIndexed { i, start ->
-            val end = if (i < starts.lastIndex) starts[i + 1]
-                      else start.plus(DatePeriod(days = predicted))
-            CycleSpan(start.toString(), end.toString(), start.daysUntil(end))
+        return periods.mapIndexed { i, p ->
+            val end = if (i < periods.lastIndex) periods[i + 1].start
+                      else p.start.plus(DatePeriod(days = predicted))
+            CycleSpan(p.start.toString(), end.toString(), p.start.daysUntil(end))
         }
     }
 
@@ -177,6 +180,7 @@ object MoodInsights {
         if (spans.isEmpty()) return emptyList()
         val bucket = Cycle.phaseBucket(inputOf(data), today)
         val covered = cyclesCovered(data, today)
+        val periodLengths = data.periodEntries().associate { it.start.toString() to it.lengthOr(data.periodLength) }
 
         val parsed = data.moods.mapNotNull { m ->
             runCatching { LocalDate.parse(m.date) }.getOrNull()?.let { it to m.mood }
@@ -191,6 +195,7 @@ object MoodInsights {
                 startIso = span.startIso,
                 endIso = span.endIso,
                 length = span.length,
+                periodLength = periodLengths[span.startIso] ?: data.periodLength,
                 points = inSpan.map { MoodPoint(start.daysUntil(it.first) + 1, it.second) }
                     .sortedBy { it.cycleDay },
                 summary = MoodSummary(moods.size, if (moods.isEmpty()) 0.0 else moods.average()),

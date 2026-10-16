@@ -59,18 +59,31 @@ object CyclunaCore {
     }
 
     // --- Cycle (last-period start given as ISO yyyy-MM-dd) ---
-    private fun inputFrom(lastPeriodStartIso: String, cycleLength: Int, periodLength: Int) =
-        CycleInput(
-            periods = listOf(PeriodEntry(LocalDate.parse(lastPeriodStartIso))),
+    // Functions whose answer depends on how long the CURRENT period is also take its
+    // logged end (`""` while open); the rest only need the start.
+    private fun inputFrom(
+        lastPeriodStartIso: String, cycleLength: Int, periodLength: Int, lastPeriodEndIso: String = "",
+    ): CycleInput {
+        val start = LocalDate.parse(lastPeriodStartIso)
+        return CycleInput(
+            periods = listOf(PeriodEntry(start, parseEnd(lastPeriodEndIso)?.takeIf { it >= start })),
             averageCycleLength = cycleLength,
             averagePeriodLength = periodLength,
         )
+    }
 
-    fun cyclePhaseLabel(lastPeriodStartIso: String, cycleLength: Int, periodLength: Int): String =
-        Cycle.status(inputFrom(lastPeriodStartIso, cycleLength, periodLength)).phase.label
+    private fun parseEnd(iso: String): LocalDate? =
+        iso.trim().takeIf { it.isNotEmpty() }?.let { runCatching { LocalDate.parse(it) }.getOrNull() }
 
-    fun cyclePhaseEmoji(lastPeriodStartIso: String, cycleLength: Int, periodLength: Int): String =
-        Cycle.status(inputFrom(lastPeriodStartIso, cycleLength, periodLength)).phase.emoji
+    fun cyclePhaseLabel(lastPeriodStartIso: String, lastPeriodEndIso: String, cycleLength: Int, periodLength: Int): String =
+        Cycle.status(inputFrom(lastPeriodStartIso, cycleLength, periodLength, lastPeriodEndIso)).phase.label
+
+    fun cyclePhaseEmoji(lastPeriodStartIso: String, lastPeriodEndIso: String, cycleLength: Int, periodLength: Int): String =
+        Cycle.status(inputFrom(lastPeriodStartIso, cycleLength, periodLength, lastPeriodEndIso)).phase.emoji
+
+    /** How long the current period is taken to be: its logged end if closed, else [periodLength]. */
+    fun currentPeriodLength(lastPeriodStartIso: String, lastPeriodEndIso: String, periodLength: Int): Int =
+        Cycle.status(inputFrom(lastPeriodStartIso, 28, periodLength, lastPeriodEndIso)).periodLength
 
     fun cycleDay(lastPeriodStartIso: String, cycleLength: Int, periodLength: Int): Int =
         Cycle.status(inputFrom(lastPeriodStartIso, cycleLength, periodLength)).cycleDay
@@ -133,8 +146,8 @@ object CyclunaCore {
         Cycle.fertileWindowForCycle(LocalDate.parse(cycleStartIso), cycleLength).second.toString()
 
     // --- Per-date lookups for the calendar ---
-    fun phaseLabelForDate(lastPeriodStartIso: String, cycleLength: Int, periodLength: Int, dateIso: String): String =
-        Cycle.phaseForDate(inputFrom(lastPeriodStartIso, cycleLength, periodLength), LocalDate.parse(dateIso))?.label ?: ""
+    fun phaseLabelForDate(lastPeriodStartIso: String, lastPeriodEndIso: String, cycleLength: Int, periodLength: Int, dateIso: String): String =
+        Cycle.phaseForDate(inputFrom(lastPeriodStartIso, cycleLength, periodLength, lastPeriodEndIso), LocalDate.parse(dateIso))?.label ?: ""
 
     fun cycleDayForDate(lastPeriodStartIso: String, cycleLength: Int, periodLength: Int, dateIso: String): Int =
         Cycle.cycleDayForDate(inputFrom(lastPeriodStartIso, cycleLength, periodLength), LocalDate.parse(dateIso)) ?: 0
@@ -156,19 +169,15 @@ object CyclunaCore {
     }
 
     /**
-     * Phase label for a calendar date, on [historyCycleDay]'s anchor rules — same
-     * boundaries as `Cycle.status`. "" before the first logged start.
+     * Phase label for a calendar date, on [historyCycleDay]'s anchor rules — the same
+     * [Cycle.PhaseBucket] the mood lens uses, so the calendar and the chart can never
+     * disagree about a day. "" before the first logged start.
      */
-    fun historyPhaseLabel(periodStartsCsv: String, cycleLength: Int, periodLength: Int, dateIso: String): String {
-        val cycleDay = historyCycleDay(periodStartsCsv, cycleLength, dateIso)
-        if (cycleDay == 0) return ""
-        val half = cycleLength / 2
-        return when {
-            cycleDay <= periodLength -> Phase.MENSTRUAL
-            cycleDay <= half - 2 -> Phase.FOLLICULAR
-            cycleDay <= half + 2 -> Phase.OVULATORY
-            else -> Phase.LUTEAL
-        }.label
+    fun historyPhaseLabel(periodStartsCsv: String, periodEndsCsv: String, cycleLength: Int, periodLength: Int, dateIso: String): String {
+        val date = LocalDate.parse(dateIso)
+        val periods = parsePeriods(periodStartsCsv, periodEndsCsv)
+        if (periods.none { it.start <= date }) return ""
+        return Cycle.PhaseBucket(periods, cycleLength, periodLength).phaseOf(date).label
     }
 
     /**
@@ -179,19 +188,19 @@ object CyclunaCore {
         Cycle.predictedCycleLength(CycleInput(periods = parsePeriods(periodStartsCsv), averageCycleLength = cycleLengthFallback))
 
     /**
-     * Calendar marker for a date. Marks EVERY logged period (from all starts),
-     * plus the current cycle's fertile window + next predicted period.
+     * Calendar marker for a date. Marks EVERY logged period (from all starts, each at its
+     * own length), plus the current cycle's fertile window + next predicted period.
      * One of: period, predicted-period, fertile-peak/high/medium, none.
      */
-    fun dayMarker(periodStartsCsv: String, cycleLength: Int, periodLength: Int, dateIso: String): String {
+    fun dayMarker(periodStartsCsv: String, periodEndsCsv: String, cycleLength: Int, periodLength: Int, dateIso: String): String {
         val date = LocalDate.parse(dateIso)
-        val starts = parsePeriods(periodStartsCsv).map { it.start }.sorted()
+        val periods = parsePeriods(periodStartsCsv, periodEndsCsv)
         // Any logged period (past or current) → solid period.
-        for (s in starts) {
-            val d = s.daysUntil(date)
-            if (d in 0 until periodLength) return "period"
+        for (p in periods) {
+            val d = p.start.daysUntil(date)
+            if (d in 0 until p.lengthOr(periodLength)) return "period"
         }
-        val anchor = starts.lastOrNull() ?: return "none"
+        val anchor = periods.lastOrNull()?.start ?: return "none"
         val daysSince = anchor.daysUntil(date)
         // The past is history, not prediction: before the latest logged start only the
         // logged periods themselves mark the calendar (handled above). Projected periods
@@ -200,7 +209,9 @@ object CyclunaCore {
         if (daysSince < 0) return "none"
         val cycleDay = (daysSince % cycleLength) + 1
         val half = cycleLength / 2
-        if (cycleDay <= periodLength) return "predicted-period"
+        // Only from the next cycle on: in the current one, a period closed early must not
+        // get its missing "usual" days back as a prediction.
+        if (cycleDay <= periodLength && daysSince >= cycleLength) return "predicted-period"
         return when {
             cycleDay == half -> "fertile-peak"
             cycleDay == half - 1 || cycleDay == half + 1 -> "fertile-high"
@@ -214,12 +225,18 @@ object CyclunaCore {
      * entries: an unparseable date here would throw straight out of a calendar cell.
      * Skip what can't be read rather than taking the screen down with it.
      */
-    private fun parsePeriods(csv: String): List<PeriodEntry> =
-        csv.split(",").mapNotNull { s ->
-            s.trim().takeIf { it.isNotEmpty() }
-                ?.let { runCatching { LocalDate.parse(it) }.getOrNull() }
-                ?.let { PeriodEntry(it) }
-        }
+    private fun parsePeriods(csv: String, endsCsv: String = ""): List<PeriodEntry> {
+        val ends = endsCsv.split(",").mapNotNull { pair ->
+            val (start, end) = pair.split("=").map { it.trim() }.takeIf { it.size == 2 } ?: return@mapNotNull null
+            val endDate = runCatching { LocalDate.parse(end) }.getOrNull() ?: return@mapNotNull null
+            start to endDate
+        }.toMap()
+        return csv.split(",").mapNotNull { s ->
+            val iso = s.trim().takeIf { it.isNotEmpty() } ?: return@mapNotNull null
+            val start = runCatching { LocalDate.parse(iso) }.getOrNull() ?: return@mapNotNull null
+            PeriodEntry(start, ends[iso]?.takeIf { it >= start })
+        }.sortedBy { it.start }
+    }
 
     // --- Mood × moon (see MoonMoodInsights) ---
     // Buckets cross the bridge as stable slugs ("waxing-gibbous"), never as enums or dates;

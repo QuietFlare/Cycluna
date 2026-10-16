@@ -46,7 +46,7 @@ final class DerivedWorkPerformanceTests: XCTestCase {
             moods.append(MoodLog(date: f.string(from: d), mood: Int32(1 + (i % 5)), note: ""))
         }
         return CycleData(periodStarts: starts.sorted(), cycleLengthSetting: 28, periodLength: 5,
-                         displayName: "", moods: moods, headaches: [], journal: [])
+                         displayName: "", moods: moods, headaches: [], journal: [], periodEnds: [:])
     }
 
     /// Mirrors refreshDerived()'s call list exactly.
