@@ -1,0 +1,1 @@
+Log when your period ended. The calendar, your phase and the mood patterns follow your real flow instead of a fixed length. Adjust dates now picks start and end on one calendar. The length in Me is the fallback for periods without an end.

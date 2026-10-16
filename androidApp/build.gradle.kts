@@ -35,8 +35,8 @@ val canSignRelease = listOf("storeFile", "storePassword", "keyAlias", "keyPasswo
  * Declared up here so the artifact name can reuse them. `versionCode` must increase for every
  * upload — Play rejects a repeat — while `versionName` is the string users see.
  */
-val appVersionCode = 9
-val appVersionName = "1.0"
+val appVersionCode = 10
+val appVersionName = "1.1"
 
 /**
  * Output artifacts are named for the app, not the Gradle module. Without this they come out
